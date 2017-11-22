@@ -1,2 +1,2 @@
 language: csharp
-solution: SoSmooth.sln
+solution: SoSmooth/SoSmooth.sln
