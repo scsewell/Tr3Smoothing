@@ -10,9 +10,25 @@ namespace SoSmooth
     /// </summary>
     public class Logger : Singleton<Logger>
     {
+        /// <summary>
+        /// The directory of the log files relative to the application launch directory.
+        /// </summary>
         private static readonly string LOG_DIRECTORY    = "Logs" + Path.DirectorySeparatorChar;
+
+        /// <summary>
+        /// The file extention used for log files.
+        /// </summary>
         private static readonly string FILE_EXTENTION   = ".log";
+
+        /// <summary>
+        /// The maximum number of logs before the oldest will be automatically removed.
+        /// </summary>
         private const int   MAX_LOG_COUNT               = 30;
+
+        /// <summary>
+        /// The column start messages at in the log file, used to keep messages aligned
+        /// despite any difference in the length of the time and message type prefix.
+        /// </summary>
         private const int   MESSAGE_START_PADDING       = 32;
 
         private string m_logPath;
@@ -85,6 +101,16 @@ namespace SoSmooth
         public static void Error(string message)
         {
             Instance.LogMessage(message, LogLevel.Error, true);
+        }
+
+        /// <summary>
+        /// Logs the given exception.
+        /// </summary>
+        /// <param name="message">The exception to log.</param>
+        public static void Exception(object exception)
+        {
+            // ToString on exeption objects typically include the stack trace, so we don't need to include it
+            Instance.LogMessage(exception.ToString(), LogLevel.Error, false);
         }
 
         /// <summary>
