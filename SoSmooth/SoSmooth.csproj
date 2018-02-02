@@ -60,10 +60,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main\FileHandler\LineParser.cs" />
+    <Compile Include="Main\FileHandler\Tr3ContourParser.cs" />
     <Compile Include="Main\FileHandler\Tr3FileParser.cs" />
     <Compile Include="Main\MainMenuBar.cs" />
+    <Compile Include="Main\Model\SourcePoint.cs" />
+    <Compile Include="Main\Model\TargetPoint.cs" />
     <Compile Include="Main\Model\Contour.cs" />
+    <Compile Include="Main\Model\ContourType.cs" />
+    <Compile Include="Main\Model\EndConnection.cs" />
     <Compile Include="Main\Model\Model.cs" />
     <Compile Include="Main\SceneWindow.cs" />
     <Compile Include="Main\Utils\Logging\Logger.cs" />

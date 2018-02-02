@@ -24,25 +24,23 @@ namespace SoSmooth
         {
             // listen for any unhandled exceptions
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-
-            LineOptionParser options = new LineOptionParser(args);
-
+            
             // don't log to the console if silent specified
-            Logger.SetEchoToConsole(!options.HasFlag(ARG_SILENT));
+            Logger.SetEchoToConsole(!LineOptionParser.HasFlag(args, ARG_SILENT));
 
             // print the system information
             string os = Environment.OSVersion.VersionString;
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";
             Logger.Info("Running on " + os + " " + platform);
             
-            bool headless = options.HasFlag(ARG_HEADLESS);
+            bool headless = LineOptionParser.HasFlag(args, ARG_HEADLESS);
             if (headless)
             {
                 Logger.Info("Starting in headless mode");
             }
 
             string filePath;
-            if (options.GetValueAsString(ARG_FILE, out filePath))
+            if (LineOptionParser.GetValueAsString(args, ARG_FILE, out filePath))
             {
                 Model model = Tr3FileHandler.Instance.Read(filePath);
             }
