@@ -26,7 +26,7 @@ namespace SoSmooth
         private const int   MAX_LOG_COUNT               = 30;
 
         /// <summary>
-        /// The column start messages at in the log file, used to keep messages aligned
+        /// The column messages start at in the log file, used to keep messages aligned
         /// despite any difference in the length of the time and message type prefix.
         /// </summary>
         private const int   MESSAGE_START_PADDING       = 32;
@@ -114,17 +114,21 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Handles the logging of a message.
+        /// Synchronously handles the writing of a message to the current log file.
         /// </summary>
         /// <param name="message">The message content.</param>
         /// <param name="logLevel">The mesasge type.</param>
+        /// <param name="showStackTrace">If true includes a stack trace.</param>
         private void LogMessage(string message, LogLevel logLevel, bool showStackTrace)
         {
+            // Start log message lines with the date and message type
             string dateTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             string level = string.Format(" [{0}]", logLevel);
 
-            string line = (dateTime + level).PadRight(MESSAGE_START_PADDING) + message + '\n';
+            // Add padding to the line so that the messages start in the same column of the log
+            string line = (dateTime + level).PadRight(MESSAGE_START_PADDING) + message + Environment.NewLine;
 
+            // Include a stack trace if desired
             if (showStackTrace)
             {
                 string[] lines = Environment.StackTrace.Split('\n');
@@ -132,19 +136,22 @@ namespace SoSmooth
                 string stackTrace = "";
                 for (int i = 0; i < lines.Length; i++)
                 {
+                    // Don't include the function calls in the logger in the stack trace, as it is not useful
                     if (i > 2)
                     {
-                        stackTrace += lines[i] + '\n';
+                        stackTrace += lines[i] + Environment.NewLine;
                     }
                 }
                 line += stackTrace;
             }
 
+            // Optionally print the message out to the console
             if (m_echoToConsole)
             {
                 Console.Write(line);
             }
 
+            // Write to the current log file and close the stream
             using (StreamWriter stream = File.AppendText(m_logPath))
             {
                 stream.Write(line);

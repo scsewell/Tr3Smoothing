@@ -1,11 +1,9 @@
-﻿using System.Linq;
-
-namespace SoSmooth
+﻿namespace SoSmooth
 {
     /// <summary>
     /// Handles reading through the command line options for specific arguments.
     /// </summary>
-    public class CommandLineParser
+    public class LineOptionParser
     {
         private string[] m_args;
 
@@ -13,7 +11,7 @@ namespace SoSmooth
         /// Constructor.
         /// </summary>
         /// <param name="args">The command line arguments passed into the application.</param>
-        public CommandLineParser(string[] args)
+        public LineOptionParser(string[] args)
         {
             m_args = args;
         }
@@ -25,7 +23,14 @@ namespace SoSmooth
         /// <returns>True if the flag was in the provided arguments.</returns>
         public bool HasFlag(string flag)
         {
-            return m_args.Any(f => f == flag);
+            for (int i = 0; i < m_args.Length; i++)
+            {
+                if (m_args[i] == flag)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

@@ -8,9 +8,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>SoSmooth</RootNamespace>
     <AssemblyName>SoSmooth</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,6 +51,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,17 +60,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Main\FileHandler\LineParser.cs" />
+    <Compile Include="Main\FileHandler\Tr3FileParser.cs" />
     <Compile Include="Main\MainMenuBar.cs" />
-    <Compile Include="Main\Rendering\ColoredVertex.cs" />
-    <Compile Include="Main\Rendering\VertexBuffer.cs" />
+    <Compile Include="Main\Model\Contour.cs" />
+    <Compile Include="Main\Model\Model.cs" />
     <Compile Include="Main\SceneWindow.cs" />
     <Compile Include="Main\Utils\Logging\Logger.cs" />
-    <Compile Include="Main\Utils\CommandLineParser.cs" />
+    <Compile Include="Main\Utils\LineOptionParser.cs" />
     <Compile Include="Main\MainWindow.cs" />
     <Compile Include="Main\Program.cs" />
     <Compile Include="Main\Utils\Logging\LogLevel.cs" />
     <Compile Include="Main\Utils\Singleton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Main\FileHandler\Tr3FileHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -78,5 +83,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

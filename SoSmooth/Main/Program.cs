@@ -5,7 +5,14 @@ namespace SoSmooth
 {
     public class Program
     {
+        /// <summary>
+        /// The name of the application.
+        /// </summary>
         public const string NAME = "SoSmooth";
+        
+        public const string ARG_SILENT      = "-s";
+        public const string ARG_HEADLESS    = "-h";
+        public const string ARG_FILE        = "-file";
 
         /// <summary>
         /// The main method, called as the executable is started. The
@@ -18,27 +25,36 @@ namespace SoSmooth
             // listen for any unhandled exceptions
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
 
-            CommandLineParser options = new CommandLineParser(args);
+            LineOptionParser options = new LineOptionParser(args);
 
-            // only log to the console if using verbose mode
-            Logger.SetEchoToConsole(options.HasFlag("-v"));
+            // don't log to the console if silent specified
+            Logger.SetEchoToConsole(!options.HasFlag(ARG_SILENT));
 
+            // print the system information
             string os = Environment.OSVersion.VersionString;
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";
             Logger.Info("Running on " + os + " " + platform);
             
+            bool headless = options.HasFlag(ARG_HEADLESS);
+            if (headless)
+            {
+                Logger.Info("Starting in headless mode");
+            }
+
+            string filePath;
+            if (options.GetValueAsString(ARG_FILE, out filePath))
+            {
+                Model model = Tr3FileHandler.Instance.Read(filePath);
+            }
+
             // launch the UI if not using headless mode
-            if (!options.HasFlag("-headless"))
+            if (!headless)
             {
                 Logger.Info("Starting in UI mode");
 
                 Application.Init();
                 MainWindow window = new MainWindow();
                 Application.Run();
-            }
-            else
-            {
-                Logger.Info("Starting in headless mode");
             }
 
             Logger.Info("Exiting application...");
