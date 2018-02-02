@@ -4,7 +4,7 @@ using System.Linq;
 namespace SoSmooth
 {
     /// <summary>
-    /// Represents a single segmentation contour of a structure along a single slice.
+    /// Represents a single segmentation line of a structure along a single slice.
     /// </summary>
     public class Contour
     {
@@ -32,33 +32,38 @@ namespace SoSmooth
         public bool IsOpen { get { return m_isOpen; } }
         private bool m_isOpen;
 
+        private List<Connection> m_inboundConnections = new List<Connection>();
+        private List<Connection> m_startConnections = new List<Connection>();
+        private List<Connection> m_endConnections = new List<Connection>();
+
         /// <summary>
         /// Connections from other contours.
         /// </summary>
-        public IReadOnlyList<Connection> InboundConnections { get { return m_inboundConnections; } }
-        private List<Connection> m_inboundConnections;
+        public IReadOnlyList<Connection> InboundConnections
+        {
+            get { return m_inboundConnections; }
+        }
 
         /// <summary>
         /// Connection from the start point of this contour to another contour.
         /// </summary>
-        public Connection StartConnection { get { return m_startConnection; } }
-        private Connection m_startConnection;
+        public IReadOnlyList<Connection> StartConnections
+        {
+            get { return m_startConnections; }
+        }
 
         /// <summary>
         /// Connection from the end point of this contour to another contour.
         /// </summary>
-        public Connection EndConnection { get { return m_endConnection; } }
-        private Connection m_endConnection;
+        public IReadOnlyList<Connection> EndConnections
+        {
+            get { return m_endConnections; }
+        }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Contour(
-            string name,
-            string description,
-            ContourType type,
-            bool isOpen
-            )
+        public Contour(string name, string description, ContourType type, bool isOpen)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -94,20 +99,21 @@ namespace SoSmooth
         /// <param name="connection">The connection to add.</param>
         public void AddConnection(Connection connection)
         {
+            List<Connection> connections;
+
             if (connection.Source == this)
             {
-                if (connection.SourcePoint == SourcePoint.Start)
-                {
-                    m_startConnection = connection;
-                }
-                else
-                {
-                    m_endConnection = connection;
-                }
+                connections = (connection.SourcePoint == SourcePoint.Start) ? m_startConnections : m_endConnections;
             }
-            else if (!m_inboundConnections.Contains(connection))
+            else
             {
-                m_inboundConnections.Add(connection);
+                connections = m_inboundConnections;
+            }
+
+            // ensure the connection is unique
+            if (!connections.Contains(connection))
+            {
+                connections.Add(connection);
             }
         }
 

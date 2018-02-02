@@ -50,7 +50,9 @@ namespace SoSmooth
         {
             GetSectionLines(fstream);
 
-            Model model = new Model(Tr3ContourParser.ParseLines(m_lines));
+            Model model = new Model();
+            Tr3ContourParser.ParseLines(model, m_lines);
+            model.Initialize();
 
             return model;
         }

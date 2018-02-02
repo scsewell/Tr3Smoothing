@@ -67,7 +67,7 @@
     <Compile Include="Main\Model\TargetPoint.cs" />
     <Compile Include="Main\Model\Contour.cs" />
     <Compile Include="Main\Model\ContourType.cs" />
-    <Compile Include="Main\Model\EndConnection.cs" />
+    <Compile Include="Main\Model\Connection.cs" />
     <Compile Include="Main\Model\Model.cs" />
     <Compile Include="Main\SceneWindow.cs" />
     <Compile Include="Main\Utils\Logging\Logger.cs" />
