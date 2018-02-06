@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 
 namespace SoSmooth
 {
@@ -35,6 +35,8 @@ namespace SoSmooth
         private List<Connection> m_inboundConnections = new List<Connection>();
         private List<Connection> m_startConnections = new List<Connection>();
         private List<Connection> m_endConnections = new List<Connection>();
+
+        private List<Vector3> m_points = new List<Vector3>();
 
         /// <summary>
         /// Connections from other contours.
@@ -91,6 +93,9 @@ namespace SoSmooth
             m_description   = contour.Description;
             m_type          = contour.Type;
             m_isOpen        = contour.IsOpen;
+
+            // copy all points
+            m_points = new List<Vector3>(contour.m_points);
         }
 
         /// <summary>
@@ -115,6 +120,15 @@ namespace SoSmooth
             {
                 connections.Add(connection);
             }
+        }
+
+        /// <summary>
+        /// Adds a point to this contour.
+        /// </summary>
+        /// <param name="point">The point to add.</param>
+        public void AddPoint(Vector3 point)
+        {
+            m_points.Add(point);
         }
 
         /// <summary>

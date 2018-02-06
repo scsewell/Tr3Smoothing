@@ -6,7 +6,7 @@ namespace SoSmooth
     /// <summary>
     /// Parses tr3 files.
     /// </summary>
-    public class Tr3FileParser
+    public class Tr3Parser
     {
         // special names and characters in tr3 file definition
         private const string LINE_COMMENT           = ";";
@@ -31,30 +31,41 @@ namespace SoSmooth
         private const string SECTION_MARKED_VOXELS  = "MARKED_VOXELS";
         private const string SECTION_COSTS          = "COSTS";
         private const string SECTION_END            = "END";
-        
+
         // relevant section lines
-        string m_xy_calc;
-        string m_z_calc;
-        string m_scale;
-        List<string> m_lines = new List<string>();
-        List<string> m_joins = new List<string>();
-        List<string> m_data = new List<string>();
-        List<List<string>> m_subsets = new List<List<string>>();
-        
+        private string m_xy_calc = null;
+        private string m_z_calc = null;
+        private string m_scale = null;
+        private List<string> m_lines = new List<string>();
+        private List<string> m_slices = new List<string>();
+        private List<string> m_joins = new List<string>();
+        private List<string> m_data = new List<string>();
+        private List<List<string>> m_subsets = new List<List<string>>();
+
         /// <summary>
-        /// Creates a model from a tr3 file stream.
+        /// Gets the parsed model.
         /// </summary>
-        /// <param name="fstream">A stream starting from the begining of a tr3 file.</param>
-        /// <returns>The model represeting the file data.</returns>
-        public Model Parse(StreamReader fstream)
+        public Model Model { get { return m_model; } }
+        private Model m_model;
+
+        /// <summary>
+        /// Constructor that parses a tr3 file.
+        /// </summary>
+        /// <param name="file">The tr3 file to parse.</param>
+        public Tr3Parser(FileInfo file)
         {
-            GetSectionLines(fstream);
+            // extract the file's content
+            using (StreamReader fs = new StreamReader(file.FullName))
+            {
+                GetSectionLines(fs);
+            }
 
-            Model model = new Model();
-            Tr3ContourParser.ParseLines(model, m_lines);
-            model.Initialize();
-
-            return model;
+            // parse the content
+            m_model = new Model(file);
+            Tr3SliceParser.ParseLines(m_model, m_slices);
+            Tr3ContourParser.ParseLines(m_model, m_lines);
+            Tr3DataParser.ParseLines(m_model, m_data);
+            m_model.Initialize();
         }
 
         /// <summary>
@@ -76,6 +87,7 @@ namespace SoSmooth
                 if (line.StartsWith(LINE_COMMENT))  { continue; }
                 // line is the begining of a specific section
                 else if (line == SECTION_LINE)      { lineGroup = m_lines; }
+                else if (line == SECTION_SLICES)    { lineGroup = m_slices; }
                 else if (line == SECTION_JOINS)     { lineGroup = m_joins; }
                 else if (line == SECTION_DATA)      { lineGroup = m_data; }
                 else if (line == SECTION_SUBSETS)   { currentSubsection = m_subsets; }
@@ -95,7 +107,7 @@ namespace SoSmooth
                     }
                     lineGroup = null;
                 }
-                else // line is data
+                else // line belongs to content of a section
                 {
                     // create a new subsection if needed
                     if (currentSubsection != null && lineGroup == null)

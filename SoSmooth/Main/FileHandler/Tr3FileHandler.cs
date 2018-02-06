@@ -19,21 +19,17 @@ namespace SoSmooth
             Logger.Info("Parsing .tr3 file at path \"" + fullPath + "\"");
 
             FileInfo fileInfo = new FileInfo(fullPath);
-
             if (!fileInfo.Exists)
             {
                 Logger.Error("File \"" + fullPath + "\" does not exist!");
                 return null;
             }
             
-            using (StreamReader fs = new StreamReader(fileInfo.FullName))
-            {
-                Tr3FileParser parser = new Tr3FileParser();
-                Model model = parser.Parse(fs);
+            Tr3Parser parser = new Tr3Parser(fileInfo);
+            Model model = parser.Model;
 
-                Logger.Info("Finished parsing file");
-                return model;
-            }
+            Logger.Info("Finished parsing file");
+            return model;
         }
     }
 }

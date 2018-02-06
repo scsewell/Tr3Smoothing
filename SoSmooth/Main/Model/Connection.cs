@@ -32,16 +32,16 @@ namespace SoSmooth
         private TargetPoint m_targetPoint;
 
         /// <summary>
-        /// 
+        /// The minimum z position this connection will be exist over.
         /// </summary>
-        public int MinZ { get { return m_minZ; } }
-        private int m_minZ;
+        public float MinZ { get { return m_minZ; } }
+        private float m_minZ;
 
         /// <summary>
-        /// 
+        /// The maximum z position this connection will be exist over.
         /// </summary>
-        public int MaxZ { get { return m_maxZ; } }
-        private int m_maxZ;
+        public float MaxZ { get { return m_maxZ; } }
+        private float m_maxZ;
 
         /// <summary>
         /// The contour that connects to the target.
@@ -63,8 +63,8 @@ namespace SoSmooth
             string targetName,
             SourcePoint sourcePoint,
             TargetPoint targetPoint,
-            int minZ,
-            int maxZ)
+            float minZ,
+            float maxZ)
         {
             m_sourceName = sourceName;
             m_targetName = targetName;
@@ -123,10 +123,12 @@ namespace SoSmooth
         /// </summary>
         public override string ToString()
         {
-            string range = (MinZ == int.MinValue ? "(" : "[" + MinZ) + ',' + (MaxZ == int.MaxValue ? ")" : MaxZ + "]");
+            string min = (MinZ == float.MinValue ? "(" : "[" + MinZ.ToString("N2"));
+            string max = (MaxZ == float.MaxValue ? ")" : MaxZ.ToString("N2") + "]");
+            string range = min + ',' + max;
 
             return string.Format(
-                "{0} {1} point to {2} {3} point over slices {4}", 
+                "{0} {1} point to {2} {3} point over range {4}", 
                 m_sourceName, m_sourcePoint, m_targetName, m_targetPoint, range
                 );
         }

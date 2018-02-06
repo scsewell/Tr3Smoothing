@@ -61,8 +61,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main\FileHandler\Tr3ContourParser.cs" />
-    <Compile Include="Main\FileHandler\Tr3FileParser.cs" />
+    <Compile Include="Main\FileHandler\Tr3DataParser.cs" />
+    <Compile Include="Main\FileHandler\Tr3Parser.cs" />
+    <Compile Include="Main\FileHandler\Tr3SliceParser.cs" />
     <Compile Include="Main\MainMenuBar.cs" />
+    <Compile Include="Main\Model\Slice.cs" />
     <Compile Include="Main\Model\SourcePoint.cs" />
     <Compile Include="Main\Model\TargetPoint.cs" />
     <Compile Include="Main\Model\Contour.cs" />

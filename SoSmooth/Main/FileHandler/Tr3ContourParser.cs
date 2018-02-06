@@ -6,7 +6,7 @@ namespace SoSmooth
     /// <summary>
     /// Parses a tr3 file contour definition.
     /// </summary>
-    public class Tr3ContourParser
+    public static class Tr3ContourParser
     {
         private static readonly string[] MAIN_SEPERATORS = new string[] { ":", "  " };
         private static readonly char[] SPACE_SEPERATOR = new char[] { ' ' };
@@ -39,18 +39,14 @@ namespace SoSmooth
             foreach (string line in lines)
             {
                 // split the line into name, qualifiers, and description portions
-                string[] mainSplit = line.Split(MAIN_SEPERATORS, StringSplitOptions.RemoveEmptyEntries);
+                string[] mainSplit = line.Split(MAIN_SEPERATORS, StringSplitOptions.None);
 
                 // get the name and description
                 string name = mainSplit[0];
-                string desc = mainSplit[mainSplit.Length - 1];
+                string desc = mainSplit[2];
                 
                 // split the qualifiers section by spaces to separate arguments
-                string[] args = null;
-                if (mainSplit.Length > 2)
-                {
-                    args = mainSplit[1].Split(SPACE_SEPERATOR, StringSplitOptions.RemoveEmptyEntries);
-                }
+                string[] args = mainSplit[1].Split(SPACE_SEPERATOR, StringSplitOptions.RemoveEmptyEntries);
 
                 // if there are qualifiers given, check for relevant options
                 bool isOpen = GetIsOpen(args);
@@ -118,8 +114,8 @@ namespace SoSmooth
                 {
                     string targetName;
                     TargetPoint targetPoint;
-                    int minZ = int.MinValue;
-                    int maxZ = int.MaxValue;
+                    float minZ = float.MinValue;
+                    float maxZ = float.MaxValue;
 
                     if (GetTargetPoint(args[index], out targetPoint))
                     {
@@ -159,23 +155,23 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Parses a range value from the connection arguments
+        /// Parses a range value from the connection arguments.
         /// </summary>
-        /// <param name="arg">The value to parse, including = and deciman point.</param>
-        /// <param name="val">The int to store the parsed value in.</param>
+        /// <param name="arg">The value to parse, including = and decimal point.</param>
+        /// <param name="val">The variable to store the parsed value in.</param>
         /// <param name="isMin">True if parsing the lower bound of the range.</param>
-        private static void ParseRange(string arg, ref int val, bool isMin)
+        private static void ParseRange(string arg, ref float val, bool isMin)
         {
             bool isEqual = arg.StartsWith("=");
             if (arg.Length > (isEqual ? 1 : 0))
             {
                 if (isEqual)
                 {
-                    val = int.Parse(arg.Substring(1, arg.Length - 2));
+                    val = float.Parse(arg.Substring(1, arg.Length - 1));
                 }
                 else
                 {
-                    val = int.Parse(arg.Substring(0, arg.Length - 1)) + (isMin ? 1 : -1);
+                    val = float.Parse(arg) + (isMin ? 1 : -1);
                 }
             }
         }
