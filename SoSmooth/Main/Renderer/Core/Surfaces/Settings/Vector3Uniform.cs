@@ -1,7 +1,7 @@
 ﻿using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// This class represents a GLSL Vector3 uniform.

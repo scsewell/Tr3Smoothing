@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using OpenTK;
 
-namespace SoSmooth.Scene
+namespace SoSmooth.Scenes
 {
     /// <summary>
     /// Stores spatial orientation and scenegraph heirarchy data.

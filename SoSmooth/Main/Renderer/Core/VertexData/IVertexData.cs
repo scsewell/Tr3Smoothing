@@ -1,6 +1,6 @@
 ﻿using OpenTK;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// This interface must be implemented by any custom vertex data.

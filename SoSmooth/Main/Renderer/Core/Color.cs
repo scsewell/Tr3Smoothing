@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// A struct representing a 32-bit argb colour.

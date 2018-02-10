@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// This class contains helper types and methods to easily create vertex attribute layouts.

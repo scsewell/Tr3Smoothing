@@ -1,6 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// This class represents an indexed vertex buffer object, that can be draws with a specified <see cref="BeginMode"/>.

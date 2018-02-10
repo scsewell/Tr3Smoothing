@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// Loads shaders files embedded into the assembly.

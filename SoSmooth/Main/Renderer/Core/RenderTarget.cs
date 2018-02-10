@@ -2,7 +2,7 @@ using System;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderer.Meshes
+namespace SoSmooth.Renderering.Meshes
 {
     /// <summary>
     /// This class represents an OpenGL framebuffer object that can be rendered to.

@@ -1,8 +1,8 @@
-﻿using SoSmooth.Renderer;
-using SoSmooth.Renderer.Meshes;
+﻿using SoSmooth.Renderering;
+using SoSmooth.Renderering.Meshes;
 using OpenTK;
 
-namespace SoSmooth.Scene
+namespace SoSmooth.Scenes
 {
     /// <summary>
     /// Component that handles the rendering of a mesh.

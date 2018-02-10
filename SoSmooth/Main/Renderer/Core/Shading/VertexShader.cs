@@ -1,7 +1,7 @@
 using System.IO;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     /// <summary>
     /// This class represents a GLSL vertex shader.

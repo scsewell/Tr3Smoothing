@@ -1,17 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SoSmooth.Scene
+namespace SoSmooth.Scenes
 {
     /// <summary>
     /// Represents an object that can exist in the scene.
     /// </summary>
     public class Entity
     {
-        private string m_name;
         private Scene m_scene;
+        private string m_name;
         private List<Component> m_components;
         private Transform m_transform;
+        
+        /// <summary>
+        /// The scene this entity belongs to.
+        /// </summary>
+        public Scene Scene
+        {
+            get { return m_scene; }
+            set
+            {
+                if (m_scene != value)
+                {
+                    SetScene(value);
+                }
+            }
+        }
 
         /// <summary>
         /// The name of this entity.
@@ -19,7 +34,13 @@ namespace SoSmooth.Scene
         public string Name
         {
             get { return m_name; }
-            set { SetName(value); }
+            set
+            {
+                if (m_name != value)
+                {
+                    SetName(value);
+                }
+            }
         }
         
         /// <summary>
@@ -28,14 +49,6 @@ namespace SoSmooth.Scene
         public Transform Transform
         {
             get { return m_transform; }
-        }
-
-        /// <summary>
-        /// The scene this entity belongs to.
-        /// </summary>
-        public Scene Scene
-        {
-            get { return m_scene; }
         }
 
         /// <summary>
@@ -51,32 +64,29 @@ namespace SoSmooth.Scene
             SetScene(scene);
             SetName(name);
         }
-        
+
         /// <summary>
         /// Changes the scene that this entity belongs to. Will also set
         /// the scene for all children. Clears the parent, putting this
         /// entity in the top level of the new scene's heirarchy.
         /// </summary>
         /// <param name="scene">The new scene. Must not be null.</param>
-        public void SetScene(Scene scene)
+        private void SetScene(Scene scene)
         {
-            if (m_scene != scene)
+            if (scene == null)
             {
-                if (scene == null)
-                {
-                    throw new ArgumentException("Entity scene must not be null.");
-                }
-                Transform.SetParent(null);
-                scene.AddEntity(this);
-                TraverseHeirarchy((entity) => entity.m_scene = scene);
+                throw new ArgumentException("Entity scene must not be null.");
             }
+            Transform.SetParent(null);
+            Scene.OnSceneChange(this, m_scene, scene);
+            TraverseHeirarchy((entity) => entity.m_scene = scene);
         }
 
         /// <summary>
         /// Checks if a name is valid to use and sets it.
         /// </summary>
         /// <param name="name">The name of the entity. Must be non-null and non-whitespace only.</param>
-        public void SetName(string name)
+        private void SetName(string name)
         {
             if (name == null)
             {
@@ -178,8 +188,10 @@ namespace SoSmooth.Scene
         /// <param name="newParent">The new parent transform.</param>
         private void OnChangeParent(Transform oldParent, Transform newParent)
         {
+            // ensure that this entity and all children inherit the scene of the new parent 
             if (newParent != null)
             {
+                Scene.OnSceneChange(this, m_scene, newParent.Entity.Scene);
                 TraverseHeirarchy((entity) => entity.m_scene = newParent.Entity.Scene);
             }
         }

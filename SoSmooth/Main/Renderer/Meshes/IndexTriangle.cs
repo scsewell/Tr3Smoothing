@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace SoSmooth.Renderer.Meshes
+namespace SoSmooth.Renderering.Meshes
 {
     /// <summary>
     /// A triplet of vertex indices, representing a triangle.

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     public static class Extensions
     {

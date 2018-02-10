@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Scene
+﻿namespace SoSmooth.Scenes
 {
     public interface IRenderable
     {

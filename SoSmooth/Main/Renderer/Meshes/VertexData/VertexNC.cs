@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using OpenTK;
 
-namespace SoSmooth.Renderer.Meshes
+namespace SoSmooth.Renderering.Meshes
 {
     /// <summary>
     /// A basic vertex for mesh rendering. Consists of a position, normal, and color.

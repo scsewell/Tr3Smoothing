@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Scene
+﻿namespace SoSmooth.Scenes
 {
     /// <summary>
     /// Represents a component that can be added to an entity.

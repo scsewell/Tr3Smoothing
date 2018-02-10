@@ -3,7 +3,7 @@ using System;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     internal class VertexArray<TVertexData> : IVertexAttributeProvider<TVertexData>, IDisposable where TVertexData : struct, IVertexData
     {

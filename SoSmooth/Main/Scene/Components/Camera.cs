@@ -1,14 +1,22 @@
 ﻿using System;
 using OpenTK;
 
-namespace SoSmooth.Scene
+namespace SoSmooth.Scenes
 {
     /// <summary>
     /// Represents a scene camera.
     /// </summary>
     public class Camera : Component
     {
+        private int m_resolutionX;
+        private int m_resolutionY;
+
         private float m_fieldOfView = 60.0f;
+        private float m_nearClip = 0.01f;
+        private float m_farClip = 100;
+
+        private Matrix4 m_projectionMatrix;
+        private bool m_projectionMatDirty = true;
 
         /// <summary>
         /// The vertical field of view of this camera in degrees.
@@ -27,8 +35,6 @@ namespace SoSmooth.Scene
             }
         }
         
-        private float m_nearClip = 0.01f;
-
         /// <summary>
         /// The distance of the near clip plane before which nothing is rendered.
         /// Has the range [0, infinity).
@@ -45,8 +51,6 @@ namespace SoSmooth.Scene
                 }
             }
         }
-
-        private float m_farClip = 100;
 
         /// <summary>
         /// The distance of the far clip plane after which nothing is rendered.
@@ -65,9 +69,6 @@ namespace SoSmooth.Scene
             }
         }
 
-        private Matrix4 m_projectionMatrix;
-        private bool m_projectionMatDirty = true;
-
         /// <summary>
         /// Gets the projection matrix of this camera.
         /// </summary>
@@ -79,7 +80,7 @@ namespace SoSmooth.Scene
                 {
                     Matrix4.CreatePerspectiveFieldOfView(
                         MathHelper.DegreesToRadians(m_fieldOfView),
-                        1.5f,
+                        ((float)m_resolutionX) / m_resolutionY,
                         m_nearClip, 
                         m_farClip,
                         out m_projectionMatrix);
@@ -103,7 +104,18 @@ namespace SoSmooth.Scene
         /// </summary>
         public Camera(Entity entity) : base(entity)
         {
+        }
 
+        /// <summary>
+        /// Sets the rendering resolution of this camera.
+        /// </summary>
+        /// <param name="resX">The horizontal rendering resolution in pixels.</param>
+        /// <param name="resY">The vertical rendering resolution in pixels.</param>
+        public void SetResolution(int resX, int resY)
+        {
+            m_resolutionX = resX;
+            m_resolutionY = resY;
+            m_projectionMatDirty = true;
         }
     }
 }

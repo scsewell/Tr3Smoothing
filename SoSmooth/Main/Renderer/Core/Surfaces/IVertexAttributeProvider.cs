@@ -1,4 +1,4 @@
-namespace SoSmooth.Renderer
+namespace SoSmooth.Renderering
 {
     public interface IVertexAttributeProvider<TVertexData> where TVertexData : struct, IVertexData
     {
