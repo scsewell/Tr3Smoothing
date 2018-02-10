@@ -1,5 +1,4 @@
-﻿using System;
-using Gtk;
+﻿using Gtk;
 
 namespace SoSmooth
 {
@@ -26,14 +25,37 @@ namespace SoSmooth
             
             MainMenuBar menuBar = new MainMenuBar(this);
             m_sceneWindow = new SceneWindow();
-            
+
             VBox vBox = new VBox(false, 0);
             vBox.PackStart(menuBar.MenuBar, false, false, 0);
             vBox.PackStart(m_sceneWindow.Widget, true, true, 0);
 
             Add(vBox);
             ShowAll();
+
+            KeyPressEvent += MainWindow_KeyPressEvent;
+            KeyReleaseEvent += MainWindow_KeyReleaseEvent;
+            ButtonPressEvent += MainWindow_ButtonPressEvent;
         }
+
+        [GLib.ConnectBefore]
+        private void MainWindow_ButtonPressEvent(object o, ButtonPressEventArgs args)
+        {
+            //Logger.Debug(args.Event.Button.ToString());
+        }
+
+        [GLib.ConnectBefore]
+        private void MainWindow_KeyReleaseEvent(object o, KeyReleaseEventArgs args)
+        {
+            //Logger.Debug(args.Event.Key.ToString());
+        }
+
+        [GLib.ConnectBefore]
+        private void MainWindow_KeyPressEvent(object o, KeyPressEventArgs args)
+        {
+            //Logger.Debug(args.Event.Key.ToString());
+        }
+
 
         private void OnDeleteEvent(object sender, DeleteEventArgs a)
         {

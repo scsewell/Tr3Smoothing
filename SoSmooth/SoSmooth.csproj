@@ -60,11 +60,57 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main\FileHandler\Tr3ContourParser.cs" />
-    <Compile Include="Main\FileHandler\Tr3DataParser.cs" />
-    <Compile Include="Main\FileHandler\Tr3Parser.cs" />
-    <Compile Include="Main\FileHandler\Tr3SliceParser.cs" />
-    <Compile Include="Main\MainMenuBar.cs" />
+    <Compile Include="Main\IO\Tr3\Tr3ContourParser.cs" />
+    <Compile Include="Main\IO\Tr3\Tr3DataParser.cs" />
+    <Compile Include="Main\IO\Tr3\Tr3Parser.cs" />
+    <Compile Include="Main\IO\Tr3\Tr3SliceParser.cs" />
+    <Compile Include="Main\Renderer\Core\Color.cs" />
+    <Compile Include="Main\Renderer\Core\Extensions.cs" />
+    <Compile Include="Main\Renderer\Core\IndexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\RenderTarget.cs" />
+    <Compile Include="Main\Renderer\Core\Shading\FragmentShader.cs" />
+    <Compile Include="Main\Renderer\Core\Shading\GeometryShader.cs" />
+    <Compile Include="Main\Renderer\Core\Shading\Shader.cs" />
+    <Compile Include="Main\Renderer\Core\Shading\ShaderProgram.cs" />
+    <Compile Include="Main\Renderer\Core\Shading\VertexAttribute.cs" />
+    <Compile Include="Main\Renderer\Core\Shading\VertexShader.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\BatchedVertexSurface.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\ExpandingVertexSurface.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\IndexedSurface.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\IVertexAttributeProvider.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\ColorUniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\FloatUniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\Matrix4Uniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\PolygonModeSetting.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\SurfaceBlendSetting.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\SurfaceDepthMaskSetting.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\SurfaceSetting.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\TextureUniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector2Uniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector3Uniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector4Uniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\StaticVertexSurface.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Surface.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\VertexArray.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\VertexSurface.cs" />
+    <Compile Include="Main\Renderer\Core\Texture.cs" />
+    <Compile Include="Main\Renderer\Core\VertexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\IVertexData.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\VertexData.cs" />
+    <Compile Include="Main\Renderer\Meshes\IndexTriangle.cs" />
+    <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
+    <Compile Include="Main\Renderer\Meshes\Mesh.cs" />
+    <Compile Include="Main\Renderer\Meshes\VertexData\VertexNC.cs" />
+    <Compile Include="Main\Renderer\Shaders\ShaderManager.cs" />
+    <Compile Include="Main\Scene\Component.cs" />
+    <Compile Include="Main\Scene\Components\Camera.cs" />
+    <Compile Include="Main\Scene\Components\MeshRenderer.cs" />
+    <Compile Include="Main\Scene\Entity.cs" />
+    <Compile Include="Main\Scene\Components\Transform.cs" />
+    <Compile Include="Main\Scene\Components\IRenderable.cs" />
+    <Compile Include="Main\Scene\Scene.cs" />
+    <Compile Include="Main\Time.cs" />
+    <Compile Include="Main\UI\MainMenuBar.cs" />
     <Compile Include="Main\Model\Slice.cs" />
     <Compile Include="Main\Model\SourcePoint.cs" />
     <Compile Include="Main\Model\TargetPoint.cs" />
@@ -72,24 +118,39 @@
     <Compile Include="Main\Model\ContourType.cs" />
     <Compile Include="Main\Model\Connection.cs" />
     <Compile Include="Main\Model\Model.cs" />
-    <Compile Include="Main\SceneWindow.cs" />
+    <Compile Include="Main\UI\SceneWindow.cs" />
     <Compile Include="Main\Utils\Logging\Logger.cs" />
     <Compile Include="Main\Utils\LineOptionParser.cs" />
-    <Compile Include="Main\MainWindow.cs" />
+    <Compile Include="Main\UI\MainWindow.cs" />
     <Compile Include="Main\Program.cs" />
     <Compile Include="Main\Utils\Logging\LogLevel.cs" />
     <Compile Include="Main\Utils\Singleton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Main\FileHandler\Tr3FileHandler.cs" />
+    <Compile Include="Main\IO\Tr3\Tr3FileHandler.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="Main\Renderer\Shaders\unlit.frag" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\unlit.vert" />
     <None Include="OpenTK.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Main\IO\VRML\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

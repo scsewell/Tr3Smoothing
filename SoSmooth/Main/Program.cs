@@ -27,12 +27,14 @@ namespace SoSmooth
             
             // don't log to the console if silent specified
             Logger.SetEchoToConsole(!LineOptionParser.HasFlag(args, ARG_SILENT));
-
+            
             // print the system information
             string os = Environment.OSVersion.VersionString;
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";
             Logger.Info("Running on " + os + " " + platform);
             
+            Time.SetStartTime();
+
             bool headless = LineOptionParser.HasFlag(args, ARG_HEADLESS);
             if (headless)
             {

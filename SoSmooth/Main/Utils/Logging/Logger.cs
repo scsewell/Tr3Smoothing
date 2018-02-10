@@ -68,12 +68,30 @@ namespace SoSmooth
         }
 
         /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        public static void Info(object o)
+        {
+            Info(o.ToString());
+        }
+
+        /// <summary>
         /// Logs the given info message.
         /// </summary>
         /// <param name="message">The message to log.</param>
         public static void Info(string message)
         {
             Instance.LogMessage(message, LogLevel.Info, false);
+        }
+
+        /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        public static void Debug(object o)
+        {
+            Debug(o.ToString());
         }
 
         /// <summary>
@@ -84,7 +102,16 @@ namespace SoSmooth
         {
             Instance.LogMessage(message, LogLevel.Debug, false);
         }
-        
+
+        /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        public static void Warning(object o)
+        {
+            Warning(o.ToString());
+        }
+
         /// <summary>
         /// Logs the given warning message.
         /// </summary>
@@ -93,7 +120,16 @@ namespace SoSmooth
         {
             Instance.LogMessage(message, LogLevel.Warning, false);
         }
-        
+
+        /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        public static void Error(object o)
+        {
+            Error(o.ToString());
+        }
+
         /// <summary>
         /// Logs the given error message.
         /// </summary>

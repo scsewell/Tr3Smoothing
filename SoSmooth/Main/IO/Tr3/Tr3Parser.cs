@@ -38,7 +38,6 @@ namespace SoSmooth
         private string m_scale = null;
         private List<string> m_lines = new List<string>();
         private List<string> m_slices = new List<string>();
-        private List<string> m_joins = new List<string>();
         private List<string> m_data = new List<string>();
         private List<List<string>> m_subsets = new List<List<string>>();
 
@@ -88,7 +87,6 @@ namespace SoSmooth
                 // line is the begining of a specific section
                 else if (line == SECTION_LINE)      { lineGroup = m_lines; }
                 else if (line == SECTION_SLICES)    { lineGroup = m_slices; }
-                else if (line == SECTION_JOINS)     { lineGroup = m_joins; }
                 else if (line == SECTION_DATA)      { lineGroup = m_data; }
                 else if (line == SECTION_SUBSETS)   { currentSubsection = m_subsets; }
                 else if (line == SECTION_XY_CALC)   { m_xy_calc = ReadLine(fstream, ref lineNumber); }

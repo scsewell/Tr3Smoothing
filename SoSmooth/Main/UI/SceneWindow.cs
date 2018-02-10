@@ -35,6 +35,23 @@ namespace SoSmooth
             m_glWidget.Name = "glWindow";
             m_glWidget.Initialized += GLWidgetInitialize;
             m_glWidget.SizeAllocated += OnResize;
+
+            m_viewportDirty = true;
+            
+            m_glWidget.KeyPressEvent += KeyPressEvent;
+            m_glWidget.KeyReleaseEvent += KeyReleaseEvent;
+        }
+
+        [ConnectBefore]
+        private void KeyPressEvent(object o, Gtk.KeyPressEventArgs args)
+        {
+            Logger.Debug(args.Event.Key.ToString());
+        }
+
+        [ConnectBefore]
+        private void KeyReleaseEvent(object o, Gtk.KeyReleaseEventArgs args)
+        {
+            Logger.Debug(args.Event.Key.ToString());
         }
 
         /// <summary>
@@ -88,11 +105,29 @@ namespace SoSmooth
             }
         }
 
+        private Scene.Camera m_camera;
+        private Scene.Entity m_entity;
+
         /// <summary>
         /// Renders a frame.
         /// </summary>
         private void RenderFrame()
         {
+            Time.FrameStart();
+
+            if (m_entity == null)
+            {
+                Scene.Entity cam = new Scene.Entity("Camera");
+                m_camera = new Scene.Camera(cam);
+                m_camera.Transform.LocalPosition = new Vector3(0, -5, 0);
+                m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2);
+
+                m_entity = new Scene.Entity("Cube");
+                Scene.MeshRenderer renderer = new Scene.MeshRenderer(m_entity);
+                renderer.SetMesh(Renderer.Meshes.Mesh<Renderer.Meshes.VertexNC>.CreateDirectionThing());
+                renderer.SetProgram(Renderer.ShaderManager.Instance.GetProgram("unlit"));
+            }
+
             // Resize the view if it has been changed.
             if (m_viewportDirty)
             {
@@ -101,17 +136,11 @@ namespace SoSmooth
             
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref modelview);
+            m_camera.Transform.LocalPosition = new Vector3(0, -5 + (float)Math.Sin(Time.time), 0);
+            m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2 * (float)Math.Sin(Time.time));
 
-            GL.Begin(PrimitiveType.Triangles);
-
-            GL.Color3(0.2f, 0.9f, 1.0f); GL.Vertex3(0.0f, 1.0f, 4.0f);
-            GL.Color3(1.0f, 0.0f, 0.0f); GL.Vertex3(1.0f, -1.0f, 4.0f);
-            GL.Color3(1.0f, 1.0f, 0.0f); GL.Vertex3(-1.0f, -1.0f, 4.0f);
-
-            GL.End();
+            m_entity.Transform.LocalPosition = new Vector3(0, 0, 0);
+            m_entity.GetComponent<Scene.MeshRenderer>().Render(m_camera);
 
             GraphicsContext.CurrentContext.SwapBuffers();
         }
@@ -124,11 +153,7 @@ namespace SoSmooth
             GL.Viewport(0, 0, m_glWidth, m_glHeight);
 
             float aspectRatio = ((float)m_glWidth) / m_glHeight;
-
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, aspectRatio, 0.1f, 100.0f);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref projection);
-
+            
             m_viewportDirty = false;
         }
     }

@@ -36,10 +36,26 @@ namespace SoSmooth
                     string[] split = line.Split(SPACE_SEPERATOR, StringSplitOptions.RemoveEmptyEntries);
 
                     string imgPath = Path.Combine(imgDir, split[1]);
-                    float z         = float.Parse(split[2]);
-                    float rotation  = float.Parse(split[3]);
-                    float offsetX   = float.Parse(split[4]);
-                    float offsetY   = float.Parse(split[5]);
+
+                    float z = 0;
+
+                    // z coord is specified
+                    if (split.Length > 2)
+                    {
+                        z = float.Parse(split[2]);
+                    }
+
+                    float rotation = 0;
+                    float offsetX = 0;
+                    float offsetY = 0;
+
+                    // rotation and offset specified
+                    if (split.Length > 3)
+                    {
+                        rotation  = float.Parse(split[3]);
+                        offsetX   = float.Parse(split[4]);
+                        offsetY   = float.Parse(split[5]);
+                    }
 
                     model.AddSlice(new Slice(count, imgPath, z, rotation, offsetX, offsetY));
 
