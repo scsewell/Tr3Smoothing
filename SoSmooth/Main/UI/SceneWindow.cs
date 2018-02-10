@@ -105,8 +105,11 @@ namespace SoSmooth
             }
         }
 
+        private Scene.Scene m_scene;
         private Scene.Camera m_camera;
-        private Scene.Entity m_entity;
+        private Scene.Entity m_camChild;
+        private Scene.Entity m_entity1;
+        private Scene.Entity m_entity2;
 
         /// <summary>
         /// Renders a frame.
@@ -115,17 +118,36 @@ namespace SoSmooth
         {
             Time.FrameStart();
 
-            if (m_entity == null)
+            if (m_scene == null)
             {
-                Scene.Entity cam = new Scene.Entity("Camera");
+                m_scene = new Scene.Scene();
+
+                Scene.Entity cam = new Scene.Entity(m_scene, "Camera");
                 m_camera = new Scene.Camera(cam);
                 m_camera.Transform.LocalPosition = new Vector3(0, -5, 0);
                 m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2);
 
-                m_entity = new Scene.Entity("Cube");
-                Scene.MeshRenderer renderer = new Scene.MeshRenderer(m_entity);
+                m_camChild = new Scene.Entity(m_scene, "CamChildCube");
+                m_camChild.Transform.LocalPosition = new Vector3(0, 0, -8);
+                m_camChild.Transform.SetParent(cam.Transform, false);
+                Logger.Debug(m_camChild.Transform.LocalToWorldMatix);
+                Scene.MeshRenderer camChildRenderer = new Scene.MeshRenderer(m_camChild);
+                camChildRenderer.SetMesh(Renderer.Meshes.Mesh<Renderer.Meshes.VertexNC>.CreateCube());
+                camChildRenderer.SetProgram(Renderer.ShaderManager.Instance.GetProgram("unlit"));
+
+                m_entity1 = new Scene.Entity(m_scene, "Cube");
+                Scene.MeshRenderer renderer = new Scene.MeshRenderer(m_entity1);
                 renderer.SetMesh(Renderer.Meshes.Mesh<Renderer.Meshes.VertexNC>.CreateDirectionThing());
                 renderer.SetProgram(Renderer.ShaderManager.Instance.GetProgram("unlit"));
+
+                m_entity2 = new Scene.Entity(m_scene, "Cube2");
+                m_entity2.Transform.Parent = m_entity1.Transform;
+                m_entity2.Transform.LocalPosition = new Vector3(-1, 1, 1);
+                Scene.MeshRenderer renderer2 = new Scene.MeshRenderer(m_entity2);
+                renderer2.SetMesh(Renderer.Meshes.Mesh<Renderer.Meshes.VertexNC>.CreateDirectionThing());
+                renderer2.SetProgram(Renderer.ShaderManager.Instance.GetProgram("unlit"));
+
+                Logger.Debug(m_entity1.GetComponentsInChildren<Scene.Transform>().Count);
             }
 
             // Resize the view if it has been changed.
@@ -136,11 +158,23 @@ namespace SoSmooth
             
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            m_camera.Transform.LocalPosition = new Vector3(0, -5 + (float)Math.Sin(Time.time), 0);
-            m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2 * (float)Math.Sin(Time.time));
+            //m_camera.Transform.LocalPosition = new Vector3(0, -5 + (float)Math.Sin(Time.time), 0);
+            //m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2 * (float)Math.Sin(Time.time));
 
-            m_entity.Transform.LocalPosition = new Vector3(0, 0, 0);
-            m_entity.GetComponent<Scene.MeshRenderer>().Render(m_camera);
+            //m_entity1.Transform.LocalScale = new Vector3((float)Math.Sin(Time.time) + 2, 1, 1);
+            m_entity1.Transform.LocalPosition = new Vector3((float)Math.Sin(Time.time), 0, 0);
+            m_entity1.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time);
+
+            m_entity2.Transform.LocalScale = new Vector3((float)Math.Sin(Time.time) + 2, 1, 1);
+            m_entity2.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time).Inverted();
+
+            m_camera.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
+
+            m_entity1.GetComponent<Scene.MeshRenderer>().Render(m_camera);
+            m_entity2.GetComponent<Scene.MeshRenderer>().Render(m_camera);
+            m_camChild.GetComponent<Scene.MeshRenderer>().Render(m_camera);
+
+            Logger.Debug(m_camChild.Transform.Root);
 
             GraphicsContext.CurrentContext.SwapBuffers();
         }

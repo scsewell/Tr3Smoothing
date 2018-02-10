@@ -60,7 +60,7 @@ namespace SoSmooth.Scene
                 m_modelMatUniform.Matrix = Entity.Transform.LocalToWorldMatix;
                 m_viewMatUniform.Matrix = camera.ViewMatrix;
                 m_projMatUniform.Matrix = camera.ProjectionMatrix;
-                
+
                 m_surface.Render();
             }
         }

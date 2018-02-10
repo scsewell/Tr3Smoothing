@@ -23,13 +23,13 @@ namespace SoSmooth
         /// <summary>
         /// The maximum number of logs before the oldest will be automatically removed.
         /// </summary>
-        private const int   MAX_LOG_COUNT               = 30;
+        private const int MAX_LOG_COUNT = 30;
 
         /// <summary>
         /// The column messages start at in the log file, used to keep messages aligned
         /// despite any difference in the length of the time and message type prefix.
         /// </summary>
-        private const int   MESSAGE_START_PADDING       = 32;
+        private const int MESSAGE_START_PADDING = 32;
 
         private string m_logPath;
         private bool m_echoToConsole;
@@ -71,72 +71,79 @@ namespace SoSmooth
         /// Logs the given object.
         /// </summary>
         /// <param name="o">An object to print.</param>
-        public static void Info(object o)
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Info(object o, bool printStackTrace = false)
         {
-            Info(o.ToString());
+            Info(o.ToString(), printStackTrace);
+        }
+
+        /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Debug(object o, bool printStackTrace = false)
+        {
+            Debug(o.ToString(), printStackTrace);
+        }
+
+        /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Warning(object o, bool printStackTrace = false)
+        {
+            Warning(o.ToString(), printStackTrace);
+        }
+
+        /// <summary>
+        /// Logs the given object.
+        /// </summary>
+        /// <param name="o">An object to print.</param>
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Error(object o, bool printStackTrace = true)
+        {
+            Error(o.ToString(), printStackTrace);
         }
 
         /// <summary>
         /// Logs the given info message.
         /// </summary>
         /// <param name="message">The message to log.</param>
-        public static void Info(string message)
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Info(string message, bool printStackTrace = false)
         {
-            Instance.LogMessage(message, LogLevel.Info, false);
-        }
-
-        /// <summary>
-        /// Logs the given object.
-        /// </summary>
-        /// <param name="o">An object to print.</param>
-        public static void Debug(object o)
-        {
-            Debug(o.ToString());
+            Instance.LogMessage(message, LogLevel.Info, printStackTrace);
         }
 
         /// <summary>
         /// Logs the given debug message.
         /// </summary>
         /// <param name="message">The message to log.</param>
-        public static void Debug(string message)
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Debug(string message, bool printStackTrace = false)
         {
-            Instance.LogMessage(message, LogLevel.Debug, false);
-        }
-
-        /// <summary>
-        /// Logs the given object.
-        /// </summary>
-        /// <param name="o">An object to print.</param>
-        public static void Warning(object o)
-        {
-            Warning(o.ToString());
+            Instance.LogMessage(message, LogLevel.Debug, printStackTrace);
         }
 
         /// <summary>
         /// Logs the given warning message.
         /// </summary>
         /// <param name="message">The message to log.</param>
-        public static void Warning(string message)
+        /// <param name="printStackTrace">Prints the stack trace.</param>
+        public static void Warning(string message, bool printStackTrace = false)
         {
-            Instance.LogMessage(message, LogLevel.Warning, false);
-        }
-
-        /// <summary>
-        /// Logs the given object.
-        /// </summary>
-        /// <param name="o">An object to print.</param>
-        public static void Error(object o)
-        {
-            Error(o.ToString());
+            Instance.LogMessage(message, LogLevel.Warning, printStackTrace);
         }
 
         /// <summary>
         /// Logs the given error message.
         /// </summary>
         /// <param name="message">The message to log.</param>
-        public static void Error(string message)
+        public static void Error(string message, bool printStackTrace = true)
         {
-            Instance.LogMessage(message, LogLevel.Error, true);
+            Instance.LogMessage(message, LogLevel.Error, printStackTrace);
         }
 
         /// <summary>
@@ -145,9 +152,11 @@ namespace SoSmooth
         /// <param name="message">The exception to log.</param>
         public static void Exception(object exception)
         {
-            // ToString on exeption objects typically include the stack trace, so we don't need to include it
+            // ToString on exeption objects typically includes the stack trace, so we don't need to include it
             Instance.LogMessage(exception.ToString(), LogLevel.Error, false);
         }
+
+        private static readonly string[] NEW_LINES = new string[] { Environment.NewLine };
 
         /// <summary>
         /// Synchronously handles the writing of a message to the current log file.
@@ -167,13 +176,13 @@ namespace SoSmooth
             // Include a stack trace if desired
             if (showStackTrace)
             {
-                string[] lines = Environment.StackTrace.Split('\n');
+                string[] lines = Environment.StackTrace.Split(NEW_LINES, StringSplitOptions.RemoveEmptyEntries);
 
                 string stackTrace = "";
                 for (int i = 0; i < lines.Length; i++)
                 {
                     // Don't include the function calls in the logger in the stack trace, as it is not useful
-                    if (i > 2)
+                    if (i > 2 && !lines[i].Contains(typeof(Logger).FullName))
                     {
                         stackTrace += lines[i] + Environment.NewLine;
                     }

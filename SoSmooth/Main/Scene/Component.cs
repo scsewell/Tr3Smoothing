@@ -32,5 +32,13 @@
             entity.AttachComponent(this);
             m_entity = entity;
         }
+
+        /// <summary>
+        /// Gets a nicely formatted string representing this instance.
+        /// </summary>
+        public override string ToString()
+        {
+            return "(" + GetType().Name + ") " + m_entity.Name;
+        }
     }
 }
