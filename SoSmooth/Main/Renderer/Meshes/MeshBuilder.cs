@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SoSmooth.Renderering.Meshes
+namespace SoSmooth.Rendering.Meshes
 {
     /// <summary>
     /// A mutable builder class to help construct immutable meshes.

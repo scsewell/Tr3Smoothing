@@ -1,22 +1,16 @@
 using System;
-using System.Drawing;
 using System.IO;
-using OpenTK;
-using OpenTK.Graphics;
+using System.Drawing;
+using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents an OpenGL texture.
     /// </summary>
-    public sealed class Texture : IDisposable
+    public sealed class Texture : GraphicsResource
     {
-        /// <summary>
-        /// Handle of te OpenGL texture.
-        /// </summary>
-        public int Handle { get; private set; }
-
         /// <summary>
         /// Height of the texture.
         /// </summary>
@@ -32,12 +26,7 @@ namespace SoSmooth.Renderering
         /// </summary>
         public Texture()
         {
-            //GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
-
-            int tex;
-            GL.GenTextures(1, out tex);
-
-            Handle = tex;
+            GL.GenTextures(1, out m_handle);
         }
 
         /// <summary>
@@ -47,11 +36,8 @@ namespace SoSmooth.Renderering
         /// <param name="height">The texture's height.</param>
         public Texture(int width, int height)
         {
-            //GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
-
-            int tex;
-            GL.GenTextures(1, out tex);
-            GL.BindTexture(TextureTarget.Texture2D, tex);
+            GL.GenTextures(1, out m_handle);
+            GL.BindTexture(TextureTarget.Texture2D, this);
 
             // create empty texture
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba,
@@ -63,26 +49,34 @@ namespace SoSmooth.Renderering
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
             GL.BindTexture(TextureTarget.Texture2D, 0);
-
-            Handle = tex;
+            
             Width = width;
             Height = height;
-
         }
         
         public Texture(Stream stream, bool preMultiplyAlpha = false) : this(new Bitmap(stream), preMultiplyAlpha, true)
-        {
-        }
-        
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Texture"/> class.
+        /// </summary>
+        /// <param name="path">The image file to load.</param>
+        /// <param name="preMultiplyAlpha">If true, the colour values of each pixel are multiplied by its alpha value.</param>
+        public Texture(string path, bool preMultiplyAlpha = false) : this(new Bitmap(path), preMultiplyAlpha, true)
+        { }
+
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Texture"/> class.
+        /// </summary>
+        /// <param name="bitmap">An image to create the texture with.</param>
+        /// <param name="preMultiplyAlpha">If true, the colour values of each pixel are multiplied by its alpha value.</param>
+        /// <param name="disposeBitmap">if true the bitmap is disposed after the texture is created.</param>
         private Texture(Bitmap bitmap, bool preMultiplyAlpha = false, bool disposeBitmap = false)
         {
-            //GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
-
-            int tex;
-            GL.GenTextures(1, out tex);
-            GL.BindTexture(TextureTarget.Texture2D, tex);
+            GL.GenTextures(1, out m_handle);
+            GL.BindTexture(TextureTarget.Texture2D, this);
             
-            Handle = tex;
             Width = bitmap.Width;
             Height = bitmap.Height;
 
@@ -95,7 +89,7 @@ namespace SoSmooth.Renderering
             {
                 int size = data.Width * data.Height * 4;
                 byte[] array = new byte[size];
-                System.Runtime.InteropServices.Marshal.Copy(data.Scan0, array, 0, size);
+                Marshal.Copy(data.Scan0, array, 0, size);
                 for (int i = 0; i < size; i += 4)
                 {
                     float alpha = array[i + 3] / 255f;
@@ -131,16 +125,6 @@ namespace SoSmooth.Renderering
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Texture"/> class.
-        /// </summary>
-        /// <param name="path">The image file to load.</param>
-        /// <param name="preMultiplyAlpha">If true, the colour values of each pixel are multiplied by its alpha value.</param>
-        public Texture(string path, bool preMultiplyAlpha = false)
-            : this(new Bitmap(path), preMultiplyAlpha, true)
-        {
-        }
-
-        /// <summary>
         /// Resizes the texture.
         /// </summary>
         /// <param name="width">The new width.</param>
@@ -148,11 +132,13 @@ namespace SoSmooth.Renderering
         /// <param name="internalFormat">The new <see cref="PixelInternalFormat"/>.</param>
         public void Resize(int width, int height, PixelInternalFormat internalFormat = PixelInternalFormat.Rgba)
         {
-            GL.BindTexture(TextureTarget.Texture2D, Handle);
+            GL.BindTexture(TextureTarget.Texture2D, this);
             GL.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+
             Width = width;
             Height = height;
+
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
         /// <summary>
@@ -168,7 +154,7 @@ namespace SoSmooth.Renderering
             TextureWrapMode wrapS,
             TextureWrapMode wrapT)
         {
-            GL.BindTexture(TextureTarget.Texture2D, Handle);
+            GL.BindTexture(TextureTarget.Texture2D, this);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
@@ -179,41 +165,11 @@ namespace SoSmooth.Renderering
         }
 
         /// <summary>
-        /// Casts the Texture to its OpenGL handle, for easy use with OpenGL functions.
+        /// Cleanup unmanaged resources.
         /// </summary>
-        public static implicit operator int(Texture texture)
+        protected override void OnDispose()
         {
-            return texture.Handle;
-        }
-        
-        private bool m_disposed = false;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~Texture()
-        {
-            Dispose(false);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
-            {
-                return;
-            }
-
             GL.DeleteTexture(this);
-            Handle = 0;
-
-            m_disposed = true;
         }
     }
 }

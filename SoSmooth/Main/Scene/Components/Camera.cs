@@ -1,5 +1,6 @@
 ﻿using System;
 using OpenTK;
+using SoSmooth.Rendering;
 
 namespace SoSmooth.Scenes
 {
@@ -11,12 +12,22 @@ namespace SoSmooth.Scenes
         private int m_resolutionX;
         private int m_resolutionY;
 
+        private Color m_clearColor = Color.DarkSlateBlue;
         private float m_fieldOfView = 60.0f;
         private float m_nearClip = 0.01f;
         private float m_farClip = 100;
 
         private Matrix4 m_projectionMatrix;
         private bool m_projectionMatDirty = true;
+        
+        /// <summary>
+        /// The background color of the camera.
+        /// </summary>
+        public Color ClearColor
+        {
+            get { return m_clearColor; }
+            set { m_clearColor = value; }
+        }
 
         /// <summary>
         /// The vertical field of view of this camera in degrees.

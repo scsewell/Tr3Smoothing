@@ -1,6 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This immutable class represents a blend function surface setting.

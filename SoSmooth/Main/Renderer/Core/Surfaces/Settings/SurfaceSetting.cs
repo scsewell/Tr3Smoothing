@@ -1,5 +1,5 @@
 ﻿
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// Base class for all surface settings.

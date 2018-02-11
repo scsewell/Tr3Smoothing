@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     public class PolygonModeSetting : SurfaceSetting
     {

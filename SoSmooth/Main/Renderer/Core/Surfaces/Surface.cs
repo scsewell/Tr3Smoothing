@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using System.Collections.ObjectModel;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// Base class for all surfaces. A Surface is an abstract object that can render 

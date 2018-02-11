@@ -1,22 +1,23 @@
+using System;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents a vertex buffer object that can be rendered with a specified <see cref="BeginMode"/>.
     /// </summary>
     /// <typeparam name="TVertexData">The <see cref="IVertexData"/> used for the vertex buffer object</typeparam>
-    public abstract class StaticVertexSurface<TVertexData> : Surface where TVertexData : struct, IVertexData
+    public abstract class StaticVertexSurface<TVertexData> : Surface, IDisposable where TVertexData : struct, IVertexData
     {
         /// <summary>
-        /// The OpenGL vertex buffer containing the rendered vertices.
+        /// The vertex buffer object containing the vertices to render.
         /// </summary>
         protected VertexBuffer<TVertexData> m_vertexBuffer;
 
         /// <summary>
-        /// The OpenGL vertex array object handle.
+        /// The vertex array object handle.
         /// </summary>
-        protected IVertexAttributeProvider<TVertexData> m_vertexAttributeProvider; 
+        protected VertexArray<TVertexData> m_vertexAttributeProvider; 
 
         private readonly PrimitiveType m_primitiveType;
         protected PrimitiveType primitiveType { get { return m_primitiveType; } }
@@ -106,6 +107,21 @@ namespace SoSmooth.Renderering
         public virtual void ForceBufferUpload()
         {
             m_staticBufferUploaded = false;
+        }
+
+        /// <summary>
+        /// Frees unmanaged resources.
+        /// </summary>
+        public virtual void Dispose()
+        {
+            if (m_vertexBuffer != null)
+            {
+                m_vertexBuffer.Dispose();
+            }
+            if (m_vertexAttributeProvider != null)
+            {
+                m_vertexAttributeProvider.Dispose();
+            }
         }
     }
 }

@@ -1,30 +1,24 @@
-using System;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents a GLSL shader.
     /// </summary>
-    public abstract class Shader : IDisposable
+    public abstract class Shader : GraphicsResource
     {
         private readonly ShaderType m_type;
-
-        /// <summary>
-        /// The GLSL shader object handle.
-        /// </summary>
-        public readonly int Handle;
-
+        
         public Shader(ShaderType type, string code)
         {
             m_type = type;
-            Handle = GL.CreateShader(type);
+
+            m_handle = GL.CreateShader(type);
 
             GL.ShaderSource(this, code);
             GL.CompileShader(this);
 
-            // throw exception if compile failed
+            // check compile success
             int statusCode;
             GL.GetShader(this, ShaderParameter.CompileStatus, out statusCode);
 
@@ -37,42 +31,11 @@ namespace SoSmooth.Renderering
         }
 
         /// <summary>
-        /// Casts the shader object to its GLSL shader object handle, for easy use with OpenGL functions.
+        /// Cleanup unmanaged resources.
         /// </summary>
-        /// <param name="shader">The shader.</param>
-        /// <returns>GLSL shader object handle.</returns>
-        public static implicit operator int(Shader shader)
+        protected override void OnDispose()
         {
-            return shader.Handle;
-        }
-        
-        private bool m_disposed = false;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~Shader()
-        {
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
-            {
-                return;
-            }
-
             GL.DeleteShader(this);
-
-            m_disposed = true;
         }
     }
 }

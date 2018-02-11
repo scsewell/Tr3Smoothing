@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using OpenTK;
 
-namespace SoSmooth.Renderering.Meshes
+namespace SoSmooth.Rendering.Meshes
 {
     /// <summary>
     /// A basic vertex for mesh rendering. Consists of a position, normal, and color.
@@ -56,14 +56,14 @@ namespace SoSmooth.Renderering.Meshes
             this.color = color;
         }
 
-        public VertexAttribute[] VertexAttributes()
-        {
-            return m_attributes ?? (m_attributes = MakeVertexArray());
-        }
-
         public int Size()
         {
             return SIZE;
+        }
+
+        public VertexAttribute[] VertexAttributes()
+        {
+            return m_attributes ?? (m_attributes = MakeVertexArray());
         }
 
         private static VertexAttribute[] MakeVertexArray()
@@ -72,7 +72,7 @@ namespace SoSmooth.Renderering.Meshes
                 VertexData.MakeAttributeTemplate<Vector3>("v_position"),
                 VertexData.MakeAttributeTemplate<Vector3>("v_normal"),
                 VertexData.MakeAttributeTemplate<Color>("v_color")
-                );
+            );
         }
     }
 }

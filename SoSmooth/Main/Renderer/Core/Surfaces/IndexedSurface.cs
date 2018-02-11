@@ -1,6 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents an indexed vertex buffer object, that can be draws with a specified <see cref="BeginMode"/>.
@@ -188,6 +188,18 @@ namespace SoSmooth.Renderering
         public ushort[] WriteIndicesDirectly(int count, out int offset)
         {
             return m_indexBuffer.WriteIndicesDirectly(count, out offset);
+        }
+
+        /// <summary>
+        /// Frees unmanaged resources.
+        /// </summary>
+        public override void Dispose()
+        {
+            base.Dispose();
+            if (m_indexBuffer != null)
+            {
+                m_indexBuffer.Dispose();
+            }
         }
     }
 }

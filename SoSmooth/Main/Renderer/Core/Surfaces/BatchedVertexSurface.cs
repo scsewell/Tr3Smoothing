@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     public sealed class BatchedVertexSurface<TVertexData> : Surface where TVertexData : struct, IVertexData
     {

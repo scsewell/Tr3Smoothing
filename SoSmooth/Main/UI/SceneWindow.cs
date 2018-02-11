@@ -4,6 +4,7 @@ using GLib;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using SoSmooth.Rendering;
 using SoSmooth.Scenes;
 
 namespace SoSmooth
@@ -48,10 +49,6 @@ namespace SoSmooth
             m_glWidget.Initialized += GLWidgetInitialize;
             m_glWidget.SizeAllocated += OnResize;
 
-            m_viewportDirty = true;
-
-            m_scene = new Scene();
-                
             m_glWidget.KeyPressEvent += KeyPressEvent;
             m_glWidget.KeyReleaseEvent += KeyReleaseEvent;
         }
@@ -85,9 +82,11 @@ namespace SoSmooth
         /// </summary>
         private void GLWidgetInitialize(object sender, EventArgs e)
         {
-            GL.ClearColor(Color4.DarkSlateBlue);
-            GL.Enable(EnableCap.DepthTest);
+            ShaderManager.Instance.LoadShaders();
 
+            m_viewportDirty = true;
+            m_scene = new Scene();
+            
             // Add idle event handler to process rendering whenever and as long as time is availble.
             Idle.Add(new IdleHandler(OnIdleProcessMain));
         }
@@ -126,18 +125,21 @@ namespace SoSmooth
         {
             Time.FrameStart();
 
-            // Resize the view if it has been changed.
+            // resize the view if it has been changed
             if (m_viewportDirty)
             {
                 GL.Viewport(0, 0, m_glWidth, m_glHeight);
                 m_viewportDirty = false;
             }
             
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             if (m_scene != null)
             {
                 m_scene.Render(m_glWidth, m_glHeight);
+            }
+            else
+            {
+                GL.ClearColor(Color.Black);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             }
 
             GraphicsContext.CurrentContext.SwapBuffers();

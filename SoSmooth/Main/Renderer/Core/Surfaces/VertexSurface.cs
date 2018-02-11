@@ -1,6 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// Extends <see cref="StaticVertexSurface{TVertexdata}" /> with the ability to add vertices at will.

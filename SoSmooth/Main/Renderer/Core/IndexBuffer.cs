@@ -1,24 +1,18 @@
 using System;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents an OpenGL index buffer object.
     /// </summary>
-    /// <remarks>Note that this object can hold no more than 2^31 indices, and that indices are stored as 16 bit unsigned integer.</remarks>
-    public sealed class IndexBuffer : IDisposable
+    /// <remarks>Note that this object can hold no more than 2^31 indices, 
+    /// and that indices are stored as 16-bit unsigned integer.</remarks>
+    public sealed class IndexBuffer : GraphicsResource
     {
-        private readonly int m_handle;
         private ushort[] m_indices;
         private int m_count;
         
-        /// <summary>
-        /// The OpenGL index buffer object handle.
-        /// </summary>
-        public int Handle { get { return m_handle; } }
-
         /// <summary>
         /// The number of indices in this buffer.
         /// </summary>
@@ -36,8 +30,8 @@ namespace SoSmooth.Renderering
         /// <param name="capacity">The initial capacity of the buffer.</param>
         public IndexBuffer(int capacity = 0)
         {
-            m_indices = new ushort[capacity > 0 ? capacity : 1];
             m_handle = GL.GenBuffer();
+            m_indices = new ushort[capacity > 0 ? capacity : 1];
         }
         
         private void EnsureCapacity(int minCapacity)
@@ -54,11 +48,12 @@ namespace SoSmooth.Renderering
         /// <param name="index">The index.</param>
         public void AddIndex(ushort index)
         {
-            if (m_indices.Length == m_count)
-            {
-                Array.Resize(ref m_indices, m_indices.Length * 2);
-            }
+            int newCount = m_count + 1;
+            EnsureCapacity(newCount);
+            
             m_indices[m_count] = index;
+
+            m_count = newCount;
         }
 
         /// <summary>
@@ -68,8 +63,10 @@ namespace SoSmooth.Renderering
         {
             int newCount = m_count + 2;
             EnsureCapacity(newCount);
+
             m_indices[m_count] = index0;
             m_indices[m_count + 1] = index1;
+
             m_count = newCount;
         }
         
@@ -80,9 +77,11 @@ namespace SoSmooth.Renderering
         {
             int newCount = m_count + 3;
             EnsureCapacity(newCount);
+
             m_indices[m_count] = index0;
             m_indices[m_count + 1] = index1;
             m_indices[m_count + 2] = index2;
+
             m_count = newCount;
         }
 
@@ -94,7 +93,9 @@ namespace SoSmooth.Renderering
         {
             int newCount = m_count + indices.Length;
             EnsureCapacity(newCount);
+
             Array.Copy(indices, 0, m_indices, m_count, indices.Length);
+
             m_count = newCount;
         }
 
@@ -115,6 +116,7 @@ namespace SoSmooth.Renderering
         {
             int newCount = m_count + count;
             EnsureCapacity(newCount);
+
             offset = m_count;
             m_count = newCount;
             return m_indices;
@@ -155,45 +157,13 @@ namespace SoSmooth.Renderering
         {
             GL.BufferData(target, (IntPtr)(sizeof(ushort) * m_count), m_indices, usageHint);
         }
-
+        
         /// <summary>
-        /// Implicit cast to int for easy usage in GL methods that require an integer handle.
+        /// Cleanup unmanaged resources.
         /// </summary>
-        public static implicit operator int(IndexBuffer buffer)
+        protected override void OnDispose()
         {
-            return buffer.m_handle;
-        }
-
-        private bool m_disposed = false;
-
-        /// <summary>
-        /// Disposes the buffer, to make sure GL resources are freed.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~IndexBuffer()
-        {
-            Dispose(false);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
-            {
-                return;
-            }
-
             GL.DeleteBuffer(this);
-
-            m_disposed = true;
         }
     }
 }

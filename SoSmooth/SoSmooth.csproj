@@ -65,7 +65,7 @@
     <Compile Include="Main\IO\Tr3\Tr3Parser.cs" />
     <Compile Include="Main\IO\Tr3\Tr3SliceParser.cs" />
     <Compile Include="Main\Renderer\Core\Color.cs" />
-    <Compile Include="Main\Renderer\Core\Extensions.cs" />
+    <Compile Include="Main\Renderer\Core\GraphicsResource.cs" />
     <Compile Include="Main\Renderer\Core\IndexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\RenderTarget.cs" />
     <Compile Include="Main\Renderer\Core\Shading\FragmentShader.cs" />
@@ -77,7 +77,6 @@
     <Compile Include="Main\Renderer\Core\Surfaces\BatchedVertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\ExpandingVertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\IndexedSurface.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\IVertexAttributeProvider.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\ColorUniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\FloatUniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Matrix4Uniform.cs" />
@@ -91,7 +90,7 @@
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector4Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\StaticVertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Surface.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\VertexArray.cs" />
+    <Compile Include="Main\Renderer\Core\VertexArray.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\VertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Texture.cs" />
     <Compile Include="Main\Renderer\Core\VertexBuffer.cs" />

@@ -1,5 +1,5 @@
-﻿using SoSmooth.Renderering;
-using SoSmooth.Renderering.Meshes;
+﻿using SoSmooth.Rendering;
+using SoSmooth.Rendering.Meshes;
 using OpenTK;
 
 namespace SoSmooth.Scenes
@@ -11,6 +11,7 @@ namespace SoSmooth.Scenes
     {
         private ShaderProgram m_program;
         private Surface m_surface;
+        //private Mesh m_mesh;
 
         private Matrix4Uniform m_modelMatUniform;
         private Matrix4Uniform m_viewMatUniform;
@@ -47,6 +48,13 @@ namespace SoSmooth.Scenes
             {
                 m_surface.SetShaderProgram(m_program);
             }
+            /*
+            if (m_surface != null)
+            {
+                m_surface.Dispose();
+            }
+            m_mesh = mesh;
+            */
         }
 
         /// <summary>
@@ -55,6 +63,20 @@ namespace SoSmooth.Scenes
         /// <param name="camera">The camera that is rendering.</param>
         public void Render(Camera camera)
         {
+            /*
+            if (m_surface == null && m_mesh != null)
+            {
+                m_surface = m_mesh.ToIndexedSurface<TVertex>();
+                m_surface.AddSetting(m_modelMatUniform);
+                m_surface.AddSetting(m_viewMatUniform);
+                m_surface.AddSetting(m_projMatUniform);
+
+                if (m_program != null)
+                {
+                    m_surface.SetShaderProgram(m_program);
+                }
+            }
+            */
             if (m_surface != null && m_program != null)
             {
                 m_modelMatUniform.Matrix = Entity.Transform.LocalToWorldMatix;

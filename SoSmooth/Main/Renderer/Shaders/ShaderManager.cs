@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// Loads shaders files embedded into the assembly.
@@ -16,90 +16,73 @@ namespace SoSmooth.Renderering
         private const string FRAG_EXTENTION = "frag";
 
         private Dictionary<string, ShaderProgram> m_shaderPrograms;
-
+        
         /// <summary>
-        /// Constructor. 
+        /// Loads all shader programs.
         /// </summary>
-        public ShaderManager()
+        public void LoadShaders()
         {
-            Logger.Info("Loading shaders...");
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            
-            List<string> shaderNames = new List<string>();
-            Dictionary<string, VertexShader> vertShaders    = new Dictionary<string, VertexShader>();
-            Dictionary<string, GeometryShader> geomShaders  = new Dictionary<string, GeometryShader>();
-            Dictionary<string, FragmentShader> fragShaders  = new Dictionary<string, FragmentShader>();
-
-            // look through the embedded resources for any shaders
-            foreach (string path in assembly.GetManifestResourceNames())
+            if (m_shaderPrograms == null)
             {
-                string[] split = path.Split('.');
+                Logger.Info("Loading shaders...");
 
-                if (split.Length >= 2)
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                
+                Dictionary<string, List<Shader>> nameToShaders = new Dictionary<string, List<Shader>>();
+
+                // look through the embedded resources for any shaders
+                foreach (string path in assembly.GetManifestResourceNames())
                 {
-                    string name = split[split.Length - 2];
-                    string type = split[split.Length - 1];
+                    string[] split = path.Split('.');
 
-                    // shaders are indicated by file extention
-                    if (type == VERT_EXTENTION ||
-                        type == GEOM_EXTENTION ||
-                        type == FRAG_EXTENTION)
+                    if (split.Length >= 2)
                     {
-                        if (!shaderNames.Contains(name))
+                        string name = split[split.Length - 2];
+                        string type = split[split.Length - 1];
+
+                        // shaders are indicated by file extention
+                        if (type == VERT_EXTENTION ||
+                            type == GEOM_EXTENTION ||
+                            type == FRAG_EXTENTION)
                         {
-                            shaderNames.Add(name);
-                        }
-                        string code = LoadResource(assembly, path);
-                        
-                        switch (type)
-                        {
-                            case VERT_EXTENTION: vertShaders.Add(name, new VertexShader(code)); break;
-                            case GEOM_EXTENTION: geomShaders.Add(name, new GeometryShader(code)); break;
-                            case FRAG_EXTENTION: fragShaders.Add(name, new FragmentShader(code)); break;
+                            string code = LoadResource(assembly, path);
+
+                            List<Shader> shaders;
+                            if (!nameToShaders.TryGetValue(name, out shaders))
+                            {
+                                shaders = new List<Shader>();
+                                nameToShaders.Add(name, shaders);
+                            }
+
+                            switch (type)
+                            {
+                                case VERT_EXTENTION: shaders.Add(new VertexShader(code)); break;
+                                case GEOM_EXTENTION: shaders.Add(new GeometryShader(code)); break;
+                                case FRAG_EXTENTION: shaders.Add(new FragmentShader(code)); break;
+                            }
                         }
                     }
                 }
+
+                // Create programs from shaders sharing a name
+                m_shaderPrograms = new Dictionary<string, ShaderProgram>();
+
+                foreach (KeyValuePair<string, List<Shader>> nameShaders in nameToShaders)
+                {
+                    Logger.Info("Creating program: " + nameShaders.Key);
+
+                    ShaderProgram program = new ShaderProgram(nameShaders.Value);
+                    m_shaderPrograms.Add(nameShaders.Key, program);
+
+                    // Unload the shaders since we are done with them
+                    foreach (Shader shader in nameShaders.Value)
+                    {
+                        shader.Dispose();
+                    }
+                }
+
+                Logger.Info("Finished shader load");
             }
-
-            // Create programs from shaders sharing a name
-            m_shaderPrograms = new Dictionary<string, ShaderProgram>();
-            List<Shader> shaders = new List<Shader>();
-
-            foreach (string name in shaderNames)
-            {
-                shaders.Clear();
-                
-                VertexShader vertShader;
-                if (vertShaders.TryGetValue(name, out vertShader))
-                {
-                    shaders.Add(vertShader);
-                }
-
-                GeometryShader geomShader;
-                if (geomShaders.TryGetValue(name, out geomShader))
-                {
-                    shaders.Add(geomShader);
-                }
-
-                FragmentShader fragShader;
-                if (fragShaders.TryGetValue(name, out fragShader))
-                {
-                    shaders.Add(fragShader);
-                }
-
-                Logger.Info("Creating program: " + name);
-                ShaderProgram program = new ShaderProgram(shaders);
-                m_shaderPrograms.Add(name, program);
-                
-                // Unload the shaders since we are done with them
-                foreach (Shader shader in shaders)
-                {
-                    shader.Dispose();
-                }
-            }
-            
-            Logger.Info("Finished shader load");
         }
 
         /// <summary>
@@ -110,6 +93,8 @@ namespace SoSmooth.Renderering
         /// <returns>The shader program or null if none with the name exist.</returns>
         public ShaderProgram GetProgram(string name)
         {
+            LoadShaders();
+
             ShaderProgram program;
             if (!m_shaderPrograms.TryGetValue(name, out program))
             {

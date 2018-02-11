@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTK;
 
-namespace SoSmooth.Renderering.Meshes
+namespace SoSmooth.Rendering.Meshes
 {
     /// <summary>
     /// Represents an immutable mesh of vertices and triangles.

@@ -1,27 +1,21 @@
 using System;
-using OpenTK.Graphics;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents and OpenGL vertex buffer object.
     /// </summary>
     /// <remarks>Note that this object can hold no more than 2^16 vertices.</remarks>
     /// <typeparam name="TVertexData">The type of vertex in the buffer.</typeparam>
-    public sealed class VertexBuffer<TVertexData> : IDisposable where TVertexData : struct, IVertexData
+    public sealed class VertexBuffer<TVertexData> : GraphicsResource where TVertexData : struct, IVertexData
     {
-        private readonly int m_handle;
         private readonly int m_vertexSize;
 
         private TVertexData[] m_vertices;
         private ushort m_count;
         
-        /// <summary>
-        /// The OpenGL vertex buffer object handle.
-        /// </summary>
-        public int Handle { get { return m_handle; } }
-
         /// <summary>
         /// The size of a vertex in bytes.
         /// </summary>
@@ -44,16 +38,27 @@ namespace SoSmooth.Renderering
         /// <param name="capacity">The initial capacity of the buffer.</param>
         public VertexBuffer(int capacity = 0)
         {
+            m_handle = GL.GenBuffer();
             m_vertexSize = VertexData.SizeOf<TVertexData>();
             m_vertices = new TVertexData[capacity > 0 ? capacity : 4];
-            m_handle = GL.GenBuffer();
         }
         
         private void EnsureCapacity(int minCapacity)
         {
-            if (m_vertices.Length <= minCapacity)
+            const int maxLength = ushort.MaxValue + 1;
+
+            if (minCapacity > maxLength)
             {
-                Array.Resize(ref m_vertices, Math.Max(m_vertices.Length * 2, minCapacity));
+                Logger.Error(string.Format(
+                    "Can't create an vertex buffer of length {0}. Length was capped to {1}.",
+                    minCapacity, maxLength));
+
+                minCapacity = maxLength;
+            }
+
+            if (m_vertices.Length < minCapacity)
+            {
+                Array.Resize(ref m_vertices, MathHelper.Clamp(m_vertices.Length * 2, minCapacity, maxLength));
             }
         }
         
@@ -64,12 +69,14 @@ namespace SoSmooth.Renderering
         /// <returns>Index of the vertex in vertex buffer.</returns>
         public ushort AddVertex(TVertexData vertex)
         {
-            if (m_vertices.Length == m_count)
-            {
-                Array.Resize(ref m_vertices, m_vertices.Length * 2);
-            }
-            m_vertices[m_count] = vertex;
-            return m_count++;
+            ushort oldCount = m_count;
+            int newCount = oldCount + 1;
+            EnsureCapacity(newCount);
+            m_count = (ushort)newCount;
+
+            m_vertices[oldCount] = vertex;
+
+            return oldCount;
         }
 
         /// <summary>
@@ -136,8 +143,10 @@ namespace SoSmooth.Renderering
             ushort oldCount = m_count;
             int newCount = oldCount + vertices.Length;
             EnsureCapacity(newCount);
-            Array.Copy(vertices, 0, m_vertices, m_count, vertices.Length);
             m_count = (ushort)newCount;
+
+            Array.Copy(vertices, 0, m_vertices, oldCount, vertices.Length);
+
             return oldCount;
         }
 
@@ -158,9 +167,7 @@ namespace SoSmooth.Renderering
         {
             ushort oldCount = m_count;
             int newCount = oldCount + count;
-
             EnsureCapacity(newCount);
-
             m_count = (ushort)newCount;
 
             offset = oldCount;
@@ -221,45 +228,13 @@ namespace SoSmooth.Renderering
                 m_count = (ushort)vertexCount;
             }
         }
-
-        /// <summary>
-        /// Implicit cast to easily use vertex buffers in GL functions expecting an integer handle.
-        /// </summary>
-        public static implicit operator int(VertexBuffer<TVertexData> buffer)
-        {
-            return buffer.m_handle;
-        }
         
-        private bool m_disposed = false;
-
         /// <summary>
-        /// Disposes the vertex buffer and deletes the underlying GL object.
+        /// Cleanup unmanaged resources.
         /// </summary>
-        public void Dispose()
+        protected override void OnDispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~VertexBuffer()
-        {
-            Dispose(false);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
-            {
-                return;
-            }
-
             GL.DeleteBuffer(this);
-
-            m_disposed = true;
         }
     }
 }

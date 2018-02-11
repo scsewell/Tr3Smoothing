@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// A struct representing a 32-bit argb colour.
@@ -437,10 +437,10 @@ namespace SoSmooth.Renderering
         }
 
         /// <summary>
-        /// Returns a hexadecimal <see cref="System.String"/> that represents this color.
+        /// Returns a hexadecimal <see cref="String"/> that represents this color.
         /// </summary>
         /// <returns>
-        /// A hexadecimal <see cref="System.String"/> that represents this color.
+        /// A hexadecimal <see cref="String"/> that represents this color.
         /// </returns>
         public override string ToString()
         {
@@ -455,6 +455,16 @@ namespace SoSmooth.Renderering
         static public implicit operator System.Drawing.Color(Color color)
         {
             return System.Drawing.Color.FromArgb(color.m_a, color.m_r, color.m_g, color.m_b);
+        }
+
+        /// <summary>
+        /// Casts the color to equivalent <see cref="OpenTK.Graphics.Color"/>
+        /// </summary>
+        /// <param name="color">The color.</param>
+        /// <returns><see cref="OpenTK.Graphics.Color4"/></returns>
+        static public implicit operator OpenTK.Graphics.Color4(Color color)
+        {
+            return new OpenTK.Graphics.Color4(color.m_r, color.m_g, color.m_b, color.m_a);
         }
 
         /// <summary>

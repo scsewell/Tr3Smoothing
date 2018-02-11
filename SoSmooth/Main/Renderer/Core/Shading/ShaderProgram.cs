@@ -1,32 +1,16 @@
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents a GLSL shader program.
     /// </summary>
-    public class ShaderProgram : IDisposable
+    public class ShaderProgram : GraphicsResource
     {
-        /// <summary>
-        /// The GLSL shader program handle.
-        /// </summary>
-        public readonly int Handle;
-
         private readonly Dictionary<string, int> m_attributeLocations = new Dictionary<string, int>();
         private readonly Dictionary<string, int> m_uniformLocations = new Dictionary<string, int>();
-
-        public static ShaderProgram FromFiles(string vertexShaderPath, string fragmentShaderPath)
-        {
-            return new ShaderProgram(VertexShader.FromFile(vertexShaderPath), FragmentShader.FromFile(fragmentShaderPath));
-        }
-
-        public static ShaderProgram FromCode(string vertexShaderCode, string fragmentShaderCode)
-        {
-            return new ShaderProgram(new VertexShader(vertexShaderCode), new FragmentShader(fragmentShaderCode));
-        }
 
         /// <summary>
         /// Creates a new shader program.
@@ -35,9 +19,18 @@ namespace SoSmooth.Renderering
         public ShaderProgram(params Shader[] shaders) : this(null, (IEnumerable<Shader>)shaders)
         { }
 
+        /// <summary>
+        /// Creates a new shader program.
+        /// </summary>
+        /// <param name="shaders">The different shaders of the program.</param>
         public ShaderProgram(IEnumerable<Shader> shaders) : this(null, shaders)
         { }
 
+        /// <summary>
+        /// Creates a new shader program.
+        /// </summary>
+        /// <param name="preLinkAction">An action to perform before linking the shader program.</param>
+        /// <param name="shaders">The different shaders of the program.</param>
         public ShaderProgram(Action<ShaderProgram> preLinkAction, params Shader[] shaders)
             : this(preLinkAction, (IEnumerable<Shader>)shaders)
         { }
@@ -49,8 +42,8 @@ namespace SoSmooth.Renderering
         /// <param name="shaders">The different shaders of the program.</param>
         public ShaderProgram(Action<ShaderProgram> preLinkAction, IEnumerable<Shader> shaders)
         {
-            Handle = GL.CreateProgram();
-            
+            m_handle = GL.CreateProgram();
+
             foreach (Shader shader in shaders)
             {
                 GL.AttachShader(this, shader);
@@ -85,9 +78,9 @@ namespace SoSmooth.Renderering
         /// <param name="vertexAttributes">The vertex attributes to set.</param>
         public void SetVertexAttributes(VertexAttribute[] vertexAttributes)
         {
-            for (int i = 0; i < vertexAttributes.Length; i++)
+            foreach (VertexAttribute attribute in vertexAttributes)
             {
-                vertexAttributes[i].SetAttribute(this);
+                attribute.SetAttribute(this);
             }
         }
 
@@ -122,44 +115,13 @@ namespace SoSmooth.Renderering
             }
             return i;
         }
-
-        /// <summary>
-        /// Casts the shader program object to its GLSL program object handle, for easy use with OpenGL functions.
-        /// </summary>
-        /// <param name="program">The program.</param>
-        /// <returns>GLSL program object handle.</returns>
-        static public implicit operator int(ShaderProgram program)
-        {
-            return program.Handle;
-        }
         
-        private bool m_disposed = false;
-
-        public void Dispose()
+        /// <summary>
+        /// Cleanup unmanaged resources.
+        /// </summary>
+        protected override void OnDispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~ShaderProgram()
-        {
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
-            {
-                return;
-            }
-            
             GL.DeleteProgram(this);
-
-            m_disposed = true;
         }
     }
 }

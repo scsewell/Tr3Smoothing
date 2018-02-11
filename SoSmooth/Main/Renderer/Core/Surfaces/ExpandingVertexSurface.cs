@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
     /// <summary>
     /// A surface that can render any number of vertices

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK;
-using SoSmooth.Renderering;
-using SoSmooth.Renderering.Meshes;
+using OpenTK.Graphics.OpenGL;
+using SoSmooth.Rendering;
+using SoSmooth.Rendering.Meshes;
 
 namespace SoSmooth.Scenes
 {
@@ -43,6 +44,8 @@ namespace SoSmooth.Scenes
             renderer2.SetProgram(ShaderManager.Instance.GetProgram("unlit"));
 
             Logger.Debug(m_entity1.GetComponentsInChildren<Transform>().Count);
+
+            SetActiveCamera(m_camera);
         }
         
         private Camera m_camera;
@@ -66,6 +69,10 @@ namespace SoSmooth.Scenes
         /// <param name="resY">The framebuffer vertical resolution.</param>
         public void Render(int resX, int resY)
         {
+            GL.Enable(EnableCap.DepthTest);
+            GL.ClearColor(m_activeCamera != null ? m_activeCamera.ClearColor : Color.Black);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
             if (m_activeCamera != null)
             {
                 m_activeCamera.SetResolution(resX, resY);

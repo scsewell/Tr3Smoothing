@@ -1,16 +1,20 @@
-
-using System;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace SoSmooth.Renderering
+namespace SoSmooth.Rendering
 {
-    internal class VertexArray<TVertexData> : IVertexAttributeProvider<TVertexData>, IDisposable where TVertexData : struct, IVertexData
+    /// <summary>
+    /// Represents a vertex array object that stores information about 
+    /// vertex buffer object attribute layouts.
+    /// </summary>
+    public class VertexArray<TVertexData> : GraphicsResource where TVertexData : struct, IVertexData
     {
         private readonly VertexBuffer<TVertexData> m_vertexBuffer;
-        private int m_handle;
         private bool m_vertexArrayGenerated = false;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="vertexBuffer">A vertex buffer object to set the attributes for.</param>
         public VertexArray(VertexBuffer<TVertexData> vertexBuffer)
         {
             m_vertexBuffer = vertexBuffer;
@@ -18,7 +22,7 @@ namespace SoSmooth.Renderering
 
         public void SetVertexData()
         {
-            GL.BindVertexArray(m_handle);
+            GL.BindVertexArray(this);
         }
 
         public void UnSetVertexData()
@@ -26,17 +30,22 @@ namespace SoSmooth.Renderering
             GL.BindVertexArray(0);
         }
 
+        /// <summary>
+        /// Prepares the vertex attributes for a new shader program.
+        /// </summary>
+        /// <param name="program">A shader program.</param>
         public void SetShaderProgram(ShaderProgram program)
         {
             if (m_vertexArrayGenerated)
             {
                 GL.DeleteVertexArrays(1, ref m_handle);
+                m_vertexArrayGenerated = false;
             }
 
             GL.GenVertexArrays(1, out m_handle);
             m_vertexArrayGenerated = true;
 
-            GL.BindVertexArray(m_handle);
+            GL.BindVertexArray(this);
             GL.BindBuffer(BufferTarget.ArrayBuffer, m_vertexBuffer);
 
             program.SetVertexAttributes(new TVertexData().VertexAttributes());
@@ -44,37 +53,16 @@ namespace SoSmooth.Renderering
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
-        
-        private bool m_disposed = false;
 
-        public void Dispose()
+        /// <summary>
+        /// Cleanup unmanaged resources.
+        /// </summary>
+        protected override void OnDispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~VertexArray()
-        {
-            Dispose(false);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
-            {
-                return;
-            }
-
             if (m_vertexArrayGenerated)
             {
-                GL.DeleteVertexArray(m_handle);
+                GL.DeleteVertexArray(this);
             }
-
-            m_disposed = true;
         }
     }
 }
