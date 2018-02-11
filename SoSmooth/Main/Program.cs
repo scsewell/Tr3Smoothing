@@ -33,8 +33,6 @@ namespace SoSmooth
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";
             Logger.Info("Running on " + os + " " + platform);
             
-            Time.SetStartTime();
-
             bool headless = LineOptionParser.HasFlag(args, ARG_HEADLESS);
             if (headless)
             {

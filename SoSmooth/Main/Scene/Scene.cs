@@ -13,7 +13,11 @@ namespace SoSmooth.Scenes
     public class Scene
     {
         private List<Entity> m_rootEntities;
-        private Camera m_activeCamera;
+
+        /// <summary>
+        /// The camera the scene will render with.
+        /// </summary>
+        public Camera ActiveCamera { get; set; }
         
         public Scene()
         {
@@ -29,23 +33,21 @@ namespace SoSmooth.Scenes
             m_camChild.Transform.SetParent(cam.Transform, false);
             MeshRenderer camChildRenderer = new MeshRenderer(m_camChild);
             camChildRenderer.SetMesh(Mesh<VertexNC>.CreateCube());
-            camChildRenderer.SetProgram(ShaderManager.Instance.GetProgram("unlit"));
+            camChildRenderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
 
             m_entity1 = new Entity(this, "Cube");
             MeshRenderer renderer = new MeshRenderer(m_entity1);
             renderer.SetMesh(Mesh<VertexNC>.CreateDirectionThing());
-            renderer.SetProgram(ShaderManager.Instance.GetProgram("unlit"));
+            renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
 
             m_entity2 = new Entity(this, "Cube2");
             m_entity2.Transform.Parent = m_entity1.Transform;
             m_entity2.Transform.LocalPosition = new Vector3(-1, 1, 1);
             MeshRenderer renderer2 = new MeshRenderer(m_entity2);
             renderer2.SetMesh(Mesh<VertexNC>.CreateDirectionThing());
-            renderer2.SetProgram(ShaderManager.Instance.GetProgram("unlit"));
-
-            Logger.Debug(m_entity1.GetComponentsInChildren<Transform>().Count);
-
-            SetActiveCamera(m_camera);
+            renderer2.ShaderProgram = ShaderManager.SHADER_UNLIT;
+            
+            ActiveCamera = m_camera;
         }
         
         private Camera m_camera;
@@ -54,15 +56,6 @@ namespace SoSmooth.Scenes
         private Entity m_entity2;
         
         /// <summary>
-        /// Sets which camera the scene will render with.
-        /// </summary>
-        /// <param name="camera">The camera to make active.</param>
-        public void SetActiveCamera(Camera camera)
-        {
-            m_activeCamera = camera;
-        }
-
-        /// <summary>
         /// Renders the scene.
         /// </summary>
         /// <param name="resX">The framebuffer horizontal resolution.</param>
@@ -70,12 +63,14 @@ namespace SoSmooth.Scenes
         public void Render(int resX, int resY)
         {
             GL.Enable(EnableCap.DepthTest);
-            GL.ClearColor(m_activeCamera != null ? m_activeCamera.ClearColor : Color.Black);
+            GL.Enable(EnableCap.ScissorTest);
+
+            GL.ClearColor(ActiveCamera != null ? ActiveCamera.ClearColor : Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if (m_activeCamera != null)
+            if (ActiveCamera != null)
             {
-                m_activeCamera.SetResolution(resX, resY);
+                ActiveCamera.SetResolution(resX, resY);
 
                 //m_camera.Transform.LocalPosition = new Vector3(0, -5 + (float)Math.Sin(Time.time), 0);
                 //m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2 * (float)Math.Sin(Time.time));
@@ -89,33 +84,42 @@ namespace SoSmooth.Scenes
 
                 m_camera.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
 
-                m_entity1.GetComponent<MeshRenderer>().Render(m_camera);
-                m_entity2.GetComponent<MeshRenderer>().Render(m_camera);
-                m_camChild.GetComponent<MeshRenderer>().Render(m_camera);
+                // get all renderable components in the scene
+                List<Renderable> renderables = new List<Renderable>();
+                foreach (Entity entity in m_rootEntities)
+                {
+                    entity.GetComponentsInChildren(renderables);
+                }
 
-                Logger.Debug(m_camChild.Transform.Root);
+                // handle the rendering of all components
+                foreach (Renderable renderable in renderables)
+                {
+                    renderable.Render(m_camera);
+                }
             }
+        }
+        
+        /// <summary>
+        /// Removes an entity from the root level of the scene heirarchy.
+        /// </summary>
+        /// <param name="entity">The entity that has changed scene.</param>
+        internal void RemoveFromRoot(Entity entity)
+        {
+            m_rootEntities.Remove(entity);
         }
 
         /// <summary>
-        /// Handles moving an entity from one scene to another.
+        /// Adds an entity to the root level of the scene heirarchy.
         /// </summary>
         /// <param name="entity">The entity that has changed scene.</param>
-        /// <param name="oldScene">The scene the entity was in.</param>
-        /// <param name="newScene">The scene the entity was added to.</param>
-        internal static void OnSceneChange(Entity entity, Scene oldScene, Scene newScene)
+        internal void AddToRoot(Entity entity)
         {
-            // make sure the entity is removed from its previous scene
-            if (oldScene != null)
-            {
-                oldScene.m_rootEntities.Remove(entity);
-            }
-            // add the entity to this scene root entities if it has no parent 
+            // root transforms must have no parent 
             if (entity.Transform == null || entity.Transform.Parent == null)
             {
-                if (!newScene.m_rootEntities.Contains(entity))
+                if (!m_rootEntities.Contains(entity))
                 {
-                    newScene.m_rootEntities.Add(entity);
+                    m_rootEntities.Add(entity);
                 }
             }
         }

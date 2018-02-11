@@ -9,6 +9,11 @@ namespace SoSmooth.Rendering
     {
         private readonly ShaderType m_type;
         
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="type">The type of shader.</param>
+        /// <param name="code">The shader source code.</param>
         public Shader(ShaderType type, string code)
         {
             m_type = type;

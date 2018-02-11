@@ -96,6 +96,7 @@
     <Compile Include="Main\Renderer\Core\VertexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\IVertexData.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\VertexData.cs" />
+    <Compile Include="Main\Renderer\Meshes\AABB.cs" />
     <Compile Include="Main\Renderer\Meshes\IndexTriangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
     <Compile Include="Main\Renderer\Meshes\Mesh.cs" />
@@ -106,7 +107,7 @@
     <Compile Include="Main\Scene\Components\MeshRenderer.cs" />
     <Compile Include="Main\Scene\Entity.cs" />
     <Compile Include="Main\Scene\Components\Transform.cs" />
-    <Compile Include="Main\Scene\Components\IRenderable.cs" />
+    <Compile Include="Main\Scene\Renderable.cs" />
     <Compile Include="Main\Scene\Scene.cs" />
     <Compile Include="Main\Time.cs" />
     <Compile Include="Main\UI\MainMenuBar.cs" />

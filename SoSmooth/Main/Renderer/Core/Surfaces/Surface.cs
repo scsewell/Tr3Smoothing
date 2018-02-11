@@ -14,7 +14,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// The shader program used to draw this surface.
         /// </summary>
-        protected ShaderProgram m_program;
+        protected ShaderProgram Program { get; private set; }
 
         private readonly List<SurfaceSetting> m_settingsSet = new List<SurfaceSetting>();
         private readonly List<SurfaceSetting> m_settingsUnSet = new List<SurfaceSetting>();
@@ -27,8 +27,11 @@ namespace SoSmooth.Rendering
         /// <param name="program">The program.</param>
         public void SetShaderProgram(ShaderProgram program)
         {
-            m_program = program;
-            OnNewShaderProgram();
+            if (Program != program)
+            {
+                Program = program;
+                OnNewShaderProgram();
+            }
         }
 
         /// <summary>
@@ -101,18 +104,18 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Render()
         {
-            GL.UseProgram(m_program);
+            GL.UseProgram(Program);
 
             foreach (SurfaceSetting setting in m_settingsSet)
             {
-                setting.Set(m_program);
+                setting.Set(Program);
             }
             
             OnRender();
 
             foreach (SurfaceSetting setting in m_settingsUnSet)
             {
-                setting.UnSet(m_program);
+                setting.UnSet(Program);
             }
         }
 

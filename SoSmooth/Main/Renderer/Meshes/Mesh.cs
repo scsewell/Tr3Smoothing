@@ -10,7 +10,7 @@ namespace SoSmooth.Rendering.Meshes
     {
         private readonly TVertex[] m_vertices;
         private readonly IndexTriangle[] m_triangles;
-
+        
         public Mesh(TVertex[] vertices, IndexTriangle[] triangles)
         {
             m_vertices = vertices;
@@ -32,22 +32,7 @@ namespace SoSmooth.Rendering.Meshes
 
             return surface;
         }
-
-        /// <summary>
-        /// Converts the mesh into a renderable surface as a point cloud. Only vertices and no triangles are included.
-        /// </summary>
-        /// <param name="transform">A function to apply to all the vertices.</param>
-        public VertexSurface<TVertexOut> ToPointCloudSurface<TVertexOut>(
-            Func<TVertex, TVertexOut> transform = null
-            ) where TVertexOut : struct, IVertexData
-        {
-            var surface = new VertexSurface<TVertexOut>();
-
-            WriteVertices(surface, transform);
-
-            return surface;
-        }
-
+        
         private void WriteVertices<TVertexOut>(
             VertexSurface<TVertexOut> surface,
             Func<TVertex, TVertexOut> transform = null

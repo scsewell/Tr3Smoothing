@@ -23,7 +23,7 @@ namespace SoSmooth.Rendering
 
         public override void UnSet(ShaderProgram program)
         {
-            GL.PolygonMode(m_face, PolygonMode.Fill);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
         }
     }
 }

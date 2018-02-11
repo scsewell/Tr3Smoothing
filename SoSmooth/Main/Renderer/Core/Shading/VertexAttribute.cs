@@ -46,13 +46,11 @@ namespace SoSmooth.Rendering
         public void SetAttribute(ShaderProgram program)
         {
             int index = program.GetAttributeLocation(m_name);
-            if (index == -1)
+            if (index != -1)
             {
-                return;
+                GL.EnableVertexAttribArray(index);
+                GL.VertexAttribPointer(index, m_size, m_type, m_normalize, m_stride, m_offset);
             }
-
-            GL.EnableVertexAttribArray(index);
-            GL.VertexAttribPointer(index, m_size, m_type, m_normalize, m_stride, m_offset);
         }
 
         /// <summary>

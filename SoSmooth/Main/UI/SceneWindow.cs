@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Gtk;
 using GLib;
 using OpenTK;
@@ -10,7 +11,7 @@ using SoSmooth.Scenes;
 namespace SoSmooth
 {
     /// <summary>
-    /// Manages the 3D scene view in the application
+    /// Manages a 3D scene window in the application.
     /// </summary>
     public class SceneWindow : IDisposable
     {
@@ -22,11 +23,10 @@ namespace SoSmooth
 
         private GLWidget m_glWidget;
         public Widget Widget { get { return m_glWidget; } }
-
-        private int m_glWidth;
-        private int m_glHeight;
+        
         private bool m_viewportDirty;
 
+        private Stopwatch m_stopwatch;
         private Scene m_scene;
 
         /// <summary>
@@ -39,6 +39,14 @@ namespace SoSmooth
         }
 
         /// <summary>
+        /// How long it took to render the last frame in milliseconds.
+        /// </summary>
+        public float RenderTime
+        {
+            get { return 1000 * ((float)m_stopwatch.ElapsedTicks / Stopwatch.Frequency); }
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public SceneWindow()
@@ -48,9 +56,14 @@ namespace SoSmooth
             m_glWidget.Name = "SceneView";
             m_glWidget.Initialized += GLWidgetInitialize;
             m_glWidget.SizeAllocated += OnResize;
+            m_glWidget.RenderFrame += OnRenderFrame;
 
             m_glWidget.KeyPressEvent += KeyPressEvent;
             m_glWidget.KeyReleaseEvent += KeyReleaseEvent;
+
+            m_stopwatch = new Stopwatch();
+
+            m_glWidget.CanFocus = true;
         }
 
         [ConnectBefore]
@@ -66,6 +79,66 @@ namespace SoSmooth
         }
 
         /// <summary>
+        /// Called when the context is initialized.
+        /// </summary>
+        private void GLWidgetInitialize(object sender, EventArgs e)
+        {
+            // disable vsync as we don't want the thread to be blocked needlessly
+            GraphicsContext.CurrentContext.SwapInterval = 0;
+
+            // preload all shader programs
+            ShaderManager.Instance.LoadShaders();
+
+            /*
+             * TODO: MOVE THIS TO CONSTRUCTOR ONCE OPENGL CALLS ARE ONLY DONE WHEN RENDERING
+             */
+            m_scene = new Scene();
+
+            m_viewportDirty = true;
+        }
+
+        /// <summary>
+        /// Called when the widget has been resized. We get the new size and mark that we need
+        /// to update the window size next time the scene is rendered.
+        /// </summary>
+        private void OnResize(object o, SizeAllocatedArgs args)
+        {
+            m_viewportDirty = true;
+        }
+        
+        /// <summary>
+        /// Renders a frame.
+        /// </summary>
+        protected void OnRenderFrame(object sender, EventArgs e)
+        {
+            // measure the render time
+            m_stopwatch.Restart();
+
+            Gdk.Rectangle rect = Widget.Allocation;
+
+            // resize the view if it has been changed
+            if (m_viewportDirty)
+            {
+                GL.Viewport(0, 0, rect.Width, rect.Height);
+                GL.Scissor(0, 0, rect.Width, rect.Height);
+                m_viewportDirty = false;
+            }
+
+            // render the scene
+            if (m_scene != null)
+            {
+                m_scene.Render(rect.Width, rect.Height);
+            }
+            else
+            {
+                GL.ClearColor(Color.Black);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            m_stopwatch.Stop();
+        }
+        
+        /// <summary>
         /// Frees managed resources.
         /// </summary>
         public void Dispose()
@@ -75,74 +148,10 @@ namespace SoSmooth
                 m_glWidget.Dispose();
                 m_glWidget = null;
             }
-        }
-
-        /// <summary>
-        /// Called when the context is initialized.
-        /// </summary>
-        private void GLWidgetInitialize(object sender, EventArgs e)
-        {
-            ShaderManager.Instance.LoadShaders();
-
-            m_viewportDirty = true;
-            m_scene = new Scene();
-            
-            // Add idle event handler to process rendering whenever and as long as time is availble.
-            Idle.Add(new IdleHandler(OnIdleProcessMain));
-        }
-
-        /// <summary>
-        /// Called when the widget has been resized. We get the new size and mark that we need
-        /// to update the window size next time the scene is rendered.
-        /// </summary>
-        private void OnResize(object o, SizeAllocatedArgs args)
-        {
-            m_glWidth = args.Allocation.Width;
-            m_glHeight = args.Allocation.Height;
-            m_viewportDirty = true;
-        }
-
-        /// <summary>
-        /// Render the scene whenever the main applicatoin is not busy.
-        /// </summary>
-        private bool OnIdleProcessMain()
-        {
-            if (m_glWidget == null)
-            {
-                return false;
-            }
-            else
-            {
-                RenderFrame();
-                return true;
-            }
-        }
-        
-        /// <summary>
-        /// Renders a frame.
-        /// </summary>
-        private void RenderFrame()
-        {
-            Time.FrameStart();
-
-            // resize the view if it has been changed
-            if (m_viewportDirty)
-            {
-                GL.Viewport(0, 0, m_glWidth, m_glHeight);
-                m_viewportDirty = false;
-            }
-            
             if (m_scene != null)
             {
-                m_scene.Render(m_glWidth, m_glHeight);
+                m_scene = null;
             }
-            else
-            {
-                GL.ClearColor(Color.Black);
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            }
-
-            GraphicsContext.CurrentContext.SwapBuffers();
         }
     }
 }

@@ -46,7 +46,7 @@ namespace SoSmooth.Rendering
         {
             foreach (var vertexArray in m_vertexArrays)
             {
-                vertexArray.SetShaderProgram(m_program);
+                vertexArray.SetShaderProgram(Program);
             }
         }
 

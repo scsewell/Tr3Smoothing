@@ -5,12 +5,17 @@ using System.Reflection;
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// Loads shaders files embedded into the assembly.
-    /// Shaders with the same file name are automatically combined into
-    /// a single program.
+    /// Loads shaders files embedded into the assembly. Shaders with the same file
+    /// name are automatically combined into a single program.
     /// </summary>
     public class ShaderManager : Singleton<ShaderManager>
     {
+        /// <summary>
+        /// A basic unlit shader.
+        /// </summary>
+        public static readonly string SHADER_UNLIT      = "unlit";
+
+        // The file extentions of shaders in the solution.
         private const string VERT_EXTENTION = "vert";
         private const string GEOM_EXTENTION = "geom";
         private const string FRAG_EXTENTION = "frag";

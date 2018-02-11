@@ -39,8 +39,8 @@ namespace SoSmooth.Rendering
         public VertexBuffer(int capacity = 0)
         {
             m_handle = GL.GenBuffer();
-            m_vertexSize = VertexData.SizeOf<TVertexData>();
             m_vertices = new TVertexData[capacity > 0 ? capacity : 4];
+            m_vertexSize = m_vertices[0].Size();
         }
         
         private void EnsureCapacity(int minCapacity)

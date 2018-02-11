@@ -6,9 +6,9 @@
     public interface IVertexData
     {
         /// <summary>
-        /// This method returns the size of the vertex data struct in bytes.
+        /// Returns the vertex's size./>
         /// </summary>
-        /// <returns>Struct's size in bytes.</returns>
+        /// <returns>The total size in bytes.</returns>
         int Size();
 
         /// <summary>

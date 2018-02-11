@@ -149,17 +149,17 @@ namespace SoSmooth.Rendering
         {
             foreach (var container in m_activeBatches)
             {
-                container.VertexArray.SetShaderProgram(m_program);
+                container.VertexArray.SetShaderProgram(Program);
             }
 
             foreach (var container in m_inactiveBatches)
             {
-                container.VertexArray.SetShaderProgram(m_program);
+                container.VertexArray.SetShaderProgram(Program);
             }
 
             foreach (var container in m_unusedBatches)
             {
-                container.VertexArray.SetShaderProgram(m_program);
+                container.VertexArray.SetShaderProgram(Program);
             }
         }
 
@@ -177,7 +177,7 @@ namespace SoSmooth.Rendering
                     continue;
                 }
 
-                batch.Batch.SetAllSettings(m_program);
+                batch.Batch.SetAllSettings(Program);
 
                 GL.BindBuffer(BufferTarget.ArrayBuffer, batch.Batch.VertexBuffer);
 
@@ -191,7 +191,7 @@ namespace SoSmooth.Rendering
 
                 batch.VertexArray.UnSetVertexData();
 
-                batch.Batch.UnsetAllSettings(m_program);
+                batch.Batch.UnsetAllSettings(Program);
             }
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -217,9 +217,9 @@ namespace SoSmooth.Rendering
 
         private void addBatch(BatchContainer batch, bool draw)
         {
-            if (m_program != null)
+            if (Program != null)
             {
-                batch.VertexArray.SetShaderProgram(m_program);
+                batch.VertexArray.SetShaderProgram(Program);
             }
 
             (draw ? m_activeBatches : m_inactiveBatches).Add(batch);

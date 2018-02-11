@@ -50,7 +50,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         protected override void OnNewShaderProgram()
         {
-            m_vertexAttributeProvider.SetShaderProgram(m_program);
+            m_vertexAttributeProvider.SetShaderProgram(Program);
         }
 
         /// <summary>

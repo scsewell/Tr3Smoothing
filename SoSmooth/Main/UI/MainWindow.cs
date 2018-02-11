@@ -1,4 +1,5 @@
 ﻿using Gtk;
+using GLib;
 
 namespace SoSmooth
 {
@@ -32,31 +33,22 @@ namespace SoSmooth
 
             Add(vBox);
             ShowAll();
-
-            KeyPressEvent += MainWindow_KeyPressEvent;
-            KeyReleaseEvent += MainWindow_KeyReleaseEvent;
-            ButtonPressEvent += MainWindow_ButtonPressEvent;
+            
+            Time.SetStartTime();
+            Idle.Add(UpdateScenes);
         }
 
-        [GLib.ConnectBefore]
-        private void MainWindow_ButtonPressEvent(object o, ButtonPressEventArgs args)
+        /// <summary>
+        /// Excecutes the main update loop for scene windows.
+        /// </summary>
+        private bool UpdateScenes()
         {
-            //Logger.Debug(args.Event.Button.ToString());
+            Time.FrameStart();
+
+            m_sceneWindow.Widget.QueueDraw();
+            return true;
         }
-
-        [GLib.ConnectBefore]
-        private void MainWindow_KeyReleaseEvent(object o, KeyReleaseEventArgs args)
-        {
-            //Logger.Debug(args.Event.Key.ToString());
-        }
-
-        [GLib.ConnectBefore]
-        private void MainWindow_KeyPressEvent(object o, KeyPressEventArgs args)
-        {
-            //Logger.Debug(args.Event.Key.ToString());
-        }
-
-
+        
         private void OnDeleteEvent(object sender, DeleteEventArgs a)
         {
             Quit();

@@ -124,9 +124,16 @@ namespace SoSmooth.Scenes
         /// <param name="resY">The vertical rendering resolution in pixels.</param>
         public void SetResolution(int resX, int resY)
         {
-            m_resolutionX = resX;
-            m_resolutionY = resY;
-            m_projectionMatDirty = true;
+            if (m_resolutionX != resX)
+            {
+                m_resolutionX = resX;
+                m_projectionMatDirty = true;
+            }
+            if (m_resolutionY != resY)
+            {
+                m_resolutionY = resY;
+                m_projectionMatDirty = true;
+            }
         }
     }
 }

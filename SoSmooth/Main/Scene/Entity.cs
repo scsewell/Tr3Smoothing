@@ -78,7 +78,7 @@ namespace SoSmooth.Scenes
                 throw new ArgumentException("Entity scene must not be null.");
             }
             Transform.SetParent(null);
-            Scene.OnSceneChange(this, m_scene, scene);
+            scene.AddToRoot(this);
             TraverseHeirarchy((entity) => entity.m_scene = scene);
         }
 
@@ -161,7 +161,7 @@ namespace SoSmooth.Scenes
         {
             foreach (Component c in m_components)
             {
-                if (typeof(T) == c.GetType())
+                if (typeof(T).IsAssignableFrom(c.GetType()))
                 {
                     result.Add((T)c);
                 }
@@ -177,8 +177,19 @@ namespace SoSmooth.Scenes
         public List<T> GetComponentsInChildren<T>() where T : Component
         {
             List<T> components = new List<T>();
-            TraverseHeirarchy((entity) => entity.GetComponents(components));
+            GetComponentsInChildren(components);
             return components;
+        }
+
+        /// <summary>
+        /// Finds the instances of a given type of component on this entity
+        /// or any of its children.
+        /// </summary>
+        /// <typeparam name="T">The type of component to find instances of.</typeparam>
+        /// <param name="result">The list discovered components are appended to.</param>
+        public void GetComponentsInChildren<T>(List<T> result) where T : Component
+        {
+            TraverseHeirarchy((entity) => entity.GetComponents(result));
         }
 
         /// <summary>
@@ -188,11 +199,16 @@ namespace SoSmooth.Scenes
         /// <param name="newParent">The new parent transform.</param>
         private void OnChangeParent(Transform oldParent, Transform newParent)
         {
-            // ensure that this entity and all children inherit the scene of the new parent 
             if (newParent != null)
             {
-                Scene.OnSceneChange(this, m_scene, newParent.Entity.Scene);
+                // ensure that this entity and all children inherit the scene of the new parent
+                m_scene.RemoveFromRoot(this);
+                newParent.Entity.Scene.AddToRoot(this);
                 TraverseHeirarchy((entity) => entity.m_scene = newParent.Entity.Scene);
+            }
+            else // if the parent was cleared add the entity to the root of the scene
+            {
+                m_scene.AddToRoot(this);
             }
         }
 
