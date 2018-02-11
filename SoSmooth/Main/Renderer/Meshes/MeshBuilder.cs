@@ -26,9 +26,15 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Builds and return a mesh with the builder's data.
         /// </summary>
-        public Mesh Build()
+        /// <param name="useNormals">Allow rendering with normals.</param>
+        /// <param name="useColors">Allow rendering with vertex color.</param>
+        public Mesh Build(bool useNormals, bool useColors)
         {
-            return new Mesh(m_vertices.ToArray(), m_triangles.ToArray());
+            return new Mesh(
+                m_vertices.ToArray(), 
+                m_triangles.ToArray(),
+                useNormals,
+                useColors);
         }
 
         /// <summary>
@@ -150,6 +156,8 @@ namespace SoSmooth.Rendering.Meshes
             m_triangles.Clear();
         }
 
+        private static MeshBuilder m_builder = new MeshBuilder();
+
         /// <summary>
         /// Returns a simple axis-aligned cube centered around (0, 0, 0).
         /// All edges are length 1.
@@ -158,34 +166,35 @@ namespace SoSmooth.Rendering.Meshes
         {
             const float u = 0.5f;
 
-            return new Mesh(
-                new[]
-                {
-                    new Vertex(new Vector3(-u, -u, -u), Color4.Brown),
-                    new Vertex(new Vector3(u, -u, -u),  Color4.Red),
-                    new Vertex(new Vector3(u, u, -u),   Color4.Orange),
-                    new Vertex(new Vector3(-u, u, -u),  Color4.Yellow),
+            m_builder.Clear();
 
-                    new Vertex(new Vector3(-u, -u, u),  Color4.Green),
-                    new Vertex(new Vector3(u, -u, u),   Color4.Cyan),
-                    new Vertex(new Vector3(u, u, u),    Color4.Blue),
-                    new Vertex(new Vector3(-u, u, u),   Color4.Magenta),
-                },
-                new[]
-                {
-                    new Triangle(0, 3, 2),
-                    new Triangle(0, 2, 1),
-                    new Triangle(0, 1, 5),
-                    new Triangle(0, 5, 4),
-                    new Triangle(0, 4, 7),
-                    new Triangle(0, 7, 3),
-                    new Triangle(6, 5, 1),
-                    new Triangle(6, 1, 2),
-                    new Triangle(6, 2, 3),
-                    new Triangle(6, 3, 7),
-                    new Triangle(6, 7, 4),
-                    new Triangle(6, 4, 5),
-                });
+            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, -u), Color4.Brown));
+            m_builder.AddVertex(new Vertex(new Vector3(u, -u, -u),  Color4.Red));
+            m_builder.AddVertex(new Vertex(new Vector3(u, u, -u),   Color4.Orange));
+            m_builder.AddVertex(new Vertex(new Vector3(-u, u, -u),  Color4.Yellow));
+
+            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, u),  Color4.Green));
+            m_builder.AddVertex(new Vertex(new Vector3(u, -u, u),   Color4.Cyan));
+            m_builder.AddVertex(new Vertex(new Vector3(u, u, u),    Color4.Blue));
+            m_builder.AddVertex(new Vertex(new Vector3(-u, u, u),   Color4.Magenta));
+
+            m_builder.AddTriangle(new Triangle(0, 3, 2));
+            m_builder.AddTriangle(new Triangle(0, 2, 1));
+            m_builder.AddTriangle(new Triangle(0, 1, 5));
+            m_builder.AddTriangle(new Triangle(0, 5, 4));
+            m_builder.AddTriangle(new Triangle(0, 4, 7));
+            m_builder.AddTriangle(new Triangle(0, 7, 3));
+            m_builder.AddTriangle(new Triangle(6, 5, 1));
+            m_builder.AddTriangle(new Triangle(6, 1, 2));
+            m_builder.AddTriangle(new Triangle(6, 2, 3));
+            m_builder.AddTriangle(new Triangle(6, 3, 7));
+            m_builder.AddTriangle(new Triangle(6, 7, 4));
+            m_builder.AddTriangle(new Triangle(6, 4, 5));
+
+            Mesh mesh = m_builder.Build(true, true);
+            mesh.RecalculateNormals();
+
+            return mesh;
         }
 
         /// <summary>
@@ -270,7 +279,7 @@ namespace SoSmooth.Rendering.Meshes
                     new Triangle(16 + 6, 16 + 3, 16 + 7),
                     new Triangle(16 + 6, 16 + 7, 16 + 4),
                     new Triangle(16 + 6, 16 + 4, 16 + 5),
-                });
+                }, false, true);
         }
     }
 }

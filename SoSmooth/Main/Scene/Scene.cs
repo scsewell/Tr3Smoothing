@@ -30,6 +30,8 @@ namespace SoSmooth.Scenes
             m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2);
 
             m_camChild = new Entity(this, "CamChildCube");
+
+            m_camChild.Transform.LocalScale = new Vector3(1.5f, 1.5f, 1.5f);
             m_camChild.Transform.LocalPosition = new Vector3(0, 0, -8);
             m_camChild.Transform.SetParent(cam.Transform, false);
             MeshRenderer camChildRenderer = new MeshRenderer(m_camChild);
@@ -74,17 +76,15 @@ namespace SoSmooth.Scenes
             if (ActiveCamera != null)
             {
                 ActiveCamera.SetResolution(resX, resY);
-
-                //m_camera.Transform.LocalPosition = new Vector3(0, -5 + (float)Math.Sin(Time.time), 0);
-                //m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2 * (float)Math.Sin(Time.time));
-
-                //m_entity1.Transform.LocalScale = new Vector3((float)Math.Sin(Time.time) + 2, 1, 1);
+                
                 m_entity1.Transform.LocalPosition = new Vector3((float)Math.Sin(Time.time), 0, 0);
                 m_entity1.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time);
 
                 m_entity2.Transform.LocalScale = new Vector3((float)Math.Sin(Time.time) + 2, 1, 1);
                 m_entity2.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time).Inverted();
 
+                m_camChild.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, -1, 1), Time.time);
+                
                 m_camera.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
                 m_entity2.GetComponent<MeshRenderer>().Mesh.UseColors = (Time.time % 6 > 3f);
 
@@ -102,6 +102,7 @@ namespace SoSmooth.Scenes
                 }
             }
 
+            // report the latest error when rendering the scene, if applicable
             ErrorCode error = GL.GetError();
             if (error != ErrorCode.NoError)
             {

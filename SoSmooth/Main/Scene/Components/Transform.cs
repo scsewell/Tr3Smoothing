@@ -229,18 +229,11 @@ namespace SoSmooth.Scenes
         {
             if (m_parent != newParent)
             {
-                // Depending on if we are preserving the local or the world orientation after
-                // the parent change, we must ensure the respective orienation matrix is refreshed
-                if (!worldPositionStays)
+                // we must know at least one world transformation matrix
+                if (m_localToWorldDirty && m_worldToLocalDirty)
                 {
-                    RefreshParentToLocal();
-                }
-                else if (m_localToWorldDirty && m_worldToLocalDirty)
-                {
-                    // we must know at least one world transformation matrix
                     RefreshWorldToLocal();
                 }
-                MarkDirty(!worldPositionStays, worldPositionStays, true);
 
                 Transform oldParent = m_parent;
 
@@ -255,6 +248,14 @@ namespace SoSmooth.Scenes
                 {
                     newParent.m_children.Add(this);
                 }
+
+                // if not preserving the local space orientation, use the old world orientation
+                // and the new parent's world orientation to get the new local orientation
+                if (!worldPositionStays)
+                {
+                    RefreshParentToLocal();
+                }
+                MarkDirty(!worldPositionStays, worldPositionStays, true);
 
                 // notify the parent change
                 if (m_onParentChanged != null)
@@ -308,7 +309,7 @@ namespace SoSmooth.Scenes
         {
             if (m_positionDirty)
             {
-                m_position = ParentToLocalMatix.ExtractTranslation();
+                m_position = ParentToLocalMatix.Inverted().ExtractTranslation();
             }
             m_positionDirty = false;
         }
@@ -320,7 +321,7 @@ namespace SoSmooth.Scenes
         {
             if (m_rotationDirty)
             {
-                m_rotation = ParentToLocalMatix.ExtractRotation();
+                m_rotation = ParentToLocalMatix.Inverted().ExtractRotation();
             }
             m_rotationDirty = false;
         }
@@ -332,7 +333,7 @@ namespace SoSmooth.Scenes
         {
             if (m_scaleDirty)
             {
-                m_scale = ParentToLocalMatix.ExtractScale();
+                m_scale = ParentToLocalMatix.Inverted().ExtractScale();
             }
             m_scaleDirty = false;
         }

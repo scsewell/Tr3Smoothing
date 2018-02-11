@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTK;
 
 namespace SoSmooth.Rendering.Meshes
 {
@@ -66,7 +67,7 @@ namespace SoSmooth.Rendering.Meshes
         private bool m_useNormals;
 
         /// <summary>
-        /// Should this mesh have normals.
+        /// Should this mesh render using vertex normals.
         /// </summary>
         public bool UseNormals
         {
@@ -84,7 +85,7 @@ namespace SoSmooth.Rendering.Meshes
         private bool m_useColors;
 
         /// <summary>
-        /// Should this mesh have vertex colors.
+        /// Should this mesh render using vertex colors.
         /// </summary>
         public bool UseColors
         {
@@ -137,7 +138,7 @@ namespace SoSmooth.Rendering.Meshes
         private bool m_indexBufferDirty;
 
         /// <summary>
-        /// The vertex buffer object.
+        /// The index buffer object.
         /// </summary>
         public IndexBuffer IndexBuffer
         {
@@ -156,13 +157,19 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         /// <param name="vertices">A vertex array.</param>
         /// <param name="triangles">A triangle array.</param>
-        public Mesh(Vertex[] vertices, Triangle[] triangles)
+        /// <param name="useNormals">Allow rendering with normals.</param>
+        /// <param name="useColors">Allow rendering with vertex color.</param>
+        public Mesh(
+            Vertex[] vertices, 
+            Triangle[] triangles,
+            bool useNormals,
+            bool useColors)
         {
             m_vertices = vertices;
             m_triangles = triangles;
 
-            m_useNormals = true;
-            m_useColors = false;
+            m_useNormals = useNormals;
+            m_useColors = useColors;
 
             m_vertexBufferDirty = true;
             m_indexBufferDirty = true;
@@ -188,11 +195,35 @@ namespace SoSmooth.Rendering.Meshes
         }
 
         /// <summary>
-        /// Calculates normals for the mesh.
+        /// Computes vertex normals for the mesh.
         /// </summary>
-        public void CalculateNormals()
+        public void RecalculateNormals()
         {
+            // clear the existing vertex normals
+            for (int i = 0; i < m_vertices.Length; i++)
+            {
+                m_vertices[i].normal = Vector3.Zero;
+            }
 
+            // add the normal of every triangle to its vertices
+            for (int i = 0; i < m_triangles.Length; i++)
+            {
+                Vector3 p0 = m_vertices[m_triangles[i].index0].position;
+                Vector3 p1 = m_vertices[m_triangles[i].index1].position;
+                Vector3 p2 = m_vertices[m_triangles[i].index2].position;
+
+                Vector3 normal = Vector3.Cross(p1 - p0, p2 - p0);
+
+                m_vertices[m_triangles[i].index0].normal += normal;
+                m_vertices[m_triangles[i].index1].normal += normal;
+                m_vertices[m_triangles[i].index2].normal += normal;
+            }
+
+            // normalize the result
+            for (int i = 0; i < m_vertices.Length; i++)
+            {
+                m_vertices[i].normal.Normalize();
+            }
         }
 
         /// <summary>

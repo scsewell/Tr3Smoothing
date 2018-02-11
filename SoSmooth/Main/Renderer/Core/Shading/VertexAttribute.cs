@@ -46,7 +46,7 @@ namespace SoSmooth.Rendering
         public void SetAttribute(ShaderProgram program)
         {
             int index = program.GetAttributeLocation(m_name);
-            Logger.Debug(this);
+
             if (index != -1)
             {
                 GL.EnableVertexAttribArray(index);
