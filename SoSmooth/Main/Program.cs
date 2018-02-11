@@ -10,7 +10,7 @@ namespace SoSmooth
         /// </summary>
         public const string NAME = "SoSmooth";
         
-        public const string ARG_SILENT      = "-s";
+        public const string ARG_VERBOSE     = "-v";
         public const string ARG_HEADLESS    = "-h";
         public const string ARG_FILE        = "-file";
 
@@ -24,10 +24,14 @@ namespace SoSmooth
         {
             // listen for any unhandled exceptions
             AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-            
-            // don't log to the console if silent specified
-            Logger.SetEchoToConsole(!LineOptionParser.HasFlag(args, ARG_SILENT));
-            
+
+#if DEBUG
+            Logger.Instance.echoToConsole = true;
+#else
+            // echo log messages to the console if verbose specified
+            Logger.Instance.echoToConsole = LineOptionParser.HasFlag(args, ARG_VERBOSE);
+#endif
+
             // print the system information
             string os = Environment.OSVersion.VersionString;
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";

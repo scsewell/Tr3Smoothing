@@ -6,14 +6,16 @@ using System.Linq;
 namespace SoSmooth
 {
     /// <summary>
-    /// Handles logging output to console and file.
+    /// Formats log messages and sends them to the log writer.
+    /// It is thread safe, but writes are briefly buffered so
+    /// in event of a fatal crash output may not be complete.
     /// </summary>
     public class Logger : Singleton<Logger>
     {
         /// <summary>
         /// The directory of the log files relative to the application launch directory.
         /// </summary>
-        private static readonly string LOG_DIRECTORY    = "Logs" + Path.DirectorySeparatorChar;
+        private static readonly string LOG_DIRECTORY    = "Logs";
 
         /// <summary>
         /// The file extention used for log files.
@@ -31,8 +33,10 @@ namespace SoSmooth
         /// </summary>
         private const int MESSAGE_START_PADDING = 32;
 
-        private string m_logPath;
-        private bool m_echoToConsole;
+        public readonly string logPath;
+        private readonly LogWriter m_writer;
+
+        public bool echoToConsole;
 
         /// <summary>
         /// Constructor.
@@ -57,16 +61,14 @@ namespace SoSmooth
 
             // Get the filepath for this session's log
             string logStartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            m_logPath = AppDomain.CurrentDomain.BaseDirectory + LOG_DIRECTORY + Program.NAME + "_" + logStartTime + FILE_EXTENTION;
+            string logName = Program.NAME + "_" + logStartTime + FILE_EXTENTION;
             
-            m_echoToConsole = false;
-        }
+            logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LOG_DIRECTORY, logName);
 
-        public static void SetEchoToConsole(bool echo)
-        {
-            Instance.m_echoToConsole = echo;
+            echoToConsole = false;
+            m_writer = new LogWriter();
         }
-
+        
         /// <summary>
         /// Logs the given object.
         /// </summary>
@@ -190,17 +192,7 @@ namespace SoSmooth
                 line += stackTrace;
             }
 
-            // Optionally print the message out to the console
-            if (m_echoToConsole)
-            {
-                Console.Write(line);
-            }
-
-            // Write to the current log file and close the stream
-            using (StreamWriter stream = File.AppendText(m_logPath))
-            {
-                stream.Write(line);
-            }
+            m_writer.BufferMessage(line);
         }
     }
 }

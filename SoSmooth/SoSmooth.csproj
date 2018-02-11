@@ -124,6 +124,7 @@
     <Compile Include="Main\UI\MainWindow.cs" />
     <Compile Include="Main\Program.cs" />
     <Compile Include="Main\Utils\Logging\LogLevel.cs" />
+    <Compile Include="Main\Utils\Logging\LogWriter.cs" />
     <Compile Include="Main\Utils\Singleton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Main\IO\Tr3\Tr3FileHandler.cs" />
