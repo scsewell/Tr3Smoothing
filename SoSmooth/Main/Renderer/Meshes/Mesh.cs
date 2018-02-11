@@ -1,78 +1,250 @@
 ﻿using System;
-using OpenTK;
 
 namespace SoSmooth.Rendering.Meshes
 {
     /// <summary>
-    /// Represents an immutable mesh of vertices and triangles.
+    /// Represents a mesh of vertices and triangles. Manages uploading the 
+    /// vertex buffer object and index buffer that represent the mesh on
+    /// the GPU.
     /// </summary>
-    public sealed class Mesh<TVertex> where TVertex : struct
+    public sealed class Mesh : IDisposable
     {
-        private readonly TVertex[] m_vertices;
-        private readonly IndexTriangle[] m_triangles;
-        
-        public Mesh(TVertex[] vertices, IndexTriangle[] triangles)
-        {
-            m_vertices = vertices;
-            m_triangles = triangles;
-        }
+        private Vertex[] m_vertices;
 
         /// <summary>
-        /// Converts the mesh into a renderable indexed surface.
+        /// The vertices of the mesh. The getter returns a copy of the
+        /// actual array, so the setter must be used to update the 
+        /// mesh.
         /// </summary>
-        /// <param name="transform">A function to apply to all the vertices.</param>
-        public IndexedSurface<TVertexOut> ToIndexedSurface<TVertexOut>(
-            Func<TVertex, TVertexOut> transform = null
-            ) where TVertexOut : struct, IVertexData
+        public Vertex[] Vertices
         {
-            var surface = new IndexedSurface<TVertexOut>();
-            
-            WriteVertices(surface, transform);
-            WriteIndices(surface);
-
-            return surface;
-        }
-        
-        private void WriteVertices<TVertexOut>(
-            VertexSurface<TVertexOut> surface,
-            Func<TVertex, TVertexOut> transform = null
-            ) where TVertexOut : struct, IVertexData
-        {
-            ushort offset;
-            TVertexOut[] vertexArray = surface.WriteVerticesDirectly(m_vertices.Length, out offset);
-
-            if (offset != 0)
+            get
             {
-                throw new Exception("Expected vertex offset to be zero.");
+                Vertex[] vertices = new Vertex[m_vertices.Length];
+                Array.Copy(m_vertices, vertices, m_vertices.Length);
+                return vertices;
             }
-
-            if (transform == null)
+            set
             {
-                m_vertices.CopyTo(vertexArray, 0);
-            }
-            else
-            {
-                for (int i = 0; i < m_vertices.Length; i++)
+                Vertex[] vertices = value;
+                if (m_vertices.Length != vertices.Length)
                 {
-                    vertexArray[i] = transform(m_vertices[i]);
+                    Array.Resize(ref m_vertices, vertices.Length);
+                }
+                Array.Copy(vertices, m_vertices, vertices.Length);
+                m_vertexBufferDirty = true;
+            }
+        }
+
+        private Triangle[] m_triangles;
+
+        /// <summary>
+        /// The triangles of the mesh. The getter returns a copy of the
+        /// actual array, so the setter must be used to update the 
+        /// mesh.
+        /// </summary>
+        public Triangle[] Triangles
+        {
+            get
+            {
+                Triangle[] triangles = new Triangle[m_triangles.Length];
+                Array.Copy(m_triangles, triangles, m_triangles.Length);
+                return triangles;
+            }
+            set
+            {
+                Triangle[] triangles = value;
+                if (m_triangles.Length != triangles.Length)
+                {
+                    Array.Resize(ref m_triangles, triangles.Length);
+                }
+                Array.Copy(triangles, m_triangles, triangles.Length);
+                m_indexBufferDirty = true;
+            }
+        }
+
+        private bool m_useNormals;
+
+        /// <summary>
+        /// Should this mesh have normals.
+        /// </summary>
+        public bool UseNormals
+        {
+            get { return m_useNormals; }
+            set
+            {
+                if (m_useNormals != value)
+                {
+                    m_useNormals = value;
+                    m_vertexBufferDirty = true;
                 }
             }
         }
 
-        private void WriteIndices<TVertexOut>(IndexedSurface<TVertexOut> surface) where TVertexOut : struct, IVertexData
-        {
-            int offset;
-            ushort[] indexArray = surface.WriteIndicesDirectly(m_triangles.Length * 3, out offset);
+        private bool m_useColors;
 
-            if (offset != 0)
+        /// <summary>
+        /// Should this mesh have vertex colors.
+        /// </summary>
+        public bool UseColors
+        {
+            get { return m_useColors; }
+            set
             {
-                // test not strictly speaking necessary, but enforces usage
-                throw new Exception("Expected index offset to be zero.");
+                if (m_useColors != value)
+                {
+                    m_useColors = value;
+                    m_vertexBufferDirty = true;
+                }
+            }
+        }
+
+        private IVertexBuffer m_vertexBuffer;
+        private bool m_vertexBufferDirty;
+
+        /// <summary>
+        /// The vertex buffer object.
+        /// </summary>
+        public IVertexBuffer VertexBuffer
+        {
+            get
+            {
+                if (m_vertexBufferDirty)
+                {
+                    // Update the buffer with vertices only containing used attributes
+                    if (UseNormals && UseColors)
+                    {
+                        UpdateVertices(Vertex.ToVertePNC);
+                    }
+                    else if (UseNormals)
+                    {
+                        UpdateVertices(Vertex.ToVertePN);
+                    }
+                    else if (UseColors)
+                    {
+                        UpdateVertices(Vertex.ToVertePC);
+                    }
+                    else
+                    {
+                        UpdateVertices(Vertex.ToVerteP);
+                    }
+                }
+                return m_vertexBuffer;
+            }
+        }
+
+        private IndexBuffer m_indexBuffer;
+        private bool m_indexBufferDirty;
+
+        /// <summary>
+        /// The vertex buffer object.
+        /// </summary>
+        public IndexBuffer IndexBuffer
+        {
+            get
+            {
+                if (m_indexBufferDirty)
+                {
+                    UpdateIndices();
+                }
+                return m_indexBuffer;
+            }
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="Mesh"/>.
+        /// </summary>
+        /// <param name="vertices">A vertex array.</param>
+        /// <param name="triangles">A triangle array.</param>
+        public Mesh(Vertex[] vertices, Triangle[] triangles)
+        {
+            m_vertices = vertices;
+            m_triangles = triangles;
+
+            m_useNormals = true;
+            m_useColors = false;
+
+            m_vertexBufferDirty = true;
+            m_indexBufferDirty = true;
+        }
+
+        /// <summary>
+        /// Clones a <see cref="Mesh"/>.
+        /// </summary>
+        /// <param name="mesh">A mesh to clone.</param>
+        public Mesh(Mesh mesh)
+        {
+            m_vertices = new Vertex[mesh.m_vertices.Length];
+            m_triangles = new Triangle[mesh.m_triangles.Length];
+
+            mesh.m_vertices.CopyTo(m_vertices, 0);
+            mesh.m_triangles.CopyTo(m_triangles, 0);
+
+            m_useNormals = mesh.m_useNormals;
+            m_useColors = mesh.m_useColors;
+
+            m_vertexBufferDirty = true;
+            m_indexBufferDirty = true;
+        }
+
+        /// <summary>
+        /// Calculates normals for the mesh.
+        /// </summary>
+        public void CalculateNormals()
+        {
+
+        }
+
+        /// <summary>
+        /// Updates the vertex buffer object from the <see cref="Vertices"/> array.
+        /// </summary>
+        private void UpdateVertices<TVertexOut>(Func<Vertex, TVertexOut> transform) where TVertexOut : struct, IVertexData
+        {
+            if (m_vertexBuffer != null && m_vertexBuffer.GetType() != typeof(VertexBuffer<TVertexOut>))
+            {
+                m_vertexBuffer.Dispose();
+                m_vertexBuffer = null;
             }
 
+            if (m_vertexBuffer == null)
+            {
+                m_vertexBuffer = new VertexBuffer<TVertexOut>(m_vertices.Length);
+            }
+
+            VertexBuffer<TVertexOut> buffer = m_vertexBuffer as VertexBuffer<TVertexOut>;
+            buffer.Clear();
+            
+            ushort offset;
+            TVertexOut[] vertexArray = buffer.WriteVerticesDirectly(m_vertices.Length, out offset);
+            
+            for (int i = 0; i < m_vertices.Length; i++)
+            {
+                vertexArray[i] = transform(m_vertices[i]);
+            }
+            
+            buffer.BufferData();
+
+            m_vertexBufferDirty = false;
+        }
+
+        /// <summary>
+        /// Updates the index buffer object from the <see cref="Triangles"/> array.
+        /// </summary>
+        private void UpdateIndices()
+        {
+            if (m_indexBuffer == null)
+            {
+                m_indexBuffer = new IndexBuffer(m_triangles.Length * 3);
+            }
+
+            m_indexBuffer.Clear();
+
+            int offset;
+            ushort[] indexArray = m_indexBuffer.WriteIndicesDirectly(m_triangles.Length * 3, out offset);
+            
             for (int i = 0; i < m_triangles.Length; i++)
             {
-                IndexTriangle triangle = m_triangles[i];
+                Triangle triangle = m_triangles[i];
 
                 indexArray[offset] = triangle.index0;
                 indexArray[offset + 1] = triangle.index1;
@@ -80,129 +252,44 @@ namespace SoSmooth.Rendering.Meshes
 
                 offset += 3;
             }
+
+            m_indexBuffer.BufferData();
+
+            m_indexBufferDirty = false;
+        }
+        
+        /// <summary>
+        /// Deletes all unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Returns a simple axis-aligned cube centered around (0, 0, 0).
-        /// All edges are length 1.
+        /// Finalizer.
         /// </summary>
-        public static Mesh<VertexNC> CreateCube()
+        ~Mesh()
         {
-            const float u = 0.5f;
-
-            return new Mesh<VertexNC>(
-                new[]
-                {
-                    new VertexNC(new Vector3(-u, -u, -u),   Color.Brown),
-                    new VertexNC(new Vector3(u, -u, -u),    Color.Red),
-                    new VertexNC(new Vector3(u, u, -u),     Color.Orange),
-                    new VertexNC(new Vector3(-u, u, -u),    Color.Yellow),
-
-                    new VertexNC(new Vector3(-u, -u, u),    Color.Green),
-                    new VertexNC(new Vector3(u, -u, u),     Color.Cyan),
-                    new VertexNC(new Vector3(u, u, u),      Color.Blue),
-                    new VertexNC(new Vector3(-u, u, u),     Color.Magenta),
-                },
-                new[]
-                {
-                    new IndexTriangle(0, 3, 2),
-                    new IndexTriangle(0, 2, 1),
-                    new IndexTriangle(0, 1, 5),
-                    new IndexTriangle(0, 5, 4),
-                    new IndexTriangle(0, 4, 7),
-                    new IndexTriangle(0, 7, 3),
-                    new IndexTriangle(6, 5, 1),
-                    new IndexTriangle(6, 1, 2),
-                    new IndexTriangle(6, 2, 3),
-                    new IndexTriangle(6, 3, 7),
-                    new IndexTriangle(6, 7, 4),
-                    new IndexTriangle(6, 4, 5),
-                });
+            Dispose(false);
         }
 
         /// <summary>
-        /// Returns a simple axis-aligned cube centered around (0, 0, 0).
-        /// All edges are length 1.
+        /// Cleanup of unmanaged resources.
         /// </summary>
-        public static Mesh<VertexNC> CreateDirectionThing()
+        private void Dispose(bool disposing)
         {
-            const float l = 1.0f;
-            const float u = 0.05f;
-
-            return new Mesh<VertexNC>(
-                new[]
-                {
-                    new VertexNC(new Vector3(-u, -u, -u),   Color.Red),
-                    new VertexNC(new Vector3(l + u, -u, -u),Color.Red),
-                    new VertexNC(new Vector3(l + u, u, -u), Color.Red),
-                    new VertexNC(new Vector3(-u, u, -u),    Color.Red),
-
-                    new VertexNC(new Vector3(-u, -u, u),    Color.Red),
-                    new VertexNC(new Vector3(l + u, -u, u), Color.Red),
-                    new VertexNC(new Vector3(l + u, u, u),  Color.Red),
-                    new VertexNC(new Vector3(-u, u, u),     Color.Red),
-
-                    new VertexNC(new Vector3(-u, -u, -u),   Color.Green),
-                    new VertexNC(new Vector3(u, -u, -u),    Color.Green),
-                    new VertexNC(new Vector3(u, l + u, -u), Color.Green),
-                    new VertexNC(new Vector3(-u, l + u, -u),Color.Green),
-
-                    new VertexNC(new Vector3(-u, -u, u),    Color.Green),
-                    new VertexNC(new Vector3(u, -u, u),     Color.Green),
-                    new VertexNC(new Vector3(u, l + u, u),  Color.Green),
-                    new VertexNC(new Vector3(-u, l + u, u), Color.Green),
-
-                    new VertexNC(new Vector3(-u, -u, -u),   Color.Blue),
-                    new VertexNC(new Vector3(u, -u, -u),    Color.Blue),
-                    new VertexNC(new Vector3(u, u, -u),     Color.Blue),
-                    new VertexNC(new Vector3(-u, u, -u),    Color.Blue),
-
-                    new VertexNC(new Vector3(-u, -u, l + u),Color.Blue),
-                    new VertexNC(new Vector3(u, -u, l + u), Color.Blue),
-                    new VertexNC(new Vector3(u, u, l + u),  Color.Blue),
-                    new VertexNC(new Vector3(-u, u, l + u), Color.Blue),
-                },
-                new[]
-                {
-                    new IndexTriangle(0, 3, 2),
-                    new IndexTriangle(0, 2, 1),
-                    new IndexTriangle(0, 1, 5),
-                    new IndexTriangle(0, 5, 4),
-                    new IndexTriangle(0, 4, 7),
-                    new IndexTriangle(0, 7, 3),
-                    new IndexTriangle(6, 5, 1),
-                    new IndexTriangle(6, 1, 2),
-                    new IndexTriangle(6, 2, 3),
-                    new IndexTriangle(6, 3, 7),
-                    new IndexTriangle(6, 7, 4),
-                    new IndexTriangle(6, 4, 5),
-
-                    new IndexTriangle(8 + 0, 8 + 3, 8 + 2),
-                    new IndexTriangle(8 + 0, 8 + 2, 8 + 1),
-                    new IndexTriangle(8 + 0, 8 + 1, 8 + 5),
-                    new IndexTriangle(8 + 0, 8 + 5, 8 + 4),
-                    new IndexTriangle(8 + 0, 8 + 4, 8 + 7),
-                    new IndexTriangle(8 + 0, 8 + 7, 8 + 3),
-                    new IndexTriangle(8 + 6, 8 + 5, 8 + 1),
-                    new IndexTriangle(8 + 6, 8 + 1, 8 + 2),
-                    new IndexTriangle(8 + 6, 8 + 2, 8 + 3),
-                    new IndexTriangle(8 + 6, 8 + 3, 8 + 7),
-                    new IndexTriangle(8 + 6, 8 + 7, 8 + 4),
-                    new IndexTriangle(8 + 6, 8 + 4, 8 + 5),
-
-                    new IndexTriangle(16 + 0, 16 + 3, 16 + 2),
-                    new IndexTriangle(16 + 0, 16 + 2, 16 + 1),
-                    new IndexTriangle(16 + 0, 16 + 1, 16 + 5),
-                    new IndexTriangle(16 + 0, 16 + 5, 16 + 4),
-                    new IndexTriangle(16 + 0, 16 + 4, 16 + 7),
-                    new IndexTriangle(16 + 0, 16 + 7, 16 + 3),
-                    new IndexTriangle(16 + 6, 16 + 5, 16 + 1),
-                    new IndexTriangle(16 + 6, 16 + 1, 16 + 2),
-                    new IndexTriangle(16 + 6, 16 + 2, 16 + 3),
-                    new IndexTriangle(16 + 6, 16 + 3, 16 + 7),
-                    new IndexTriangle(16 + 6, 16 + 7, 16 + 4),
-                    new IndexTriangle(16 + 6, 16 + 4, 16 + 5),
-                });
+            if (m_vertexBuffer != null)
+            {
+                m_vertexBuffer.Dispose();
+                m_vertexBuffer = null;
+            }
+            if (m_indexBuffer != null)
+            {
+                m_indexBuffer.Dispose();
+                m_indexBuffer = null;
+            }
         }
     }
 }

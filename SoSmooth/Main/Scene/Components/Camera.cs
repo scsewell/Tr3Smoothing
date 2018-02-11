@@ -1,6 +1,6 @@
 ﻿using System;
 using OpenTK;
-using SoSmooth.Rendering;
+using OpenTK.Graphics;
 
 namespace SoSmooth.Scenes
 {
@@ -12,7 +12,7 @@ namespace SoSmooth.Scenes
         private int m_resolutionX;
         private int m_resolutionY;
 
-        private Color m_clearColor = Color.DarkSlateBlue;
+        private Color4 m_clearColor = Color4.DarkSlateBlue;
         private float m_fieldOfView = 60.0f;
         private float m_nearClip = 0.01f;
         private float m_farClip = 100;
@@ -23,7 +23,7 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The background color of the camera.
         /// </summary>
-        public Color ClearColor
+        public Color4 ClearColor
         {
             get { return m_clearColor; }
             set { m_clearColor = value; }

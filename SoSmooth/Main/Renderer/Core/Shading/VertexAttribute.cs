@@ -3,7 +3,7 @@
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// This class represents a vertex attribute, defining the layout if <see cref="IVertexData"/> implementations.
+    /// This class represents a vertex attribute, defining the layout of <see cref="IVertexData"/> implementations.
     /// </summary>
     public sealed class VertexAttribute
     {
@@ -46,6 +46,7 @@ namespace SoSmooth.Rendering
         public void SetAttribute(ShaderProgram program)
         {
             int index = program.GetAttributeLocation(m_name);
+            Logger.Debug(this);
             if (index != -1)
             {
                 GL.EnableVertexAttribArray(index);

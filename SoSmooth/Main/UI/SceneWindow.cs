@@ -131,7 +131,7 @@ namespace SoSmooth
             }
             else
             {
-                GL.ClearColor(Color.Black);
+                GL.ClearColor(Color4.Black);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             }
 

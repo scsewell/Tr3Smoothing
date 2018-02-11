@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace SoSmooth.Rendering.Meshes
 {
     /// <summary>
-    /// A mutable builder class to help construct immutable meshes.
+    /// A builder class to help construct meshes.
     /// </summary>
-    public class MeshBuilder<TVertex> where TVertex : struct
+    public class MeshBuilder
     {
-        private readonly List<TVertex> m_vertices;
-        private readonly List<IndexTriangle> m_triangles;
+        private readonly List<Vertex> m_vertices;
+        private readonly List<Triangle> m_triangles;
 
         /// <summary>
         /// Creates a new mesh builder.
@@ -17,23 +19,23 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         public MeshBuilder(int vertexCapacity = 0, int triangleCapacity = 0)
         {
-            m_vertices = new List<TVertex>(vertexCapacity);
-            m_triangles = new List<IndexTriangle>(triangleCapacity);
+            m_vertices = new List<Vertex>(vertexCapacity);
+            m_triangles = new List<Triangle>(triangleCapacity);
         }
 
         /// <summary>
         /// Builds and return a mesh with the builder's data.
         /// </summary>
-        public Mesh<TVertex> Build()
+        public Mesh Build()
         {
-            return new Mesh<TVertex>(m_vertices.ToArray(), m_triangles.ToArray());
+            return new Mesh(m_vertices.ToArray(), m_triangles.ToArray());
         }
 
         /// <summary>
         /// Adds a vertex to the builder.
         /// </summary>
         /// <returns>The index of the vertex for triangle creation.</returns>
-        public int AddVertex(TVertex v)
+        public int AddVertex(Vertex v)
         {
             int i = m_vertices.Count;
             m_vertices.Add(v);
@@ -45,7 +47,7 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         /// <returns>The index of the first vertex for triangle creation.
         /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(TVertex v0, TVertex v1)
+        public int AddVertices(Vertex v0, Vertex v1)
         {
             int i = m_vertices.Count;
             m_vertices.Add(v0);
@@ -58,7 +60,7 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         /// <returns>The index of the first vertex for triangle creation.
         /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(TVertex v0, TVertex v1, TVertex v2)
+        public int AddVertices(Vertex v0, Vertex v1, Vertex v2)
         {
             int i = m_vertices.Count;
             m_vertices.Add(v0);
@@ -72,7 +74,7 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         /// <returns>The index of the first vertex for triangle creation.
         /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(TVertex v0, TVertex v1, TVertex v2, TVertex v3)
+        public int AddVertices(Vertex v0, Vertex v1, Vertex v2, Vertex v3)
         {
             int i = m_vertices.Count;
             m_vertices.Add(v0);
@@ -87,7 +89,7 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         /// <returns>The index of the first vertex for triangle creation.
         /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(params TVertex[] vs)
+        public int AddVertices(params Vertex[] vs)
         {
             int i = m_vertices.Count;
             m_vertices.AddRange(vs);
@@ -99,7 +101,7 @@ namespace SoSmooth.Rendering.Meshes
         /// </summary>
         /// <returns>The index of the first vertex for triangle creation.
         /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(IEnumerable<TVertex> vs)
+        public int AddVertices(IEnumerable<Vertex> vs)
         {
             int i = m_vertices.Count;
             m_vertices.AddRange(vs);
@@ -109,7 +111,7 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Adds a triangle to the builder.
         /// </summary>
-        public void AddTriangle(IndexTriangle t)
+        public void AddTriangle(Triangle t)
         {
             m_triangles.Add(t);
         }
@@ -117,7 +119,7 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Adds triangles to the builder.
         /// </summary>
-        public void AddTriangles(IndexTriangle t0, IndexTriangle t1)
+        public void AddTriangles(Triangle t0, Triangle t1)
         {
             m_triangles.Add(t0);
             m_triangles.Add(t1);
@@ -126,7 +128,7 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Adds triangles to the builder.
         /// </summary>
-        public void AddTriangles(params IndexTriangle[] ts)
+        public void AddTriangles(params Triangle[] ts)
         {
             m_triangles.AddRange(ts);
         }
@@ -134,9 +136,141 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Adds triangles to the builder.
         /// </summary>
-        public void AddTriangles(IEnumerable<IndexTriangle> ts)
+        public void AddTriangles(IEnumerable<Triangle> ts)
         {
             m_triangles.AddRange(ts);
+        }
+
+        /// <summary>
+        /// Clears all verted and triangle data.
+        /// </summary>
+        public void Clear()
+        {
+            m_vertices.Clear();
+            m_triangles.Clear();
+        }
+
+        /// <summary>
+        /// Returns a simple axis-aligned cube centered around (0, 0, 0).
+        /// All edges are length 1.
+        /// </summary>
+        public static Mesh CreateCube()
+        {
+            const float u = 0.5f;
+
+            return new Mesh(
+                new[]
+                {
+                    new Vertex(new Vector3(-u, -u, -u), Color4.Brown),
+                    new Vertex(new Vector3(u, -u, -u),  Color4.Red),
+                    new Vertex(new Vector3(u, u, -u),   Color4.Orange),
+                    new Vertex(new Vector3(-u, u, -u),  Color4.Yellow),
+
+                    new Vertex(new Vector3(-u, -u, u),  Color4.Green),
+                    new Vertex(new Vector3(u, -u, u),   Color4.Cyan),
+                    new Vertex(new Vector3(u, u, u),    Color4.Blue),
+                    new Vertex(new Vector3(-u, u, u),   Color4.Magenta),
+                },
+                new[]
+                {
+                    new Triangle(0, 3, 2),
+                    new Triangle(0, 2, 1),
+                    new Triangle(0, 1, 5),
+                    new Triangle(0, 5, 4),
+                    new Triangle(0, 4, 7),
+                    new Triangle(0, 7, 3),
+                    new Triangle(6, 5, 1),
+                    new Triangle(6, 1, 2),
+                    new Triangle(6, 2, 3),
+                    new Triangle(6, 3, 7),
+                    new Triangle(6, 7, 4),
+                    new Triangle(6, 4, 5),
+                });
+        }
+
+        /// <summary>
+        /// Returns a simple axis-aligned cube centered around (0, 0, 0).
+        /// All edges are length 1.
+        /// </summary>
+        public static Mesh CreateDirectionThing()
+        {
+            const float l = 1.0f;
+            const float u = 0.05f;
+
+            return new Mesh(
+                new Vertex[]
+                {
+                    new Vertex(new Vector3(-u, -u, -u),   Color4.Red),
+                    new Vertex(new Vector3(l + u, -u, -u),Color4.Red),
+                    new Vertex(new Vector3(l + u, u, -u), Color4.Red),
+                    new Vertex(new Vector3(-u, u, -u),    Color4.Red),
+
+                    new Vertex(new Vector3(-u, -u, u),    Color4.Red),
+                    new Vertex(new Vector3(l + u, -u, u), Color4.Red),
+                    new Vertex(new Vector3(l + u, u, u),  Color4.Red),
+                    new Vertex(new Vector3(-u, u, u),     Color4.Red),
+
+                    new Vertex(new Vector3(-u, -u, -u),   Color4.Green),
+                    new Vertex(new Vector3(u, -u, -u),    Color4.Green),
+                    new Vertex(new Vector3(u, l + u, -u), Color4.Green),
+                    new Vertex(new Vector3(-u, l + u, -u),Color4.Green),
+
+                    new Vertex(new Vector3(-u, -u, u),    Color4.Green),
+                    new Vertex(new Vector3(u, -u, u),     Color4.Green),
+                    new Vertex(new Vector3(u, l + u, u),  Color4.Green),
+                    new Vertex(new Vector3(-u, l + u, u), Color4.Green),
+
+                    new Vertex(new Vector3(-u, -u, -u),   Color4.Blue),
+                    new Vertex(new Vector3(u, -u, -u),    Color4.Blue),
+                    new Vertex(new Vector3(u, u, -u),     Color4.Blue),
+                    new Vertex(new Vector3(-u, u, -u),    Color4.Blue),
+
+                    new Vertex(new Vector3(-u, -u, l + u),Color4.Blue),
+                    new Vertex(new Vector3(u, -u, l + u), Color4.Blue),
+                    new Vertex(new Vector3(u, u, l + u),  Color4.Blue),
+                    new Vertex(new Vector3(-u, u, l + u), Color4.Blue),
+                },
+                new[]
+                {
+                    new Triangle(0, 3, 2),
+                    new Triangle(0, 2, 1),
+                    new Triangle(0, 1, 5),
+                    new Triangle(0, 5, 4),
+                    new Triangle(0, 4, 7),
+                    new Triangle(0, 7, 3),
+                    new Triangle(6, 5, 1),
+                    new Triangle(6, 1, 2),
+                    new Triangle(6, 2, 3),
+                    new Triangle(6, 3, 7),
+                    new Triangle(6, 7, 4),
+                    new Triangle(6, 4, 5),
+
+                    new Triangle(8 + 0, 8 + 3, 8 + 2),
+                    new Triangle(8 + 0, 8 + 2, 8 + 1),
+                    new Triangle(8 + 0, 8 + 1, 8 + 5),
+                    new Triangle(8 + 0, 8 + 5, 8 + 4),
+                    new Triangle(8 + 0, 8 + 4, 8 + 7),
+                    new Triangle(8 + 0, 8 + 7, 8 + 3),
+                    new Triangle(8 + 6, 8 + 5, 8 + 1),
+                    new Triangle(8 + 6, 8 + 1, 8 + 2),
+                    new Triangle(8 + 6, 8 + 2, 8 + 3),
+                    new Triangle(8 + 6, 8 + 3, 8 + 7),
+                    new Triangle(8 + 6, 8 + 7, 8 + 4),
+                    new Triangle(8 + 6, 8 + 4, 8 + 5),
+
+                    new Triangle(16 + 0, 16 + 3, 16 + 2),
+                    new Triangle(16 + 0, 16 + 2, 16 + 1),
+                    new Triangle(16 + 0, 16 + 1, 16 + 5),
+                    new Triangle(16 + 0, 16 + 5, 16 + 4),
+                    new Triangle(16 + 0, 16 + 4, 16 + 7),
+                    new Triangle(16 + 0, 16 + 7, 16 + 3),
+                    new Triangle(16 + 6, 16 + 5, 16 + 1),
+                    new Triangle(16 + 6, 16 + 1, 16 + 2),
+                    new Triangle(16 + 6, 16 + 2, 16 + 3),
+                    new Triangle(16 + 6, 16 + 3, 16 + 7),
+                    new Triangle(16 + 6, 16 + 7, 16 + 4),
+                    new Triangle(16 + 6, 16 + 4, 16 + 5),
+                });
         }
     }
 }

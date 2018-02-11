@@ -33,7 +33,10 @@ namespace SoSmooth.Rendering
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        
+        /// <summary>
+        /// Finalizer.
+        /// </summary>
         ~GraphicsResource()
         {
             Dispose(false);

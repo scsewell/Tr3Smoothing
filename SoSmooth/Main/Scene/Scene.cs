@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using SoSmooth.Rendering;
 using SoSmooth.Rendering.Meshes;
@@ -32,19 +33,21 @@ namespace SoSmooth.Scenes
             m_camChild.Transform.LocalPosition = new Vector3(0, 0, -8);
             m_camChild.Transform.SetParent(cam.Transform, false);
             MeshRenderer camChildRenderer = new MeshRenderer(m_camChild);
-            camChildRenderer.SetMesh(Mesh<VertexNC>.CreateCube());
+            camChildRenderer.Mesh = MeshBuilder.CreateCube();
             camChildRenderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
+
+            Mesh mesh = MeshBuilder.CreateDirectionThing();
 
             m_entity1 = new Entity(this, "Cube");
             MeshRenderer renderer = new MeshRenderer(m_entity1);
-            renderer.SetMesh(Mesh<VertexNC>.CreateDirectionThing());
+            renderer.Mesh = mesh;
             renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
 
             m_entity2 = new Entity(this, "Cube2");
             m_entity2.Transform.Parent = m_entity1.Transform;
             m_entity2.Transform.LocalPosition = new Vector3(-1, 1, 1);
             MeshRenderer renderer2 = new MeshRenderer(m_entity2);
-            renderer2.SetMesh(Mesh<VertexNC>.CreateDirectionThing());
+            renderer2.Mesh = mesh;
             renderer2.ShaderProgram = ShaderManager.SHADER_UNLIT;
             
             ActiveCamera = m_camera;
@@ -65,9 +68,9 @@ namespace SoSmooth.Scenes
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.ScissorTest);
 
-            GL.ClearColor(ActiveCamera != null ? ActiveCamera.ClearColor : Color.Black);
+            GL.ClearColor(ActiveCamera != null ? ActiveCamera.ClearColor : Color4.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
+            
             if (ActiveCamera != null)
             {
                 ActiveCamera.SetResolution(resX, resY);
@@ -83,6 +86,7 @@ namespace SoSmooth.Scenes
                 m_entity2.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time).Inverted();
 
                 m_camera.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
+                m_entity2.GetComponent<MeshRenderer>().Mesh.UseColors = (Time.time % 6 > 3f);
 
                 // get all renderable components in the scene
                 List<Renderable> renderables = new List<Renderable>();
@@ -96,6 +100,12 @@ namespace SoSmooth.Scenes
                 {
                     renderable.Render(m_camera);
                 }
+            }
+
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
+            {
+                Logger.Error("OpenGL Error: " + error);
             }
         }
         

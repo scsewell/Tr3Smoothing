@@ -75,7 +75,6 @@
     <Compile Include="Main\Renderer\Core\Shading\VertexAttribute.cs" />
     <Compile Include="Main\Renderer\Core\Shading\VertexShader.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\BatchedVertexSurface.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\ExpandingVertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\IndexedSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\ColorUniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\FloatUniform.cs" />
@@ -88,19 +87,23 @@
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector2Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector3Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector4Uniform.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\StaticVertexSurface.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\VertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Surface.cs" />
     <Compile Include="Main\Renderer\Core\VertexArray.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\VertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Texture.cs" />
     <Compile Include="Main\Renderer\Core\VertexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\IVertexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\IVertexData.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\VertexData.cs" />
     <Compile Include="Main\Renderer\Meshes\AABB.cs" />
-    <Compile Include="Main\Renderer\Meshes\IndexTriangle.cs" />
+    <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
     <Compile Include="Main\Renderer\Meshes\Mesh.cs" />
-    <Compile Include="Main\Renderer\Meshes\VertexData\VertexNC.cs" />
+    <Compile Include="Main\Renderer\Meshes\Vertex.cs" />
+    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexP.cs" />
+    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexPC.cs" />
+    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexPN.cs" />
+    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexPNC.cs" />
     <Compile Include="Main\Renderer\Shaders\ShaderManager.cs" />
     <Compile Include="Main\Scene\Component.cs" />
     <Compile Include="Main\Scene\Components\Camera.cs" />
@@ -128,11 +131,6 @@
     <Compile Include="Main\Utils\Singleton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Main\IO\Tr3\Tr3FileHandler.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -146,12 +144,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Main\IO\VRML\" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

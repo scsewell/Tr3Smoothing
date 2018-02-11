@@ -109,9 +109,9 @@ namespace SoSmooth.Rendering
         private struct BatchContainer
         {
             public readonly Batch Batch;
-            public readonly VertexArray<TVertexData> VertexArray;
+            public readonly VertexArray VertexArray;
 
-            private BatchContainer(Batch batch, VertexArray<TVertexData> vertexArray)
+            private BatchContainer(Batch batch, VertexArray vertexArray)
             {
                 VertexArray = vertexArray;
                 Batch = batch;
@@ -120,7 +120,7 @@ namespace SoSmooth.Rendering
             public static BatchContainer Make(VertexBuffer<TVertexData> buffer)
             {
                 var batch = new Batch(buffer);
-                return new BatchContainer(batch, new VertexArray<TVertexData>(batch.VertexBuffer));
+                return new BatchContainer(batch, new VertexArray());
             }
 
             public void Delete()
@@ -181,7 +181,7 @@ namespace SoSmooth.Rendering
 
                 GL.BindBuffer(BufferTarget.ArrayBuffer, batch.Batch.VertexBuffer);
 
-                batch.VertexArray.SetVertexData();
+                batch.VertexArray.Bind();
                 if (batch.Batch.NeedsUploading)
                 {
                     batch.Batch.BufferData();
@@ -189,7 +189,7 @@ namespace SoSmooth.Rendering
 
                 GL.DrawArrays(primitiveType, 0, batch.Batch.VertexBuffer.Count);
 
-                batch.VertexArray.UnSetVertexData();
+                GL.BindVertexArray(0);
 
                 batch.Batch.UnsetAllSettings(Program);
             }

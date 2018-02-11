@@ -1,7 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using OpenTK;
+using OpenTK.Graphics;
 
-namespace SoSmooth.Rendering.Meshes
+namespace SoSmooth.Rendering.Meshes.Vertices
 {
     /// <summary>
     /// A vertex for mesh rendering. Consists of a position, normal, and color.
@@ -12,10 +13,10 @@ namespace SoSmooth.Rendering.Meshes
     /// be gaps in the struct in memory.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct VertexNC : IVertexData
+    public struct VertexPNC : IVertexData
     {
-        private static readonly int m_size = Marshal.SizeOf<VertexNC>();
-        private static readonly VertexAttribute[] m_attributes = VertexData.MakeAttributeArray<VertexNC>();
+        private static readonly int m_size = Marshal.SizeOf<VertexPNC>();
+        private static readonly VertexAttribute[] m_attributes = VertexData.MakeAttributeArray<VertexPNC>();
 
         /// <summary>
         /// The position of the vertex.
@@ -33,31 +34,13 @@ namespace SoSmooth.Rendering.Meshes
         public Color v_color;
         
         /// <summary>
-        /// Creates a new mesh vertex with a given position.
-        /// </summary>
-        public VertexNC(Vector3 position) : this(position, Vector3.Zero, Color.White)
-        { }
-
-        /// <summary>
-        /// Creates a new mesh vertex with a given position and normal.
-        /// </summary>
-        public VertexNC(Vector3 position, Vector3 normal) : this(position, normal, Color.White)
-        { }
-
-        /// <summary>
-        /// Creates a new mesh vertex with a given position and color.
-        /// </summary>
-        public VertexNC(Vector3 position, Color color) : this(position, Vector3.Zero, color)
-        { }
-
-        /// <summary>
         /// Creates a new mesh vertex with a given position, normal, and color.
         /// </summary>
-        public VertexNC(Vector3 position, Vector3 normal, Color color)
+        public VertexPNC(Vector3 position, Vector3 normal, Color4 color)
         {
             v_position = position;
             v_normal = new Vector3h(normal);
-            v_color = color;
+            v_color = new Color(color);
         }
 
         public int Size()

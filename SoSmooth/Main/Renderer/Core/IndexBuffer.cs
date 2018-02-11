@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL;
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// This class represents an OpenGL index buffer object.
+    /// This class manages a index buffer object.
     /// </summary>
     /// <remarks>Note that this object can hold no more than 2^31 indices, 
     /// and that indices are stored as 16-bit unsigned integer.</remarks>
@@ -32,14 +32,6 @@ namespace SoSmooth.Rendering
         {
             m_handle = GL.GenBuffer();
             m_indices = new ushort[capacity > 0 ? capacity : 1];
-        }
-        
-        private void EnsureCapacity(int minCapacity)
-        {
-            if (m_indices.Length <= minCapacity)
-            {
-                Array.Resize(ref m_indices, Math.Max(m_indices.Length * 2, minCapacity));
-            }
         }
         
         /// <summary>
@@ -121,7 +113,19 @@ namespace SoSmooth.Rendering
             m_count = newCount;
             return m_indices;
         }
-        
+
+        /// <summary>
+        /// Make the buffer large enough to store a given number of indices.
+        /// </summary>
+        /// <param name="minCapacity">The number of indices the buffer must fit.</param>
+        private void EnsureCapacity(int minCapacity)
+        {
+            if (m_indices.Length < minCapacity)
+            {
+                Array.Resize(ref m_indices, Math.Max(m_indices.Length * 2, minCapacity));
+            }
+        }
+
         /// <summary>
         /// Removes the last <paramref name="count"/> indices.
         /// </summary>
@@ -153,9 +157,11 @@ namespace SoSmooth.Rendering
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="usageHint">The usage hint.</param>
-        public void BufferData(BufferTarget target = BufferTarget.ElementArrayBuffer, BufferUsageHint usageHint = BufferUsageHint.StreamDraw)
+        public void BufferData(BufferTarget target = BufferTarget.ElementArrayBuffer, BufferUsageHint usageHint = BufferUsageHint.DynamicDraw)
         {
+            GL.BindBuffer(target, this);
             GL.BufferData(target, (IntPtr)(sizeof(ushort) * m_count), m_indices, usageHint);
+            GL.BindBuffer(target, 0);
         }
         
         /// <summary>

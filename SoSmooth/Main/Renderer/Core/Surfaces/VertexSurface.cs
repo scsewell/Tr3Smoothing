@@ -1,73 +1,80 @@
+using System;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// Extends <see cref="StaticVertexSurface{TVertexdata}" /> with the ability to add vertices at will.
+    /// This class represents a vertex buffer object that can be rendered with a specified <see cref="BeginMode"/>.
     /// </summary>
-    /// <typeparam name="TVertexData">The <see cref="IVertexData" /> used.</typeparam>
-    public class VertexSurface<TVertexData> : StaticVertexSurface<TVertexData>
-        where TVertexData : struct, IVertexData
+    public abstract class VertexSurface : Surface, IDisposable
     {
         /// <summary>
-        /// Whether to clear vertex buffer after drawing.
+        /// The vertex buffer object containing the vertices to render.
         /// </summary>
-        public bool ClearOnRender { get; set; }
+        protected IVertexBuffer m_vertexBuffer;
 
         /// <summary>
-        /// Set to true to not upload vertices to the GPU with every draw call.
+        /// The vertex array object.
         /// </summary>
-        public bool IsStatic
+        protected VertexArray m_vertexAttributeProvider; 
+
+        private PrimitiveType m_primitiveType;
+        protected PrimitiveType PrimitiveType { get { return m_primitiveType; } }
+        
+        /// <summary>
+        /// Constructs a new <see cref="VertexSurface"/>.
+        /// </summary>
+        public VertexSurface()
         {
-            get { return m_isStatic; }
-            set { m_isStatic = value; }
+            m_vertexAttributeProvider = new VertexArray();
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VertexSurface{VertexData}"/> class.
+        /// Handles setting up a shader program with this surface.
         /// </summary>
+        protected override void OnNewShaderProgram()
+        {
+            m_vertexAttributeProvider.SetShaderProgram(Program);
+        }
+
+        /// <summary>
+        /// Sets the vertex buffer object for this surface.
+        /// </summary>
+        /// <param name="vertexBuffer">The vertex buffer object to render using.</param>
         /// <param name="primitiveType">Type of the primitives to draw.</param>
-        public VertexSurface(PrimitiveType primitiveType = PrimitiveType.Triangles) : base(primitiveType)
+        public void SetVertexBuffer(IVertexBuffer vertexBuffer, PrimitiveType primitiveType = PrimitiveType.Triangles)
         {
-            m_isStatic = false;
-            ClearOnRender = false;
+            if (m_vertexBuffer != vertexBuffer)
+            {
+                m_vertexBuffer = vertexBuffer;
+                m_vertexAttributeProvider.SetVertexBuffer(vertexBuffer);
+            }
+            m_primitiveType = primitiveType;
         }
 
         /// <summary>
-        /// Adds a vertex.
-        /// </summary>
-        /// <param name="vertex">The vertex.</param>
-        /// <returns>Index of the vertex in vertex buffer.</returns>
-        public ushort AddVertex(TVertexData vertex)
-        {
-            return m_vertexBuffer.AddVertex(vertex);
-        }
-
-        /// <summary>
-        /// Adds vertices.
-        /// </summary>
-        /// <param name="vertices">The vertices.</param>
-        /// <returns>Index of first new vertex in vertex buffer.</returns>
-        public ushort AddVertices(params TVertexData[] vertices)
-        {
-            return m_vertexBuffer.AddVertices(vertices);
-        }
-
-        public TVertexData[] WriteVerticesDirectly(int count, out ushort offset)
-        {
-            return m_vertexBuffer.WriteVerticesDirectly(count, out offset);
-        }
-
-        /// <summary>
-        /// Renders the vertex buffer and clears it afterwards, if <see cref="ClearOnRender"/> is set to true.
+        /// Renderes the vertex buffer.
         /// </summary>
         protected override void OnRender()
         {
-            base.OnRender();
-
-            if (ClearOnRender)
+            if (m_vertexBuffer.Count == 0)
             {
-                Clear();
+                return;
+            }
+            
+            m_vertexAttributeProvider.Bind();
+            GL.DrawArrays(m_primitiveType, 0, m_vertexBuffer.Count);
+            GL.BindVertexArray(0);
+        }
+
+        /// <summary>
+        /// Frees unmanaged resources.
+        /// </summary>
+        public virtual void Dispose()
+        {
+            if (m_vertexAttributeProvider != null)
+            {
+                m_vertexAttributeProvider.Dispose();
             }
         }
     }

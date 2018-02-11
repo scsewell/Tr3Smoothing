@@ -6,7 +6,7 @@ namespace SoSmooth.Rendering.Meshes
     /// A triplet of vertex indices, representing a triangle.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct IndexTriangle
+    public struct Triangle
     {
         public readonly ushort index0;
         public readonly ushort index1;
@@ -15,7 +15,7 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Creates a new index triangle.
         /// </summary>
-        public IndexTriangle(ushort i0, ushort i1, ushort i2)
+        public Triangle(ushort i0, ushort i1, ushort i2)
         {
             index0 = i0;
             index1 = i1;

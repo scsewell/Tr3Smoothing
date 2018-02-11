@@ -5,21 +5,23 @@ using OpenTK.Graphics.OpenGL;
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// This class represents and OpenGL vertex buffer object.
+    /// This class manages a vertex buffer object.
     /// </summary>
     /// <remarks>Note that this object can hold no more than 2^16 vertices.</remarks>
     /// <typeparam name="TVertexData">The type of vertex in the buffer.</typeparam>
-    public sealed class VertexBuffer<TVertexData> : GraphicsResource where TVertexData : struct, IVertexData
+    public sealed class VertexBuffer<TVertexData> : GraphicsResource, IVertexBuffer 
+        where TVertexData : struct, IVertexData
     {
         private readonly int m_vertexSize;
+        private readonly VertexAttribute[] m_vertexAttributes;
 
         private TVertexData[] m_vertices;
         private ushort m_count;
         
         /// <summary>
-        /// The size of a vertex in bytes.
+        /// The vertex attributes.
         /// </summary>
-        public int VertexSize { get { return m_vertexSize; } }
+        public VertexAttribute[] VertexAttributes { get { return m_vertexAttributes; } }
 
         /// <summary>
         /// The number of vertices in this VertexBuffer.
@@ -41,25 +43,7 @@ namespace SoSmooth.Rendering
             m_handle = GL.GenBuffer();
             m_vertices = new TVertexData[capacity > 0 ? capacity : 4];
             m_vertexSize = m_vertices[0].Size();
-        }
-        
-        private void EnsureCapacity(int minCapacity)
-        {
-            const int maxLength = ushort.MaxValue + 1;
-
-            if (minCapacity > maxLength)
-            {
-                Logger.Error(string.Format(
-                    "Can't create an vertex buffer of length {0}. Length was capped to {1}.",
-                    minCapacity, maxLength));
-
-                minCapacity = maxLength;
-            }
-
-            if (m_vertices.Length < minCapacity)
-            {
-                Array.Resize(ref m_vertices, MathHelper.Clamp(m_vertices.Length * 2, minCapacity, maxLength));
-            }
+            m_vertexAttributes = m_vertices[0].VertexAttributes();
         }
         
         /// <summary>
@@ -173,7 +157,30 @@ namespace SoSmooth.Rendering
             offset = oldCount;
             return m_vertices;
         }
-        
+
+        /// <summary>
+        /// Make the buffer large enough to store a given number of vertices.
+        /// </summary>
+        /// <param name="minCapacity">The number of vertices the buffer must fit.</param>
+        private void EnsureCapacity(int minCapacity)
+        {
+            const int maxLength = ushort.MaxValue + 1;
+
+            if (minCapacity > maxLength)
+            {
+                Logger.Error(string.Format(
+                    "Can't create an vertex buffer of length {0}. Length was capped to {1}.",
+                    minCapacity, maxLength));
+
+                minCapacity = maxLength;
+            }
+
+            if (m_vertices.Length < minCapacity)
+            {
+                Array.Resize(ref m_vertices, MathHelper.Clamp(m_vertices.Length * 2, minCapacity, maxLength));
+            }
+        }
+
         /// <summary>
         /// Removes a the last <paramref name="count"/> vertices added.
         /// </summary>
@@ -204,9 +211,11 @@ namespace SoSmooth.Rendering
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="usageHint">The usage hint.</param>
-        public void BufferData(BufferTarget target = BufferTarget.ArrayBuffer, BufferUsageHint usageHint = BufferUsageHint.StreamDraw)
+        public void BufferData(BufferTarget target = BufferTarget.ArrayBuffer, BufferUsageHint usageHint = BufferUsageHint.DynamicDraw)
         {
+            GL.BindBuffer(target, this);
             GL.BufferData(target, (IntPtr)(m_vertexSize * m_count), m_vertices, usageHint);
+            GL.BindBuffer(target, 0);
         }
 
         /// <summary>
