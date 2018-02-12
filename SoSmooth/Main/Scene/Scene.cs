@@ -67,18 +67,18 @@ namespace SoSmooth.Scenes
             if (ActiveCamera != null)
             {
                 ActiveCamera.SetResolution(resX, resY);
-                /*
+                
                 m_entity1.Transform.LocalPosition = new Vector3((float)Math.Sin(Time.time), 0, 0);
                 m_entity1.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time);
 
                 m_entity2.Transform.LocalScale = new Vector3((float)Math.Sin(Time.time) + 2, 1, 1);
                 m_entity2.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time).Inverted();
-
-                m_camChild.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, -1, 1), Time.time);
-
-                m_camChild.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
                 m_entity2.GetComponent<MeshRenderer>().Mesh.UseColors = (Time.time % 6 > 3f);
-                */
+
+                //m_camChild.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, -1, 1), Time.time);
+
+                //m_camChild.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
+                
                 // get all renderable components in the scene
                 List<Renderable> renderables = new List<Renderable>();
                 foreach (Entity entity in m_rootEntities)

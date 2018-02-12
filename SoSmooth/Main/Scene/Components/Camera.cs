@@ -9,16 +9,16 @@ namespace SoSmooth.Scenes
     /// </summary>
     public class Camera : Component
     {
+        private Color4 m_clearColor;
+        private float m_fieldOfView;
+        private float m_nearClip;
+        private float m_farClip;
+
         private int m_resolutionX;
         private int m_resolutionY;
-
-        private Color4 m_clearColor = Color4.DarkSlateBlue;
-        private float m_fieldOfView = 60.0f;
-        private float m_nearClip = 0.01f;
-        private float m_farClip = 100;
-
+        
         private Matrix4 m_projectionMatrix;
-        private bool m_projectionMatDirty = true;
+        private bool m_projectionMatDirty;
         
         /// <summary>
         /// The background color of the camera.
@@ -31,7 +31,7 @@ namespace SoSmooth.Scenes
 
         /// <summary>
         /// The vertical field of view of this camera in degrees.
-        /// Has the range [0, 180].
+        /// Has the range (0, 180].
         /// </summary>
         public float FieldOfView
         {
@@ -40,7 +40,7 @@ namespace SoSmooth.Scenes
             {
                 if (m_fieldOfView != value)
                 {
-                    m_fieldOfView = Math.Min(Math.Max(value, 0), 180);
+                    m_fieldOfView = MathHelper.Clamp(value, 0.001f, 180);
                     m_projectionMatDirty = true;
                 }
             }
@@ -48,7 +48,7 @@ namespace SoSmooth.Scenes
         
         /// <summary>
         /// The distance of the near clip plane before which nothing is rendered.
-        /// Has the range [0, infinity).
+        /// Has the range (0, infinity).
         /// </summary>
         public float NearClip
         {
@@ -57,7 +57,7 @@ namespace SoSmooth.Scenes
             {
                 if (m_nearClip != value)
                 {
-                    m_nearClip = Math.Max(value, 0);
+                    m_nearClip = Math.Max(value, 0.001f);
                     m_projectionMatDirty = true;
                 }
             }
@@ -65,7 +65,7 @@ namespace SoSmooth.Scenes
 
         /// <summary>
         /// The distance of the far clip plane after which nothing is rendered.
-        /// Has the range [NearClip, infinity).
+        /// Has the range (0, infinity).
         /// </summary>
         public float FarClip
         {
@@ -74,7 +74,7 @@ namespace SoSmooth.Scenes
             {
                 if (m_farClip != value)
                 {
-                    m_farClip = Math.Max(value, NearClip);
+                    m_farClip = Math.Max(value, 0.001f);
                     m_projectionMatDirty = true;
                 }
             }
@@ -115,6 +115,12 @@ namespace SoSmooth.Scenes
         /// </summary>
         public Camera(Entity entity) : base(entity)
         {
+            m_clearColor = new Color4(0.3f, 0.35f, 0.4f, 1.0f);
+            m_fieldOfView = 60.0f;
+            m_nearClip = 0.01f;
+            m_farClip = 100;
+
+            m_projectionMatDirty = true;
         }
 
         /// <summary>

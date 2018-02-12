@@ -4,31 +4,48 @@ using OpenTK;
 
 namespace SoSmooth.Scenes
 {
+
     /// <summary>
-    /// Stores spatial orientation and scenegraph heirarchy data.
-    /// All entities must have a transform.
+    /// Stores spatial orientation and scenegraph heirarchy data. All entities must
+    /// have a transform.
     /// </summary>
     public class Transform : Component
     {
-        private Vector3 m_position;
-        private bool m_positionDirty;
-
-        private Quaternion m_rotation;
-        private bool m_rotationDirty;
-
-        private Vector3 m_scale;
-        private bool m_scaleDirty;
-
-
-        private Matrix4 m_parentToLocalMatrix;
-        private bool m_parentToLocalDirty;
-
+        private Vector3 m_localPosition;
+        private Quaternion m_localRotation;
+        private Vector3 m_localScale;
+        
+        private Matrix4 m_localToParentMatrix;
         private Matrix4 m_localToWorldMatrix;
-        private bool m_localToWorldDirty;
-
         private Matrix4 m_worldToLocalMatrix;
-        private bool m_worldToLocalDirty;
 
+        /// <summary>
+        /// Bitmask flags that indicate if a related property's cache is invalidated.
+        /// </summary>
+        [Flags]
+        private enum DirtyFlag
+        {
+            None            = 0,
+
+            LocalPos        = (1 << 0),
+            LocalRot        = (1 << 1),
+            LocalScl        = (1 << 2),
+            LocalScalars    = LocalPos | LocalRot | LocalScl,
+
+            LtPMat          = (1 << 3),
+            Local           = LocalScalars | LtPMat,
+
+            LtWMat          = (1 << 4),
+            WtLMat          = (1 << 5),
+            World           = LtWMat | WtLMat,
+            
+            All             = Local | World,
+        }
+
+        /// <summary>
+        /// Flags that indicate which properties caches are currently invalidated.
+        /// </summary>
+        private DirtyFlag m_dirtyFlags;
 
         /// <summary>
         /// The local space position of the transform.
@@ -38,18 +55,18 @@ namespace SoSmooth.Scenes
             get
             {
                 RefreshLocalPosition();
-                return m_position;
+                return m_localPosition;
             }
             set
             {
-                if (m_position != value)
+                if (m_localPosition != value)
                 {
                     RefreshLocalRotation();
                     RefreshLocalScale();
-                    m_position = value;
-                    MarkDirty(true, true, false);
+                    m_localPosition = value;
+                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                 }
-                m_positionDirty = false;
+                MarkClean(DirtyFlag.LocalPos);
             }
         }
         
@@ -61,18 +78,18 @@ namespace SoSmooth.Scenes
             get
             {
                 RefreshLocalRotation();
-                return m_rotation;
+                return m_localRotation;
             }
             set
             {
-                if (m_rotation != value)
+                if (m_localRotation != value)
                 {
                     RefreshLocalPosition();
                     RefreshLocalScale();
-                    m_rotation = value;
-                    MarkDirty(true, true, false);
+                    m_localRotation = value;
+                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                 }
-                m_rotationDirty = false;
+                MarkClean(DirtyFlag.LocalRot);
             }
         }
 
@@ -84,39 +101,30 @@ namespace SoSmooth.Scenes
             get
             {
                 RefreshLocalScale();
-                return m_scale;
+                return m_localScale;
             }
             set
             {
-                if (m_scale != value)
+                if (m_localScale != value)
                 {
                     RefreshLocalPosition();
                     RefreshLocalRotation();
-                    m_scale = value;
-                    MarkDirty(true, true, false);
+                    m_localScale = value;
+                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                 }
-                m_scaleDirty = false;
+                MarkClean(DirtyFlag.LocalScl);
             }
         }
 
         /// <summary>
         /// The matrix representing the local space orientation.
         /// </summary>
-        private Matrix4 ParentToLocalMatix
+        private Matrix4 LocalToParentMatix
         {
             get
             {
-                RefreshParentToLocal();
-                return m_parentToLocalMatrix;
-            }
-            set
-            {
-                if (m_parentToLocalMatrix != value)
-                {
-                    m_parentToLocalMatrix = value;
-                    MarkDirty(true, true, true);
-                }
-                m_parentToLocalDirty = false;
+                RefreshLocalToParent();
+                return m_localToParentMatrix;
             }
         }
 
@@ -135,9 +143,9 @@ namespace SoSmooth.Scenes
                 if (m_localToWorldMatrix != value)
                 {
                     m_localToWorldMatrix = value;
-                    MarkDirty(true, true, true);
+                    MarkDirty(DirtyFlag.All);
                 }
-                m_localToWorldDirty = false;
+                MarkClean(DirtyFlag.LtWMat);
             }
         }
 
@@ -156,9 +164,9 @@ namespace SoSmooth.Scenes
                 if (m_worldToLocalMatrix != value)
                 {
                     m_worldToLocalMatrix = value;
-                    MarkDirty(true, true, true);
+                    MarkDirty(DirtyFlag.All);
                 }
-                m_worldToLocalDirty = false;
+                MarkClean(DirtyFlag.WtLMat);
             }
         }
 
@@ -211,11 +219,15 @@ namespace SoSmooth.Scenes
         {
             m_children = new List<Transform>();
             
-            m_position   = Vector3.Zero;
-            m_rotation   = Quaternion.Identity;
-            m_scale      = Vector3.One;
+            m_localPosition   = Vector3.Zero;
+            m_localRotation   = Quaternion.Identity;
+            m_localScale      = Vector3.One;
 
-            MarkDirty(true, true, false);
+            m_localToParentMatrix = Matrix4.Identity;
+            m_localToWorldMatrix = Matrix4.Identity;
+            m_worldToLocalMatrix = Matrix4.Identity;
+
+            m_dirtyFlags = DirtyFlag.None;
 
             m_onParentChanged = onParentChanged;
         }
@@ -229,34 +241,31 @@ namespace SoSmooth.Scenes
         {
             if (m_parent != newParent)
             {
-                // we must know at least one world transformation matrix
-                if (m_localToWorldDirty && m_worldToLocalDirty)
-                {
-                    RefreshWorldToLocal();
-                }
-
                 Transform oldParent = m_parent;
 
                 if (oldParent != null)
                 {
                     oldParent.m_children.Remove(this);
                 }
-
-                m_parent = newParent;
-
                 if (newParent != null)
                 {
                     newParent.m_children.Add(this);
                 }
 
-                // if not preserving the local space orientation, use the old world orientation
-                // and the new parent's world orientation to get the new local orientation
-                if (!worldPositionStays)
+                // make sure the desired orientation is known before the parent change
+                if (worldPositionStays)
                 {
-                    RefreshParentToLocal();
+                    RefreshLocalToWorld();
+                    MarkDirty(DirtyFlag.Local);
                 }
-                MarkDirty(!worldPositionStays, worldPositionStays, true);
+                else
+                {
+                    RefreshLocalToParent();
+                    MarkDirty(DirtyFlag.World);
+                }
 
+                m_parent = newParent;
+                
                 // notify the parent change
                 if (m_onParentChanged != null)
                 {
@@ -266,52 +275,15 @@ namespace SoSmooth.Scenes
         }
 
         /// <summary>
-        /// Ensures that the transformation matrices are updated when next accessed.
-        /// </summary>
-        /// <param name="worldMatrixDirty">The world matricies are dirtied.</param>
-        /// <param name="localMatrixDirty">The local matrix is dirtied.</param>
-        /// <param name="localScalarsDirty">The local space orentation scalars are dirtied.</param>
-        private void MarkDirty(bool worldMatrixDirty, bool localMatrixDirty, bool localScalarsDirty)
-        {
-            if (localMatrixDirty)
-            {
-                m_parentToLocalDirty = true;
-            }
-
-            if (localScalarsDirty)
-            {
-                m_positionDirty = true;
-                m_rotationDirty = true;
-                m_scaleDirty = true;
-            }
-
-            if (worldMatrixDirty)
-            {
-                m_localToWorldDirty = true;
-                m_worldToLocalDirty = true;
-
-                // The world space transforms for children must also be updated.
-                foreach (Transform child in m_children)
-                {
-                    // Ensure the local orientation is known by childern so they can find their
-                    // new world orientation. Then mark their world orientation out of date, 
-                    // since their parent has moved in world space.
-                    child.RefreshParentToLocal();
-                    child.MarkDirty(true, false, false);
-                }
-            }
-        }
-
-        /// <summary>
         /// Updates the local position information.
         /// </summary>
         private void RefreshLocalPosition()
         {
-            if (m_positionDirty)
+            if (IsDirty(DirtyFlag.LocalPos))
             {
-                m_position = ParentToLocalMatix.Inverted().ExtractTranslation();
+                m_localPosition = LocalToParentMatix.ExtractTranslation();
+                MarkClean(DirtyFlag.LocalPos);
             }
-            m_positionDirty = false;
         }
 
         /// <summary>
@@ -319,11 +291,11 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalRotation()
         {
-            if (m_rotationDirty)
+            if (IsDirty(DirtyFlag.LocalRot))
             {
-                m_rotation = ParentToLocalMatix.Inverted().ExtractRotation();
+                m_localRotation = LocalToParentMatix.ExtractRotation();
+                MarkClean(DirtyFlag.LocalRot);
             }
-            m_rotationDirty = false;
         }
 
         /// <summary>
@@ -331,45 +303,37 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalScale()
         {
-            if (m_scaleDirty)
+            if (IsDirty(DirtyFlag.LocalScl))
             {
-                m_scale = ParentToLocalMatix.Inverted().ExtractScale();
+                m_localScale = LocalToParentMatix.ExtractScale();
+                MarkClean(DirtyFlag.LocalScl);
             }
-            m_scaleDirty = false;
         }
 
         /// <summary>
         /// Updates the parent to local matrix based on clean information.
         /// </summary>
-        private void RefreshParentToLocal()
+        private void RefreshLocalToParent()
         {
-            if (m_parentToLocalDirty)
+            if (IsDirty(DirtyFlag.LtPMat))
             {
-                if ((!m_worldToLocalDirty || !m_worldToLocalDirty))
+                if (IsClean(DirtyFlag.LocalScalars))
                 {
-                    if (m_parent != null)
-                    {
-                        m_parentToLocalMatrix = m_parent.LocalToWorldMatix * WorldToLocalMatrix;
-                    }
-                    else
-                    {
-                        m_parentToLocalMatrix = WorldToLocalMatrix;
-                    }
+                    CreateTransform(ref m_localPosition, ref m_localRotation, ref m_localScale, out m_localToParentMatrix);
                 }
                 else
                 {
-                    Vector3 scale = LocalScale;
-                    scale.X = 1 / scale.X;
-                    scale.Y = 1 / scale.Y;
-                    scale.Z = 1 / scale.Z;
-
-                    m_parentToLocalMatrix =
-                        Matrix4.CreateTranslation(-LocalPosition) *
-                        Matrix4.CreateFromQuaternion(LocalRotation.Inverted()) *
-                        Matrix4.CreateScale(scale);
+                    if (m_parent != null)
+                    {
+                        m_localToParentMatrix = LocalToWorldMatix * m_parent.WorldToLocalMatrix;
+                    }
+                    else
+                    {
+                        m_localToParentMatrix = LocalToWorldMatix;
+                    }
                 }
+                MarkClean(DirtyFlag.LtPMat);
             }
-            m_parentToLocalDirty = false;
         }
 
         /// <summary>
@@ -377,11 +341,22 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalToWorld()
         {
-            if (m_localToWorldDirty)
+            if (IsDirty(DirtyFlag.LtWMat))
             {
-                m_localToWorldMatrix = WorldToLocalMatrix.Inverted();
+                if (IsClean(DirtyFlag.WtLMat))
+                {
+                    m_localToWorldMatrix = WorldToLocalMatrix.Inverted();
+                }
+                else if (m_parent != null)
+                {
+                    m_localToWorldMatrix = LocalToParentMatix * m_parent.LocalToWorldMatix;
+                }
+                else
+                {
+                    m_localToWorldMatrix = LocalToParentMatix;
+                }
+                MarkClean(DirtyFlag.LtWMat);
             }
-            m_localToWorldDirty = false;
         }
 
         /// <summary>
@@ -389,22 +364,111 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshWorldToLocal()
         {
-            if (m_worldToLocalDirty)
+            if (IsDirty(DirtyFlag.WtLMat))
             {
-                if (!m_localToWorldDirty)
+                m_worldToLocalMatrix = LocalToWorldMatix.Inverted();
+                MarkClean(DirtyFlag.WtLMat);
+            }
+        }
+
+        /// <summary>
+        /// Checks if all given properties' caches are valid.
+        /// </summary>
+        /// <param name="flags">The properties check if clean.</param>
+        /// <returns>True if all of the properties are clean.</returns>
+        private bool IsClean(DirtyFlag flags)
+        {
+            return (m_dirtyFlags & flags) == 0;
+        }
+
+        /// <summary>
+        /// Marks the given properties' caches as valid. 
+        /// </summary>
+        /// <param name="flags"></param>
+        private void MarkClean(DirtyFlag flags)
+        {
+            m_dirtyFlags &= (~flags);
+        }
+
+        /// <summary>
+        /// Checks if any given properties' caches are invalid.
+        /// </summary>
+        /// <param name="flags">The properties check if dirty.</param>
+        /// <returns>True if any of the properties are dirty.</returns>
+        private bool IsDirty(DirtyFlag flags)
+        {
+            return (m_dirtyFlags & flags) != 0;
+        }
+        
+        /// <summary>
+        /// Ensures that the specified properties are updated when next accessed.
+        /// </summary>
+        /// <param name="flags">The properties to invalidate the caches of.</param>
+        private void MarkDirty(DirtyFlag flags)
+        {
+            m_dirtyFlags |= flags;
+
+            // If the wold position has changed any children are also affected.
+            // Ensure they known their local orientation so they can find their
+            // new world orientation later before invalidating their cached world
+            // orientation.
+            if (IsDirty(DirtyFlag.World))
+            {
+                foreach (Transform child in m_children)
                 {
-                    m_worldToLocalMatrix = LocalToWorldMatix.Inverted();
-                }
-                else if (m_parent != null)
-                {
-                    m_worldToLocalMatrix = m_parent.WorldToLocalMatrix * ParentToLocalMatix;
-                }
-                else
-                {
-                    m_worldToLocalMatrix = ParentToLocalMatix;
+                    child.RefreshLocalToParent();
+                    child.MarkDirty(DirtyFlag.World);
                 }
             }
-            m_worldToLocalDirty = false;
+        }
+
+        /// <summary>
+        /// Optimally a transformation matrix.
+        /// </summary>
+        /// <param name="position">The position.</param>
+        /// <param name="rotation">The rotation.</param>
+        /// <param name="scale">The scale.</param>
+        /// <param name="result">A matrix instance.</param>
+        public static void CreateTransform(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, out Matrix4 result)
+        {
+            result = Matrix4.Identity;
+            
+            Vector3 axis;
+            float angle;
+            rotation.ToAxisAngle(out axis, out angle);
+            axis.Normalize();
+
+            // calculate angles
+            float cos = (float)Math.Cos(-angle);
+            float sin = (float)Math.Sin(-angle);
+            float t = 1.0f - cos;
+
+            // do the conversion math once
+            float tXX = t * axis.X * axis.X;
+            float tXY = t * axis.X * axis.Y;
+            float tXZ = t * axis.X * axis.Z;
+            float tYY = t * axis.Y * axis.Y;
+            float tYZ = t * axis.Y * axis.Z;
+            float tZZ = t * axis.Z * axis.Z;
+
+            float sinX = sin * axis.X;
+            float sinY = sin * axis.Y;
+            float sinZ = sin * axis.Z;
+
+            result.Row0.X = scale.X * (tXX + cos);
+            result.Row0.Y = scale.X * (tXY - sinZ);
+            result.Row0.Z = scale.X * (tXZ + sinY);
+            result.Row1.X = scale.Y * (tXY + sinZ);
+            result.Row1.Y = scale.Y * (tYY + cos);
+            result.Row1.Z = scale.Y * (tYZ - sinX);
+            result.Row2.X = scale.Z * (tXZ - sinY);
+            result.Row2.Y = scale.Z * (tYZ + sinX);
+            result.Row2.Z = scale.Z * (tZZ + cos);
+
+            // set the position
+            result.Row3.X = position.X;
+            result.Row3.Y = position.Y;
+            result.Row3.Z = position.Z;
         }
     }
 }

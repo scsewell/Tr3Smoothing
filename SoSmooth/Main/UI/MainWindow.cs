@@ -1,5 +1,4 @@
 ﻿using Gtk;
-using GLib;
 
 namespace SoSmooth
 {
@@ -25,17 +24,17 @@ namespace SoSmooth
             DeleteEvent += OnDeleteEvent;
             
             MainMenuBar menuBar = new MainMenuBar(this);
-            m_sceneWindow = new SceneWindow();
-
+            m_sceneWindow = SceneWindow.CreateSceneWindow();
+            
             VBox vBox = new VBox(false, 0);
             vBox.PackStart(menuBar.MenuBar, false, false, 0);
-            vBox.PackStart(m_sceneWindow.Widget, true, true, 0);
+            vBox.PackStart(m_sceneWindow, true, true, 0);
 
             Add(vBox);
             ShowAll();
             
             Time.SetStartTime();
-            Idle.Add(UpdateScenes);
+            GLib.Idle.Add(UpdateScenes);
         }
 
         /// <summary>
@@ -44,8 +43,8 @@ namespace SoSmooth
         private bool UpdateScenes()
         {
             Time.FrameStart();
-
-            m_sceneWindow.Widget.QueueDraw();
+            
+            m_sceneWindow.QueueDraw();
             return true;
         }
         
