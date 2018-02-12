@@ -24,16 +24,10 @@ namespace SoSmooth.Scenes
         {
             m_rootEntities = new List<Entity>();
             
-            Entity cam = new Entity(this, "Camera");
-            m_camera = new Camera(cam);
-            m_camera.Transform.LocalPosition = new Vector3(0, -5, 0);
-            m_camera.Transform.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2);
-
             m_camChild = new Entity(this, "CamChildCube");
 
             m_camChild.Transform.LocalScale = new Vector3(1.5f, 1.5f, 1.5f);
-            m_camChild.Transform.LocalPosition = new Vector3(0, 0, -8);
-            m_camChild.Transform.SetParent(cam.Transform, false);
+            m_camChild.Transform.LocalPosition = new Vector3(0, 3, 0);
             MeshRenderer camChildRenderer = new MeshRenderer(m_camChild);
             camChildRenderer.Mesh = MeshBuilder.CreateCube();
             camChildRenderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
@@ -51,11 +45,8 @@ namespace SoSmooth.Scenes
             MeshRenderer renderer2 = new MeshRenderer(m_entity2);
             renderer2.Mesh = mesh;
             renderer2.ShaderProgram = ShaderManager.SHADER_UNLIT;
-            
-            ActiveCamera = m_camera;
         }
         
-        private Camera m_camera;
         private Entity m_camChild;
         private Entity m_entity1;
         private Entity m_entity2;
@@ -76,7 +67,7 @@ namespace SoSmooth.Scenes
             if (ActiveCamera != null)
             {
                 ActiveCamera.SetResolution(resX, resY);
-                
+                /*
                 m_entity1.Transform.LocalPosition = new Vector3((float)Math.Sin(Time.time), 0, 0);
                 m_entity1.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time);
 
@@ -84,10 +75,10 @@ namespace SoSmooth.Scenes
                 m_entity2.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time).Inverted();
 
                 m_camChild.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, -1, 1), Time.time);
-                
-                m_camera.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
-                m_entity2.GetComponent<MeshRenderer>().Mesh.UseColors = (Time.time % 6 > 3f);
 
+                m_camChild.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
+                m_entity2.GetComponent<MeshRenderer>().Mesh.UseColors = (Time.time % 6 > 3f);
+                */
                 // get all renderable components in the scene
                 List<Renderable> renderables = new List<Renderable>();
                 foreach (Entity entity in m_rootEntities)
@@ -98,7 +89,7 @@ namespace SoSmooth.Scenes
                 // handle the rendering of all components
                 foreach (Renderable renderable in renderables)
                 {
-                    renderable.Render(m_camera);
+                    renderable.Render(ActiveCamera);
                 }
             }
 

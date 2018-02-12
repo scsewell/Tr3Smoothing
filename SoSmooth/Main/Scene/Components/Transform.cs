@@ -345,9 +345,16 @@ namespace SoSmooth.Scenes
         {
             if (m_parentToLocalDirty)
             {
-                if ((!m_worldToLocalDirty || !m_worldToLocalDirty) && m_parent != null)
+                if ((!m_worldToLocalDirty || !m_worldToLocalDirty))
                 {
-                    m_parentToLocalMatrix = m_parent.LocalToWorldMatix * WorldToLocalMatrix;
+                    if (m_parent != null)
+                    {
+                        m_parentToLocalMatrix = m_parent.LocalToWorldMatix * WorldToLocalMatrix;
+                    }
+                    else
+                    {
+                        m_parentToLocalMatrix = WorldToLocalMatrix;
+                    }
                 }
                 else
                 {
