@@ -33,13 +33,12 @@ namespace SoSmooth.Scenes
             LocalScalars    = LocalPos | LocalRot | LocalScl,
 
             LtPMat          = (1 << 3),
-            Local           = LocalScalars | LtPMat,
 
             LtWMat          = (1 << 4),
             WtLMat          = (1 << 5),
             World           = LtWMat | WtLMat,
             
-            All             = Local | World,
+            All             = LocalScalars | LtPMat | World,
         }
 
         /// <summary>
@@ -63,10 +62,11 @@ namespace SoSmooth.Scenes
                 {
                     RefreshLocalRotation();
                     RefreshLocalScale();
+                    ChildrenCacheLocal();
                     m_localPosition = value;
                     MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
+                    MarkClean(DirtyFlag.LocalPos);
                 }
-                MarkClean(DirtyFlag.LocalPos);
             }
         }
         
@@ -86,10 +86,11 @@ namespace SoSmooth.Scenes
                 {
                     RefreshLocalPosition();
                     RefreshLocalScale();
+                    ChildrenCacheLocal();
                     m_localRotation = value;
                     MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
+                    MarkClean(DirtyFlag.LocalRot);
                 }
-                MarkClean(DirtyFlag.LocalRot);
             }
         }
 
@@ -109,10 +110,11 @@ namespace SoSmooth.Scenes
                 {
                     RefreshLocalPosition();
                     RefreshLocalRotation();
+                    ChildrenCacheLocal();
                     m_localScale = value;
                     MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
+                    MarkClean(DirtyFlag.LocalScl);
                 }
-                MarkClean(DirtyFlag.LocalScl);
             }
         }
 
@@ -142,10 +144,11 @@ namespace SoSmooth.Scenes
             {
                 if (m_localToWorldMatrix != value)
                 {
+                    ChildrenCacheLocal();
                     m_localToWorldMatrix = value;
                     MarkDirty(DirtyFlag.All);
+                    MarkClean(DirtyFlag.LtWMat);
                 }
-                MarkClean(DirtyFlag.LtWMat);
             }
         }
 
@@ -163,10 +166,11 @@ namespace SoSmooth.Scenes
             {
                 if (m_worldToLocalMatrix != value)
                 {
+                    ChildrenCacheLocal();
                     m_worldToLocalMatrix = value;
                     MarkDirty(DirtyFlag.All);
+                    MarkClean(DirtyFlag.WtLMat);
                 }
-                MarkClean(DirtyFlag.WtLMat);
             }
         }
 
@@ -256,7 +260,7 @@ namespace SoSmooth.Scenes
                 if (worldPositionStays)
                 {
                     RefreshLocalToWorld();
-                    MarkDirty(DirtyFlag.Local);
+                    MarkDirty(DirtyFlag.LocalScalars | DirtyFlag.LtPMat);
                 }
                 else
                 {
@@ -271,6 +275,22 @@ namespace SoSmooth.Scenes
                 {
                     m_onParentChanged(oldParent, newParent);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Recursively iterates all childen of this transform,
+        /// making sure that their local orientation is not dirty.
+        /// </summary>
+        private void ChildrenCacheLocal()
+        {
+            foreach (Transform child in m_children)
+            {
+                if (child.IsDirty(DirtyFlag.LocalScalars))
+                {
+                    child.RefreshLocalToParent();
+                }
+                child.ChildrenCacheLocal();
             }
         }
 
@@ -408,15 +428,18 @@ namespace SoSmooth.Scenes
         {
             m_dirtyFlags |= flags;
 
-            // If the wold position has changed any children are also affected.
-            // Ensure they known their local orientation so they can find their
-            // new world orientation later before invalidating their cached world
-            // orientation.
+            // check that the transform's orientation value can still be computed from any valid caches
+            if (IsDirty(DirtyFlag.World) && IsDirty(DirtyFlag.LtPMat) && IsDirty(DirtyFlag.LocalScalars))
+            {
+                Logger.Error(string.Format(
+                    "Transform on entity \"{0}\" has entered an unrecoverable dirty state: {1}",
+                    Entity, m_dirtyFlags));
+            }
+            
             if (IsDirty(DirtyFlag.World))
             {
                 foreach (Transform child in m_children)
                 {
-                    child.RefreshLocalToParent();
                     child.MarkDirty(DirtyFlag.World);
                 }
             }
