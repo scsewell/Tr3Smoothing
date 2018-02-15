@@ -141,5 +141,16 @@ namespace SoSmooth.Scenes
                 m_projectionMatDirty = true;
             }
         }
+
+        /// <summary>
+        /// Gets the rendering resolution of this camera.
+        /// </summary>
+        /// <param name="resX">The horizontal rendering resolution in pixels.</param>
+        /// <param name="resY">The vertical rendering resolution in pixels.</param>
+        public void GetResolution(out int resX, out int resY)
+        {
+            resX = m_resolutionX;
+            resY = m_resolutionY;
+        }
     }
 }

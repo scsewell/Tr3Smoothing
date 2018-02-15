@@ -8,10 +8,23 @@ namespace SoSmooth
 {
     /// <summary>
     /// A camera than can move around in and render a scene. Consists of a 
-    /// pivot entity the camera orbits around.
+    /// pivot entity and a camera that orbits around it.
     /// </summary>
     public class SceneCamera
     {
+        /// <summary>
+        /// The sensitivity of the mouse drag zoom.
+        /// </summary>
+        private const float DRAG_ZOOM_SENSITIVITY = 0.0075f;
+        /// <summary>
+        /// The sensitivity of the mouse drag rotate.
+        /// </summary>
+        private const float DRAG_ROTATE_SENSITIVITY = 0.008f;
+        /// <summary>
+        /// The sensitivity of the mouse drag pan.
+        /// </summary>
+        private const float DRAG_PAN_SENSITIVITY = 1.2f;
+
         /// <summary>
         /// How close to the pivot the camera can be zoomed in.
         /// </summary>
@@ -21,9 +34,9 @@ namespace SoSmooth
         /// </summary>
         private const float ZOOM_MAX    = 100.0f;
         /// <summary>
-        /// The fraction of the zoom distance gained/lost when zooming in/out.
+        /// The fraction of the zoom distance gained/lost when stepping zoom in/out.
         /// </summary>
-        private const float ZOOM_RATIO  = 1.0f / 8.0f;
+        private const float ZOOM_RATIO  = 1.0f / 5.0f;
 
         /// <summary>
         /// The angle in radians the pivot rotates per key press.
@@ -42,17 +55,20 @@ namespace SoSmooth
         private static readonly Quaternion TOP_VIEW     = new Quaternion(0, 0, MathHelper.PiOver2);
         private static readonly Quaternion BOTTOM_VIEW  = new Quaternion(0, 0, -MathHelper.PiOver2);
 
-        private Quaternion m_rotation = Quaternion.Identity;
-        private float m_zoom = 10;
+        private Transform m_camPivot;
+        private Camera m_camera;
+
+        private Vector2d m_lastMousePos;
 
         private bool m_easing;
         private float m_easeStartTime;
         private Quaternion m_easeTargetRot;
         private Quaternion m_easeStartRot;
-        
-        private Transform m_camPivot;
-        private Camera m_camera;
 
+        private float m_yaw = 0;
+        private float m_pitch = 0;
+        private float m_zoom = 10;
+        
         /// <summary>
         /// Creates a new <see cref="SceneWindow"/> instance.
         /// </summary>
@@ -84,12 +100,15 @@ namespace SoSmooth
             // smoothly blend towards the target orientation if set
             if (m_easing)
             {
-                float fac = Utils.Ease((Time.time - m_easeStartTime) / EASE_TIME);
-                m_rotation = Quaternion.Slerp(m_easeStartRot, m_easeTargetRot, fac);
+                float fac = MathHelper.Clamp(Utils.Ease((Time.time - m_easeStartTime) / EASE_TIME), 0, 1);
+                m_camPivot.LocalRotation = Quaternion.Slerp(m_easeStartRot, m_easeTargetRot, fac);
                 m_easing = fac < 1;
             }
+            else
+            {
+                m_camPivot.LocalRotation = GetRotation();
+            }
             
-            m_camPivot.LocalRotation = m_rotation;
             m_camera.Transform.LocalPosition = -m_zoom * Vector3.UnitY;
             
             // move the clip planes to keep proportion with the camera's distance from the pivot
@@ -111,15 +130,9 @@ namespace SoSmooth
                 case Gdk.Key.KP_7: EaseCamera(ctrl ? TOP_VIEW : BOTTOM_VIEW); break;
                 case Gdk.Key.KP_4: YawCamera(-ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_6: YawCamera(ROTATE_STEP_SIZE); break;
-                case Gdk.Key.KP_8: PitchCamera(ROTATE_STEP_SIZE); break;
-                case Gdk.Key.KP_2: PitchCamera(-ROTATE_STEP_SIZE); break;
+                case Gdk.Key.KP_8: PitchCamera(-ROTATE_STEP_SIZE); break;
+                case Gdk.Key.KP_2: PitchCamera(ROTATE_STEP_SIZE); break;
             }
-            Logger.Debug(args.Event.Key + " " + args.Event.State);
-        }
-
-        private void OnButtonPress(object o, ButtonPressEventArgs args)
-        {
-            Logger.Debug(args.Event.Device.Name);
         }
 
         private void OnScroll(object o, ScrollEventArgs args)
@@ -133,8 +146,47 @@ namespace SoSmooth
             }
         }
 
+        private void OnButtonPress(object o, ButtonPressEventArgs args)
+        {
+            // clear the mouse offset so the the first frame of mouse motion is zero.
+            m_lastMousePos = new Vector2d(args.Event.X, args.Event.Y);
+        }
+
         private void OnMotion(object o, MotionNotifyEventArgs args)
         {
+            ModifierType modifierMask = Accelerator.DefaultModMask;
+            
+            bool ctrl = (args.Event.State & modifierMask) == ModifierType.ControlMask;
+            bool shift = (args.Event.State & modifierMask) == ModifierType.ShiftMask;
+            bool middleMouse = (args.Event.State & ModifierType.Button2Mask) != 0;
+
+            if (middleMouse)
+            {
+                // get the amount the mouse has moved since last event
+                Vector2d newMousePos = new Vector2d(args.Event.X, args.Event.Y);
+                Vector2d delta = newMousePos - m_lastMousePos;
+                m_lastMousePos = newMousePos;
+
+                if (ctrl) // zoom
+                {
+                    ZoomCamera((float)delta.Y * m_zoom * DRAG_ZOOM_SENSITIVITY);
+                }
+                else if (shift) // pan
+                {
+                    // scale sensitivity by the vertical resolution when panning
+                    int resX, resY;
+                    m_camera.GetResolution(out resX, out resY);
+                    float sensitivity = m_zoom * (DRAG_PAN_SENSITIVITY / resY);
+
+                    m_camPivot.LocalPosition += m_camPivot.Right * (float)delta.X * sensitivity;
+                    m_camPivot.LocalPosition += m_camPivot.Up * (float)delta.Y * sensitivity;
+                }
+                else // rotate
+                {
+                    YawCamera((float)delta.X * -DRAG_ROTATE_SENSITIVITY);
+                    PitchCamera((float)delta.Y * -DRAG_ROTATE_SENSITIVITY);
+                }
+            }
         }
 
         /// <summary>
@@ -152,8 +204,10 @@ namespace SoSmooth
         /// <param name="yawDelta">The angle in radians.</param>
         private void YawCamera(float yawDelta)
         {
-            m_easing = false;
-            m_rotation = Quaternion.FromAxisAngle(Vector3.UnitZ, yawDelta) * m_rotation;
+            if (!m_easing)
+            {
+                m_yaw += yawDelta;
+            }
         }
 
         /// <summary>
@@ -162,23 +216,39 @@ namespace SoSmooth
         /// <param name="pitchDelta">The angle in radians.</param>
         private void PitchCamera(float pitchDelta)
         {
-            m_easing = false;
-            m_rotation = Quaternion.FromAxisAngle(m_camPivot.Right, pitchDelta) * m_rotation;
+            if (!m_easing)
+            {
+                m_pitch += pitchDelta;
+            }
         }
 
         /// <summary>
         /// Smoothly moves the camera to a target orientation.
         /// </summary>
-        /// <param name="rotation">The goal rotation.</param>
-        private void EaseCamera(Quaternion rotation)
+        /// <param name="targetRotation">The goal rotation.</param>
+        private void EaseCamera(Quaternion targetRotation)
         {
-            if (m_rotation != rotation)
+            Quaternion currentRotation = GetRotation();
+
+            if (currentRotation != targetRotation)
             {
                 m_easing = true;
                 m_easeStartTime = Time.time;
-                m_easeStartRot = m_rotation;
-                m_easeTargetRot = rotation;
+                m_easeStartRot = currentRotation;
+                m_easeTargetRot = targetRotation;
+
+                Vector3 euler = targetRotation.ToEulerAngles();
+                m_yaw = euler.Z;
+                m_pitch = euler.X;
             }
+        }
+
+        /// <summary>
+        /// Computes the pivot rotation using the current yaw and pitch.
+        /// </summary>
+        private Quaternion GetRotation()
+        {
+            return Quaternion.FromAxisAngle(Vector3.UnitZ, m_yaw) * Quaternion.FromAxisAngle(Vector3.UnitX, m_pitch);
         }
     }
 }

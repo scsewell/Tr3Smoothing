@@ -83,9 +83,8 @@ namespace SoSmooth
                 EventMask.KeyReleaseMask |
                 EventMask.ButtonPressMask |
                 EventMask.ButtonReleaseMask |
-                EventMask.ScrollMask |
-                EventMask.PointerMotionMask |
-                EventMask.PointerMotionHintMask
+                EventMask.Button2MotionMask |
+                EventMask.ScrollMask
             ));
             
             CanFocus = true;
@@ -101,7 +100,7 @@ namespace SoSmooth
         /// </summary>
         private void GLWidgetInitialize(object sender, EventArgs e)
         {
-            // disable vsync as we don't want the thread to be blocked needlessly
+            // disable vsync as we don't want the main thread to be blocked
             GraphicsContext.CurrentContext.SwapInterval = 0;
 
             // preload all shader programs
@@ -149,6 +148,13 @@ namespace SoSmooth
             {
                 GL.ClearColor(Color4.Black);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            // report the latest error when rendering the scene, if applicable
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
+            {
+                Logger.Error("OpenGL Error: " + error);
             }
 
             m_stopwatch.Stop();

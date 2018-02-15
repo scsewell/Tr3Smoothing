@@ -31,6 +31,36 @@ namespace SoSmooth
         }
 
         /// <summary>
+        /// Converts a rotation to euler angles.
+        /// </summary>
+        /// <param name="rot">The rotation to convert to euler angles.</param>
+        /// <returns>A vector containing the pitch, roll, and yaw.</returns>
+        public static Vector3 ToEulerAngles(this Quaternion rot)
+        {
+            Vector3 euler;
+
+            // pitch (x-axis rotation)
+            float sinr = 2.0f * (rot.W * rot.X + rot.Y * rot.Z);
+            float cosr = 1.0f - 2.0f * (rot.X * rot.X + rot.Y * rot.Y);
+            euler.X = (float)Math.Atan2(sinr, cosr);
+
+            // roll (y-axis rotation)
+            float sinp = 2.0f * (rot.W * rot.Y - rot.Z * rot.X);
+            if (Math.Abs(sinp) >= 1)
+            {
+                sinp = Math.Sign(sinp);
+            }
+            euler.Y = (float)Math.Asin(sinp);
+
+            // yaw (z-axis rotation)
+            float siny = 2.0f * (rot.W * rot.Z + rot.X * rot.Y);
+            float cosy = 1.0f - 2.0f * (rot.Y * rot.Y + rot.Z * rot.Z);
+            euler.Z = (float)Math.Atan2(siny, cosy);
+
+            return euler;
+        }
+
+        /// <summary>
         /// Creates a transformation matrix from scalars.
         /// </summary>
         /// <param name="position">The position.</param>

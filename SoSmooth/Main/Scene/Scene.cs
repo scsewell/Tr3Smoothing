@@ -93,13 +93,6 @@ namespace SoSmooth.Scenes
                     renderable.Render(ActiveCamera);
                 }
             }
-
-            // report the latest error when rendering the scene, if applicable
-            ErrorCode error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Logger.Error("OpenGL Error: " + error);
-            }
         }
         
         /// <summary>

@@ -10,11 +10,20 @@ namespace SoSmooth
         /// <summary>
         /// The minimal pixel width of the window permitted.
         /// </summary>
-        private const int MIN_WIDTH     = 800;
+        private const int MIN_WIDTH     = 600;
         /// <summary>
         /// The minimal pixel height of the window permitted.
         /// </summary>
-        private const int MIN_HEIGHT    = 600;
+        private const int MIN_HEIGHT    = 400;
+
+        /// <summary>
+        /// The default pixel width of the window.
+        /// </summary>
+        private const int DEFAULT_WIDTH = 800;
+        /// <summary>
+        /// The default pixel height of the window.
+        /// </summary>
+        private const int DEFAULT_HEIGHT = 600;
 
         private SceneWindow m_sceneWindow;
 
@@ -26,7 +35,9 @@ namespace SoSmooth
             Name = Program.NAME;
             Title = Program.NAME;
             SetSizeRequest(MIN_WIDTH, MIN_HEIGHT);
+            SetDefaultSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
             WindowPosition = WindowPosition.CenterOnParent;
+
             DeleteEvent += OnDeleteEvent;
             
             MainMenuBar menuBar = new MainMenuBar(this);
