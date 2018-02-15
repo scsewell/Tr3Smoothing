@@ -7,7 +7,13 @@ namespace SoSmooth
     /// </summary>
     public class MainWindow : Window
     {
+        /// <summary>
+        /// The minimal pixel width of the window permitted.
+        /// </summary>
         private const int MIN_WIDTH     = 800;
+        /// <summary>
+        /// The minimal pixel height of the window permitted.
+        /// </summary>
         private const int MIN_HEIGHT    = 600;
 
         private SceneWindow m_sceneWindow;
@@ -25,7 +31,7 @@ namespace SoSmooth
             
             MainMenuBar menuBar = new MainMenuBar(this);
             m_sceneWindow = SceneWindow.CreateSceneWindow();
-            
+
             VBox vBox = new VBox(false, 0);
             vBox.PackStart(menuBar.MenuBar, false, false, 0);
             vBox.PackStart(m_sceneWindow, true, true, 0);
@@ -43,7 +49,6 @@ namespace SoSmooth
         private bool UpdateScenes()
         {
             Time.FrameStart();
-            
             m_sceneWindow.QueueDraw();
             return true;
         }

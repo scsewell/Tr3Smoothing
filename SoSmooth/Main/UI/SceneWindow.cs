@@ -11,7 +11,7 @@ using SoSmooth.Scenes;
 namespace SoSmooth
 {
     /// <summary>
-    /// A 3D scene window in the application.
+    /// A 3D scene window in the application that manages an OpenGL context.
     /// </summary>
     public class SceneWindow : GLWidget
     {
@@ -34,6 +34,13 @@ namespace SoSmooth
             get { return m_scene; }
             set { m_scene = value; }
         }
+
+        public delegate void SceneUpdateHandler();
+
+        /// <summary>
+        /// Event triggered prior to scene rendering.
+        /// </summary>
+        public event SceneUpdateHandler SceneUpdate;
         
         /// <summary>
         /// How long it took to render the last frame in milliseconds.
@@ -74,33 +81,19 @@ namespace SoSmooth
             AddEvents((int)(
                 EventMask.KeyPressMask |
                 EventMask.KeyReleaseMask |
+                EventMask.ButtonPressMask |
+                EventMask.ButtonReleaseMask |
                 EventMask.ScrollMask |
-                EventMask.Button2MotionMask |
                 EventMask.PointerMotionMask |
                 EventMask.PointerMotionHintMask
             ));
             
-            ButtonPressEvent += M_glWidget_ButtonPressEvent;
-            MotionNotifyEvent += M_glWidget_MotionNotifyEvent;
-            ScrollEvent += M_glWidget_ScrollEvent;
-
             CanFocus = true;
 
             m_stopwatch = new Stopwatch();
-
             m_scene = new Scene();
 
-            m_camPivot = new Entity(m_scene, "CameraPivot").Transform;
-
-            m_camPitch = new Entity(m_scene, "CameraPitch").Transform;
-            m_camPitch.SetParent(m_camPivot);
-            
-            Transform cam = new Entity(m_scene, "Camera").Transform;
-            cam.SetParent(m_camPitch);
-            cam.LocalRotation = Quaternion.FromEulerAngles(0, 0, MathHelper.PiOver2);
-
-            m_camera = new Camera(cam.Entity);
-            m_scene.ActiveCamera = m_camera;
+            new SceneCamera(this);
         }
 
         /// <summary>
@@ -125,37 +118,17 @@ namespace SoSmooth
         {
             m_viewportDirty = true;
         }
-
-        private const float ZOOM_MIN = 0.001f;
-        private const float ZOOM_MAX = 100.0f;
-        private const float ZOOM_RATIO = 1.0f / 8.0f;
-
-        private const float ROTATE_STEP_SIZE = MathHelper.TwoPi / 28;
-
-        private float m_orbitDistance = 10;
-        private float m_pitch = 0;
-        private float m_yaw = 0;
-
-        private Transform m_camPivot;
-        private Transform m_camPitch;
-        private Camera m_camera;
         
-
-        private void UpdateScene()
-        {
-            m_camPivot.LocalRotation = Quaternion.FromEulerAngles(m_yaw, 0, 0);
-            m_camPitch.LocalRotation = Quaternion.FromEulerAngles(0, 0, m_pitch);
-            m_camera.Transform.LocalPosition = -m_orbitDistance * Vector3.UnitY;
-
-            m_camera.FarClip = Math.Max(m_orbitDistance * 2, 100);
-        }
-
         /// <summary>
         /// Renders the current scene.
         /// </summary>
         protected override void OnRenderFrame()
         {
-            UpdateScene();
+            // notify a scene update
+            if (SceneUpdate != null)
+            {
+                SceneUpdate();
+            }
 
             m_stopwatch.Restart();
 
@@ -179,58 +152,6 @@ namespace SoSmooth
             }
 
             m_stopwatch.Stop();
-        }
-
-        private void M_glWidget_MotionNotifyEvent(object o, MotionNotifyEventArgs args)
-        {
-            //Logger.Debug(args.Event.Device.Name.ToString());
-        }
-
-        private void M_glWidget_ScrollEvent(object o, ScrollEventArgs args)
-        {
-            float zoomDelta = ZOOM_RATIO * m_orbitDistance;
-
-            switch (args.Event.Direction)
-            {
-                case ScrollDirection.Up:
-                    m_orbitDistance = Math.Max(m_orbitDistance - zoomDelta, ZOOM_MIN);
-                    Logger.Debug("m_orbitDistance: " + m_orbitDistance);
-                    break;
-                case ScrollDirection.Down:
-                    m_orbitDistance = Math.Min(m_orbitDistance + zoomDelta, ZOOM_MAX);
-                    Logger.Debug("m_orbitDistance: " + m_orbitDistance);
-                    break;
-            }
-        }
-
-        private void M_glWidget_ButtonPressEvent(object o, ButtonPressEventArgs args)
-        {
-            //Logger.Debug(args.Event.Device.Name);
-        }
-
-        protected override bool OnKeyPressEvent(EventKey evnt)
-        {
-            switch (evnt.Key)
-            {
-                case Gdk.Key.KP_1: // look at front
-                    m_yaw = 0;
-                    m_pitch = 0;
-                    break;
-                case Gdk.Key.KP_3: // look at side
-                    m_yaw = MathHelper.PiOver2;
-                    m_pitch = 0;
-                    break;
-                case Gdk.Key.KP_7: // look at top
-                    m_yaw = 0;
-                    m_pitch = -MathHelper.PiOver2;
-                    break;
-                case Gdk.Key.KP_4: m_yaw -= ROTATE_STEP_SIZE; Logger.Debug("m_yaw: " + m_yaw); break;
-                case Gdk.Key.KP_6: m_yaw += ROTATE_STEP_SIZE; Logger.Debug("m_yaw: " + m_yaw); break;
-                case Gdk.Key.KP_8: m_pitch = Math.Max(m_pitch - ROTATE_STEP_SIZE, -MathHelper.PiOver2); Logger.Debug("m_pitch: " + m_pitch); break;
-                case Gdk.Key.KP_2: m_pitch = Math.Min(m_pitch + ROTATE_STEP_SIZE, MathHelper.PiOver2); Logger.Debug("m_pitch: " + m_pitch); break;
-            }
-            Logger.Debug(evnt.Key.ToString());
-            return true;
         }
     }
 }

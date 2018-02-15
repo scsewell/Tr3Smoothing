@@ -11,10 +11,15 @@ namespace SoSmooth.Scenes
     /// </summary>
     public class Transform : Component
     {
+        // cached values
         private Vector3 m_localPosition;
         private Quaternion m_localRotation;
         private Vector3 m_localScale;
-        
+
+        private Vector3 m_forward;
+        private Vector3 m_up;
+        private Vector3 m_right;
+
         private Matrix4 m_localToParentMatrix;
         private Matrix4 m_localToWorldMatrix;
         private Matrix4 m_worldToLocalMatrix;
@@ -31,14 +36,19 @@ namespace SoSmooth.Scenes
             LocalRot        = (1 << 1),
             LocalScl        = (1 << 2),
             LocalScalars    = LocalPos | LocalRot | LocalScl,
+            
+            Forward         = (1 << 6),
+            Upward          = (1 << 7),
+            Right           = (1 << 8),
+            Directions      = Forward | Upward | Right,
 
-            LtPMat          = (1 << 3),
+            LtPMat          = (1 << 20),
 
-            LtWMat          = (1 << 4),
-            WtLMat          = (1 << 5),
+            LtWMat          = (1 << 26),
+            WtLMat          = (1 << 27),
             World           = LtWMat | WtLMat,
             
-            All             = LocalScalars | LtPMat | World,
+            All             = LocalScalars | Directions | LtPMat | World,
         }
 
         /// <summary>
@@ -64,8 +74,8 @@ namespace SoSmooth.Scenes
                     RefreshLocalScale();
                     ChildrenCacheLocal();
                     m_localPosition = value;
-                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                     MarkClean(DirtyFlag.LocalPos);
+                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                 }
             }
         }
@@ -88,8 +98,8 @@ namespace SoSmooth.Scenes
                     RefreshLocalScale();
                     ChildrenCacheLocal();
                     m_localRotation = value;
-                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                     MarkClean(DirtyFlag.LocalRot);
+                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat | DirtyFlag.Directions);
                 }
             }
         }
@@ -112,8 +122,8 @@ namespace SoSmooth.Scenes
                     RefreshLocalRotation();
                     ChildrenCacheLocal();
                     m_localScale = value;
-                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                     MarkClean(DirtyFlag.LocalScl);
+                    MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
                 }
             }
         }
@@ -146,8 +156,8 @@ namespace SoSmooth.Scenes
                 {
                     ChildrenCacheLocal();
                     m_localToWorldMatrix = value;
-                    MarkDirty(DirtyFlag.All);
                     MarkClean(DirtyFlag.LtWMat);
+                    MarkDirty(DirtyFlag.All);
                 }
             }
         }
@@ -168,9 +178,57 @@ namespace SoSmooth.Scenes
                 {
                     ChildrenCacheLocal();
                     m_worldToLocalMatrix = value;
-                    MarkDirty(DirtyFlag.All);
                     MarkClean(DirtyFlag.WtLMat);
+                    MarkDirty(DirtyFlag.All);
                 }
+            }
+        }
+
+        /// <summary>
+        /// The direction of the local negative unit Y vector, pointing in the transform's forward direction.
+        /// </summary>
+        public Vector3 Forward
+        {
+            get
+            {
+                if (IsAllDirty(DirtyFlag.Forward))
+                {
+                    m_forward = Vector3.TransformVector(-Vector3.UnitY, LocalToWorldMatix).Normalized();
+                    MarkClean(DirtyFlag.Forward);
+                }
+                return m_forward;
+            }
+        }
+
+        /// <summary>
+        /// The direction of the local unit Z vector, pointing in the transform's upwards direction.
+        /// </summary>
+        public Vector3 Up
+        {
+            get
+            {
+                if (IsAllDirty(DirtyFlag.Upward))
+                {
+                    m_up = Vector3.TransformVector(Vector3.UnitZ, LocalToWorldMatix).Normalized();
+                    MarkClean(DirtyFlag.Upward);
+                }
+                return m_up;
+            }
+        }
+
+        /// <summary>
+        /// The direction of the local negative unit X vector, pointing in the transform's right direction.
+        /// </summary>
+        public Vector3 Right
+        {
+            get
+            {
+                if (IsAllDirty(DirtyFlag.Right))
+                {
+                    m_right = Vector3.TransformVector(-Vector3.UnitX, LocalToWorldMatix).Normalized();
+                    MarkClean(DirtyFlag.Right);
+                }
+                return m_right;
             }
         }
 
@@ -227,6 +285,10 @@ namespace SoSmooth.Scenes
             m_localRotation   = Quaternion.Identity;
             m_localScale      = Vector3.One;
 
+            m_forward   = -Vector3.UnitY;
+            m_up        = Vector3.UnitZ;
+            m_right     = -Vector3.UnitX;
+
             m_localToParentMatrix = Matrix4.Identity;
             m_localToWorldMatrix = Matrix4.Identity;
             m_worldToLocalMatrix = Matrix4.Identity;
@@ -265,7 +327,7 @@ namespace SoSmooth.Scenes
                 else
                 {
                     RefreshLocalToParent();
-                    MarkDirty(DirtyFlag.World);
+                    MarkDirty(DirtyFlag.World | DirtyFlag.Directions);
                 }
 
                 m_parent = newParent;
@@ -286,7 +348,7 @@ namespace SoSmooth.Scenes
         {
             foreach (Transform child in m_children)
             {
-                if (child.IsDirty(DirtyFlag.LocalScalars))
+                if (child.IsAnyDirty(DirtyFlag.LocalScalars))
                 {
                     child.RefreshLocalToParent();
                 }
@@ -299,7 +361,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalPosition()
         {
-            if (IsDirty(DirtyFlag.LocalPos))
+            if (IsAllDirty(DirtyFlag.LocalPos))
             {
                 m_localPosition = LocalToParentMatix.ExtractTranslation();
                 MarkClean(DirtyFlag.LocalPos);
@@ -311,7 +373,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalRotation()
         {
-            if (IsDirty(DirtyFlag.LocalRot))
+            if (IsAllDirty(DirtyFlag.LocalRot))
             {
                 m_localRotation = LocalToParentMatix.ExtractRotation();
                 MarkClean(DirtyFlag.LocalRot);
@@ -323,7 +385,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalScale()
         {
-            if (IsDirty(DirtyFlag.LocalScl))
+            if (IsAllDirty(DirtyFlag.LocalScl))
             {
                 m_localScale = LocalToParentMatix.ExtractScale();
                 MarkClean(DirtyFlag.LocalScl);
@@ -335,11 +397,11 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalToParent()
         {
-            if (IsDirty(DirtyFlag.LtPMat))
+            if (IsAllDirty(DirtyFlag.LtPMat))
             {
-                if (IsClean(DirtyFlag.LocalScalars))
+                if (IsAllClean(DirtyFlag.LocalScalars))
                 {
-                    CreateTransform(ref m_localPosition, ref m_localRotation, ref m_localScale, out m_localToParentMatrix);
+                    Utils.CreateTransform(ref m_localPosition, ref m_localRotation, ref m_localScale, out m_localToParentMatrix);
                 }
                 else
                 {
@@ -361,9 +423,9 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshLocalToWorld()
         {
-            if (IsDirty(DirtyFlag.LtWMat))
+            if (IsAllDirty(DirtyFlag.LtWMat))
             {
-                if (IsClean(DirtyFlag.WtLMat))
+                if (IsAllClean(DirtyFlag.WtLMat))
                 {
                     m_localToWorldMatrix = WorldToLocalMatrix.Inverted();
                 }
@@ -384,42 +446,13 @@ namespace SoSmooth.Scenes
         /// </summary>
         private void RefreshWorldToLocal()
         {
-            if (IsDirty(DirtyFlag.WtLMat))
+            if (IsAllDirty(DirtyFlag.WtLMat))
             {
                 m_worldToLocalMatrix = LocalToWorldMatix.Inverted();
                 MarkClean(DirtyFlag.WtLMat);
             }
         }
 
-        /// <summary>
-        /// Checks if all given properties' caches are valid.
-        /// </summary>
-        /// <param name="flags">The properties check if clean.</param>
-        /// <returns>True if all of the properties are clean.</returns>
-        private bool IsClean(DirtyFlag flags)
-        {
-            return (m_dirtyFlags & flags) == 0;
-        }
-
-        /// <summary>
-        /// Marks the given properties' caches as valid. 
-        /// </summary>
-        /// <param name="flags"></param>
-        private void MarkClean(DirtyFlag flags)
-        {
-            m_dirtyFlags &= (~flags);
-        }
-
-        /// <summary>
-        /// Checks if any given properties' caches are invalid.
-        /// </summary>
-        /// <param name="flags">The properties check if dirty.</param>
-        /// <returns>True if any of the properties are dirty.</returns>
-        private bool IsDirty(DirtyFlag flags)
-        {
-            return (m_dirtyFlags & flags) != 0;
-        }
-        
         /// <summary>
         /// Ensures that the specified properties are updated when next accessed.
         /// </summary>
@@ -429,69 +462,67 @@ namespace SoSmooth.Scenes
             m_dirtyFlags |= flags;
 
             // check that the transform's orientation value can still be computed from any valid caches
-            if (IsDirty(DirtyFlag.World) && IsDirty(DirtyFlag.LtPMat) && IsDirty(DirtyFlag.LocalScalars))
+            if (IsAllDirty(DirtyFlag.World | DirtyFlag.LtPMat) && IsAnyDirty(DirtyFlag.LocalScalars))
             {
-                Logger.Error(string.Format(
-                    "Transform on entity \"{0}\" has entered an unrecoverable dirty state: {1}",
-                    Entity, m_dirtyFlags));
+                Logger.Error($"Transform on entity \"{Entity}\" has entered an unrecoverable dirty state: {m_dirtyFlags}");
             }
-            
-            if (IsDirty(DirtyFlag.World))
+
+            if (IsAllDirty(DirtyFlag.World) || IsAnyDirty(DirtyFlag.Directions))
             {
                 foreach (Transform child in m_children)
                 {
-                    child.MarkDirty(DirtyFlag.World);
+                    child.MarkDirty(DirtyFlag.World | DirtyFlag.Directions);
                 }
             }
         }
 
         /// <summary>
-        /// Optimally a transformation matrix.
+        /// Marks the flagged properties' caches as valid. 
         /// </summary>
-        /// <param name="position">The position.</param>
-        /// <param name="rotation">The rotation.</param>
-        /// <param name="scale">The scale.</param>
-        /// <param name="result">A matrix instance.</param>
-        public static void CreateTransform(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, out Matrix4 result)
+        /// <param name="flags">The properties to make clean.</param>
+        private void MarkClean(DirtyFlag flags)
         {
-            result = Matrix4.Identity;
-            
-            Vector3 axis;
-            float angle;
-            rotation.ToAxisAngle(out axis, out angle);
-            axis.Normalize();
+            m_dirtyFlags &= (~flags);
+        }
+        
+        /// <summary>
+        /// Checks if any flagged properties' caches are valid.
+        /// </summary>
+        /// <param name="flags">The properties check if clean.</param>
+        /// <returns>True if any of the flagged properties are clean.</returns>
+        private bool IsAnyClean(DirtyFlag flags)
+        {
+            return (m_dirtyFlags & flags) != flags;
+        }
 
-            // calculate angles
-            float cos = (float)Math.Cos(-angle);
-            float sin = (float)Math.Sin(-angle);
-            float t = 1.0f - cos;
+        /// <summary>
+        /// Checks if all flagged properties' caches are valid.
+        /// </summary>
+        /// <param name="flags">The properties check if clean.</param>
+        /// <returns>True if all of the flagged properties are clean.</returns>
+        private bool IsAllClean(DirtyFlag flags)
+        {
+            return (m_dirtyFlags & flags) == 0;
+        }
 
-            // do the conversion math once
-            float tXX = t * axis.X * axis.X;
-            float tXY = t * axis.X * axis.Y;
-            float tXZ = t * axis.X * axis.Z;
-            float tYY = t * axis.Y * axis.Y;
-            float tYZ = t * axis.Y * axis.Z;
-            float tZZ = t * axis.Z * axis.Z;
+        /// <summary>
+        /// Checks if any flagged properties' caches are invalid.
+        /// </summary>
+        /// <param name="flags">The properties check if dirty.</param>
+        /// <returns>True if all of the properties are dirty.</returns>
+        private bool IsAnyDirty(DirtyFlag flags)
+        {
+            return (m_dirtyFlags & flags) != 0;
+        }
 
-            float sinX = sin * axis.X;
-            float sinY = sin * axis.Y;
-            float sinZ = sin * axis.Z;
-
-            result.Row0.X = scale.X * (tXX + cos);
-            result.Row0.Y = scale.X * (tXY - sinZ);
-            result.Row0.Z = scale.X * (tXZ + sinY);
-            result.Row1.X = scale.Y * (tXY + sinZ);
-            result.Row1.Y = scale.Y * (tYY + cos);
-            result.Row1.Z = scale.Y * (tYZ - sinX);
-            result.Row2.X = scale.Z * (tXZ - sinY);
-            result.Row2.Y = scale.Z * (tYZ + sinX);
-            result.Row2.Z = scale.Z * (tZZ + cos);
-
-            // set the position
-            result.Row3.X = position.X;
-            result.Row3.Y = position.Y;
-            result.Row3.Z = position.Z;
+        /// <summary>
+        /// Checks if any flagged properties' caches are invalid.
+        /// </summary>
+        /// <param name="flags">The properties check if dirty.</param>
+        /// <returns>True if all of the properties are dirty.</returns>
+        private bool IsAllDirty(DirtyFlag flags)
+        {
+            return (m_dirtyFlags & flags) == flags;
         }
     }
 }

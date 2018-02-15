@@ -109,13 +109,13 @@ namespace SoSmooth.Scenes
         {
             get { return Transform.WorldToLocalMatrix; }
         }
-        
+
         /// <summary>
         /// Constructor.
         /// </summary>
         public Camera(Entity entity) : base(entity)
         {
-            m_clearColor = new Color4(0.3f, 0.35f, 0.4f, 1.0f);
+            m_clearColor = new Color4(0.225f, 0.225f, 0.225f, 1.0f);
             m_fieldOfView = 60.0f;
             m_nearClip = 0.01f;
             m_farClip = 100;

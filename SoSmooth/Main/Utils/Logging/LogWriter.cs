@@ -13,6 +13,16 @@ namespace SoSmooth
         private List<string> m_buffer = new List<string>();
         private object m_bufferLock = new object();
         
+        private uint m_bytesWritten = 0;
+
+        /// <summary>
+        /// The number of bytes written to the log file.
+        /// </summary>
+        public uint LogFileSize
+        {
+            get { return m_bytesWritten; }
+        }
+
         public LogWriter()
         {
             // start a thread for the log write loop
@@ -35,14 +45,15 @@ namespace SoSmooth
                     toWrite.AddRange(m_buffer);
                     m_buffer.Clear();
                 }
-
+                
                 // write to the current log file and close the stream
-                using (StreamWriter stream = File.AppendText(Logger.Instance.logPath))
+                using (StreamWriter stream = File.AppendText(Logger.Instance.LogPath))
                 {
                     // log the buffered messages
                     foreach (string line in toWrite)
                     {
                         stream.Write(line);
+                        m_bytesWritten += (uint)line.Length;
 
                         // Optionally print the message out to the console
                         if (Logger.Instance.echoToConsole)

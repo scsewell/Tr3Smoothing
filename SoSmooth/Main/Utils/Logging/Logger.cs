@@ -28,15 +28,31 @@ namespace SoSmooth
         private const int MAX_LOG_COUNT = 30;
 
         /// <summary>
+        /// How large a log file can be in megabytes. If exceded, logging stops.
+        /// </summary>
+        private const int MAX_FILE_SIZE = 10;
+
+        /// <summary>
         /// The column messages start at in the log file, used to keep messages aligned
         /// despite any difference in the length of the time and message type prefix.
         /// </summary>
         private const int MESSAGE_START_PADDING = 32;
 
-        public readonly string logPath;
-        private readonly LogWriter m_writer;
-
+        /// <summary>
+        /// If true logged messages will also be printed to the console.
+        /// </summary>
         public bool echoToConsole;
+
+        private readonly LogWriter m_writer;
+        private readonly FileInfo m_logInfo;
+
+        /// <summary>
+        /// The path to the log file.
+        /// </summary>
+        public string LogPath
+        {
+            get { return m_logInfo.FullName; }
+        }
 
         /// <summary>
         /// Constructor.
@@ -62,8 +78,8 @@ namespace SoSmooth
             // Get the filepath for this session's log
             string logStartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             string logName = Program.NAME + "_" + logStartTime + FILE_EXTENTION;
-            
-            logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LOG_DIRECTORY, logName);
+
+            m_logInfo = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LOG_DIRECTORY, logName));
 
             echoToConsole = false;
             m_writer = new LogWriter();
@@ -161,38 +177,41 @@ namespace SoSmooth
         private static readonly string[] NEW_LINES = new string[] { Environment.NewLine };
 
         /// <summary>
-        /// Synchronously handles the writing of a message to the current log file.
+        /// Formats a message to and sends it to the writer.
         /// </summary>
         /// <param name="message">The message content.</param>
         /// <param name="logLevel">The mesasge type.</param>
         /// <param name="showStackTrace">If true includes a stack trace.</param>
         private void LogMessage(string message, LogLevel logLevel, bool showStackTrace)
         {
-            // Start log message lines with the date and message type
-            string dateTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
-            string level = string.Format(" [{0}]", logLevel);
-
-            // Add padding to the line so that the messages start in the same column of the log
-            string line = (dateTime + level).PadRight(MESSAGE_START_PADDING) + message + Environment.NewLine;
-
-            // Include a stack trace if desired
-            if (showStackTrace)
+            if (m_writer.LogFileSize < MAX_FILE_SIZE * 1000000)
             {
-                string[] lines = Environment.StackTrace.Split(NEW_LINES, StringSplitOptions.RemoveEmptyEntries);
+                // Start log message lines with the date and message type
+                string dateTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+                string level = string.Format(" [{0}]", logLevel);
 
-                string stackTrace = "";
-                for (int i = 0; i < lines.Length; i++)
+                // Add padding to the line so that the messages start in the same column of the log
+                string line = (dateTime + level).PadRight(MESSAGE_START_PADDING) + message + Environment.NewLine;
+
+                // Include a stack trace if desired
+                if (showStackTrace)
                 {
-                    // Don't include the function calls in the logger in the stack trace, as it is not useful
-                    if (i > 2 && !lines[i].Contains(typeof(Logger).FullName))
-                    {
-                        stackTrace += lines[i] + Environment.NewLine;
-                    }
-                }
-                line += stackTrace;
-            }
+                    string[] lines = Environment.StackTrace.Split(NEW_LINES, StringSplitOptions.RemoveEmptyEntries);
 
-            m_writer.BufferMessage(line);
+                    string stackTrace = "";
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        // Don't include the function calls in the logger in the stack trace, as it is not useful
+                        if (i > 2 && !lines[i].Contains(typeof(Logger).FullName))
+                        {
+                            stackTrace += lines[i] + Environment.NewLine;
+                        }
+                    }
+                    line += stackTrace;
+                }
+
+                m_writer.BufferMessage(line);
+            }
         }
     }
 }

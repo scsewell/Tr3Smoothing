@@ -7,9 +7,9 @@ namespace SoSmooth
     /// </summary>
     public static class Time
     {
-        private static DateTime m_loadTime;
-        private static TimeSpan m_deltaTime;
-        private static DateTime m_lastFrameEnd;
+        private static DateTime m_loadTime = DateTime.Now;
+        private static TimeSpan m_deltaTime = TimeSpan.Zero;
+        private static DateTime m_lastFrameEnd = DateTime.Now;
 
         /// <summary>
         /// The total time in seconds up until the end of last frame.
