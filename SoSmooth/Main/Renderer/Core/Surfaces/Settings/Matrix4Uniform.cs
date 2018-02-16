@@ -6,42 +6,28 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This class represents a GLSL Matrix4 uniform.
     /// </summary>
-    public class Matrix4Uniform : SurfaceSetting
+    public class Matrix4Uniform : Uniform<Matrix4>
     {
         /// <summary>
-        /// The name of the uniform.
+        /// Initializes a new instance of the <see cref="Matrix4Uniform"/> class.
         /// </summary>
-        private string m_name;
+        /// <param name="name">The name of the uniform.</param>
+        public Matrix4Uniform(string name) : base(name, Matrix4.Identity) { }
 
         /// <summary>
-        /// The <see cref="Matrix4"/> value of the uniform.
+        /// Initializes a new instance of the <see cref="Matrix4Uniform"/> class.
         /// </summary>
-        public Matrix4 Matrix;
+        /// <param name="name">The name of the uniform.</param>
+        /// <param name="matrix">The initial value of the uniform.</param>
+        public Matrix4Uniform(string name, Matrix4 matrix) : base(name, matrix) { }
         
         /// <summary>
-        /// Initializes a new instance of the <see cref="Matrix4Uniform"/> class.
+        /// Sets the uniform for a shader program. Is called before the draw call.
         /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        public Matrix4Uniform(string name) : this(name, Matrix4.Identity) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Matrix4Uniform"/> class.
-        /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <param name="matrix">The initial <see cref="Matrix4"/> value of the uniform.</param>
-        public Matrix4Uniform(string name, Matrix4 matrix)
+        /// <param name="location">The location of the uniform in the program.</param>
+        public override void SetUniform(int location)
         {
-            m_name = name;
-            Matrix = matrix;
-        }
-
-        /// <summary>
-        /// Sets the <see cref="Matrix4"/> uniform for a shader program. Is called before the draw call.
-        /// </summary>
-        /// <param name="program">The program.</param>
-        override public void Set(ShaderProgram program)
-        {
-            GL.UniformMatrix4(program.GetUniformLocation(m_name), false, ref Matrix);
+            GL.UniformMatrix4(location, false, ref Value);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using OpenTK;
-using OpenTK.Graphics;
+﻿using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
@@ -7,42 +6,28 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This class represents a GLSL Color uniform.
     /// </summary>
-    public class ColorUniform : SurfaceSetting
+    public class ColorUniform : Uniform<Color4>
     {
         /// <summary>
-        /// The name of the uniform
+        /// Initializes a new instance of the <see cref="ColorUniform"/> class.
         /// </summary>
-        private string m_name;
-
-        /// <summary>
-        /// The <see cref="Color"/> value of the uniform.
-        /// </summary>
-        public Color4 Color;
+        /// <param name="name">The name of the uniform.</param>
+        public ColorUniform(string name) : base(name, Color4.White) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorUniform"/> class.
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
-        public ColorUniform(string name) : this(name, Color4.White) { }
+        /// <param name="value">The initial value of the uniform.</param>
+        public ColorUniform(string name, Color4 value) : base(name, value) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ColorUniform"/> class.
+        /// Sets the uniform for a shader program. Is called before the draw call.
         /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <param name="color">The initial <see cref="Color"/> value of the uniform.</param>
-        public ColorUniform(string name, Color4 color)
+        /// <param name="location">The location of the uniform in the program.</param>
+        public override void SetUniform(int location)
         {
-            m_name = name;
-            Color = color;
-        }
-        
-        /// <summary>
-        /// Sets the <see cref="Color"/> uniform for a shader program. Is called before the draw call.
-        /// </summary>
-        /// <param name="program">The program.</param>
-        public override void Set(ShaderProgram program)
-        {
-            GL.Uniform4(program.GetUniformLocation(m_name), Color);
+            GL.Uniform4(location, Value);
         }
     }
 }

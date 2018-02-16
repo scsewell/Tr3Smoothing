@@ -77,9 +77,9 @@ namespace SoSmooth.Scenes
                     m_surface.SetVertexBuffer(m_mesh.VertexBuffer);
                     m_surface.SetIndexBuffer(m_mesh.IndexBuffer);
 
-                    m_modelMatUniform.Matrix = Entity.Transform.LocalToWorldMatix;
-                    m_viewMatUniform.Matrix = camera.ViewMatrix;
-                    m_projMatUniform.Matrix = camera.ProjectionMatrix;
+                    m_modelMatUniform.Value = Entity.Transform.LocalToWorldMatix;
+                    m_viewMatUniform.Value = camera.ViewMatrix;
+                    m_projMatUniform.Value = camera.ProjectionMatrix;
 
                     m_surface.Render();
                 }

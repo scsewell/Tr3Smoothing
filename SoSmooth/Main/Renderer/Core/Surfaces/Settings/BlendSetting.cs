@@ -5,7 +5,7 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This immutable class represents a blend function surface setting.
     /// </summary>
-    public class SurfaceBlendSetting : SurfaceSetting
+    public class BlendSetting : SurfaceSetting
     {
         private readonly BlendingFactorSrc m_srcBlend;
         private readonly BlendingFactorDest m_dstBlend;
@@ -14,7 +14,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Alpha' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting Alpha = new SurfaceBlendSetting(
+        public static readonly BlendSetting Alpha = new BlendSetting(
             BlendingFactorSrc.SrcAlpha, 
             BlendingFactorDest.OneMinusSrcAlpha, 
             BlendEquationMode.FuncAdd);
@@ -22,7 +22,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Pre-multiplied Alpha' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting PremultipliedAlpha = new SurfaceBlendSetting(
+        public static readonly BlendSetting PremultipliedAlpha = new BlendSetting(
             BlendingFactorSrc.One, 
             BlendingFactorDest.OneMinusSrcAlpha, 
             BlendEquationMode.FuncAdd);
@@ -30,7 +30,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Add' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting Add = new SurfaceBlendSetting(
+        public static readonly BlendSetting Add = new BlendSetting(
             BlendingFactorSrc.SrcAlpha, 
             BlendingFactorDest.One, 
             BlendEquationMode.FuncAdd);
@@ -38,7 +38,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Substract' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting Substract = new SurfaceBlendSetting(
+        public static readonly BlendSetting Substract = new BlendSetting(
             BlendingFactorSrc.SrcAlpha, 
             BlendingFactorDest.One, 
             BlendEquationMode.FuncReverseSubtract);
@@ -46,7 +46,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Multiply' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting Multiply = new SurfaceBlendSetting(
+        public static readonly BlendSetting Multiply = new BlendSetting(
             BlendingFactorSrc.Zero, 
             BlendingFactorDest.SrcColor, 
             BlendEquationMode.FuncAdd);
@@ -54,7 +54,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Minimum' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting Min = new SurfaceBlendSetting(
+        public static readonly BlendSetting Min = new BlendSetting(
             BlendingFactorSrc.One, 
             BlendingFactorDest.One, 
             BlendEquationMode.Min);
@@ -62,18 +62,18 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Default 'Maximum' blend function
         /// </summary>
-        public static readonly SurfaceBlendSetting Max = new SurfaceBlendSetting(
+        public static readonly BlendSetting Max = new BlendSetting(
             BlendingFactorSrc.One, 
             BlendingFactorDest.One, 
             BlendEquationMode.Max);
 
         /// <summary>
-        /// Initializes a new custom instance of the <see cref="SurfaceBlendSetting"/> class.
+        /// Initializes a new custom instance of the <see cref="BlendSetting"/> class.
         /// </summary>
         /// <param name="src">The <see cref="BlendingFactorSrc"/>.</param>
         /// <param name="dest">The <see cref="BlendingFactorDest"/>.</param>
         /// <param name="equation">The <see cref="BlendEquationMode"/>.</param>
-        public SurfaceBlendSetting(BlendingFactorSrc src, BlendingFactorDest dest, BlendEquationMode equation) : base(true)
+        public BlendSetting(BlendingFactorSrc src, BlendingFactorDest dest, BlendEquationMode equation) : base(true)
         {
             m_srcBlend = src;
             m_dstBlend = dest;

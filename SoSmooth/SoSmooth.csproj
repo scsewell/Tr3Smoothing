@@ -80,10 +80,11 @@
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\FloatUniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Matrix4Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\PolygonModeSetting.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\Settings\SurfaceBlendSetting.cs" />
-    <Compile Include="Main\Renderer\Core\Surfaces\Settings\SurfaceDepthMaskSetting.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\BlendSetting.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\DepthMaskSetting.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\SurfaceSetting.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\TextureUniform.cs" />
+    <Compile Include="Main\Renderer\Core\Surfaces\Settings\Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector2Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector3Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Vector4Uniform.cs" />

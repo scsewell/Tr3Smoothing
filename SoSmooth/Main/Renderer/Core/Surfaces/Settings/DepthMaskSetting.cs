@@ -5,16 +5,16 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This immutable class represents a depth mask surface setting.
     /// </summary>
-    public class SurfaceDepthMaskSetting : SurfaceSetting
+    public class DepthMaskSetting : SurfaceSetting
     {
         private bool m_maskDepth;
 
         /// <summary>
         /// Default 'Dont Mask' masking setting.
         /// </summary>
-        public static readonly SurfaceDepthMaskSetting DontMask = new SurfaceDepthMaskSetting(false);
+        public static readonly DepthMaskSetting DontMask = new DepthMaskSetting(false);
 
-        private SurfaceDepthMaskSetting(bool maskDepth = false) : base(true)
+        private DepthMaskSetting(bool maskDepth = false) : base(true)
         {
             m_maskDepth = maskDepth;
         }

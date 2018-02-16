@@ -1,48 +1,32 @@
-﻿using System;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
 {
     /// <summary>
     /// This class represents a GLSL float uniform.
     /// </summary>
-    public class FloatUniform : SurfaceSetting
+    public class FloatUniform : Uniform<float>
     {
         /// <summary>
-        /// The name of the uniform.
+        /// Initializes a new instance of the <see cref="FloatUniform"/> class.
         /// </summary>
-        private string m_name;
-
-        /// <summary>
-        /// The <see cref="float"/> value of the uniform.
-        /// </summary>
-        public float Float;
+        /// <param name="name">The name of the uniform.</param>
+        public FloatUniform(string name) : base(name, 0) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FloatUniform"/> class.
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
-        public FloatUniform(string name) : this(name, 0) { }
-
+        /// <param name="value">The initial value of the uniform.</param>
+        public FloatUniform(string name, float value) : base(name, value) { }
+        
         /// <summary>
-        /// Initializes a new instance of the <see cref="FloatUniform"/> class.
+        /// Sets the uniform for a shader program. Is called before the draw call.
         /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <param name="f">The initial <see cref="float"/> value of the uniform.</param>
-        public FloatUniform(string name, float f)
+        /// <param name="location">The location of the uniform in the program.</param>
+        public override void SetUniform(int location)
         {
-            m_name = name;
-            Float = f;
-        }
-
-        /// <summary>
-        /// Sets the <see cref="float"/> uniform for a shader program. Is called before the draw call.
-        /// </summary>
-        /// <param name="program">The program.</param>
-        public override void Set(ShaderProgram program)
-        {
-            GL.Uniform1(program.GetUniformLocation(m_name), Float);
+            GL.Uniform1(location, Value);
         }
     }
 }

@@ -6,42 +6,28 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This class represents a GLSL Vector2 uniform.
     /// </summary>
-    public class Vector2Uniform : SurfaceSetting
+    public class Vector2Uniform : Uniform<Vector2>
     {
         /// <summary>
-        /// The name of the uniform.
+        /// Initializes a new instance of the <see cref="Vector2Uniform"/> class.
         /// </summary>
-        private string m_name;
-
-        /// <summary>
-        /// The <see cref="Vector2"/> value of the uniform.
-        /// </summary>
-        public Vector2 Vector;
+        /// <param name="name">The name of the uniform.</param>
+        public Vector2Uniform(string name) : base(name, Vector2.Zero) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Vector2Uniform"/> class.
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
-        public Vector2Uniform(string name) : this(name, Vector2.Zero) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vector2Uniform"/> class.
-        /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <param name="vector">The initial <see cref="Vector2"/> value of the uniform.</param>
-        public Vector2Uniform(string name, Vector2 vector)
-        {
-            m_name = name;
-            Vector = vector;
-        }
+        /// <param name="vector">The initial value of the uniform.</param>
+        public Vector2Uniform(string name, Vector2 vector) : base(name, vector) { }
         
         /// <summary>
-        /// Sets the <see cref="Vector2"/> uniform for a shader program. Is called before the draw call.
+        /// Sets the uniform for a shader program. Is called before the draw call.
         /// </summary>
-        /// <param name="program">The program.</param>
-        public override void Set(ShaderProgram program)
+        /// <param name="location">The location of the uniform in the program.</param>
+        public override void SetUniform(int location)
         {
-            GL.Uniform2(program.GetUniformLocation(m_name), Vector);
+            GL.Uniform2(location, ref Value);
         }
     }
 }

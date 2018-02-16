@@ -11,9 +11,7 @@ namespace SoSmooth.Rendering.Meshes
     public sealed class Mesh : IDisposable
     {
         private Vertex[] m_vertices;
-
-        //MMMMMMMEEEEEEESHHHHH USED IN RENDERER COUND FOR DISPOSE
-
+        
         /// <summary>
         /// The vertices of the mesh. The getter returns a copy of the
         /// actual array, so the setter must be used to update the 

@@ -44,7 +44,7 @@ namespace SoSmooth
             m_sceneWindow = SceneWindow.CreateSceneWindow();
 
             VBox vBox = new VBox(false, 0);
-            vBox.PackStart(menuBar.MenuBar, false, false, 0);
+            vBox.PackStart(menuBar, false, false, 0);
             vBox.PackStart(m_sceneWindow, true, true, 0);
 
             Add(vBox);
