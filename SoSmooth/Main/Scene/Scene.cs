@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using SoSmooth.Rendering;
-using SoSmooth.Rendering.Meshes;
+using SoSmooth.Meshes;
 
 namespace SoSmooth.Scenes
 {
@@ -32,7 +31,7 @@ namespace SoSmooth.Scenes
             camChildRenderer.Mesh = MeshBuilder.CreateCube();
             camChildRenderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
 
-            Mesh mesh = MeshBuilder.CreateDirectionThing();
+            Mesh mesh = MeshBuilder.CreateAxes();
 
             m_entity1 = new Entity(this, "Cube");
             MeshRenderer renderer = new MeshRenderer(m_entity1);
@@ -95,6 +94,26 @@ namespace SoSmooth.Scenes
             }
         }
         
+        /// <summary>
+        /// Finds all entities in this scene with a specific name.
+        /// </summary>
+        /// <param name="name">The name to search for.</param>
+        /// <returns>A new list containing all entities with a matching name.</returns>
+        public List<Entity> FindEntities(string name)
+        {
+            List<Entity> entities = new List<Entity>();
+            foreach (Entity entity in m_rootEntities)
+            {
+                entity.Traverse((e) => {
+                    if (e.Name == name)
+                    {
+                        entities.Add(e);
+                    }
+                });
+            }
+            return entities;
+        }
+
         /// <summary>
         /// Removes an entity from the root level of the scene heirarchy.
         /// </summary>

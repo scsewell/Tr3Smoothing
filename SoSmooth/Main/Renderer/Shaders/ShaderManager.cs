@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using SoSmooth.Rendering;
 
-namespace SoSmooth.Rendering
+namespace SoSmooth
 {
     /// <summary>
     /// Loads shaders files embedded into the assembly. Shaders with the same file

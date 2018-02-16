@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace SoSmooth
+namespace SoSmooth.Tr3
 {
     /// <summary>
     /// Manages the parsing and writing of tr3 files.

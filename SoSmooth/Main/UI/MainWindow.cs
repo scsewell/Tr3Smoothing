@@ -75,6 +75,7 @@ namespace SoSmooth
         /// </summary>
         public void Quit()
         {
+            Logger.Info("Quitting application...");
             Application.Quit();
         }
     }

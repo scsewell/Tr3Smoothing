@@ -1,9 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
-using SoSmooth.Rendering.Meshes.Vertices;
+using SoSmooth.Rendering.Vertices;
 
-namespace SoSmooth.Rendering.Meshes
+namespace SoSmooth.Meshes
 {
     /// <summary>
     /// A general vertex that can store any per vertex data. This should never be

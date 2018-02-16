@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace SoSmooth.Rendering.Meshes
+namespace SoSmooth.Meshes
 {
     /// <summary>
     /// A builder class to help construct meshes.
@@ -11,6 +11,16 @@ namespace SoSmooth.Rendering.Meshes
     {
         private readonly List<Vertex> m_vertices;
         private readonly List<Triangle> m_triangles;
+
+        /// <summary>
+        /// The number of vertices added to the current mesh.
+        /// </summary>
+        public int VertexCount => m_vertices.Count;
+
+        /// <summary>
+        /// The number of triangles added to the current mesh.
+        /// </summary>
+        public int TriangleCount => m_triangles.Count;
 
         /// <summary>
         /// Creates a new mesh builder.
@@ -24,13 +34,15 @@ namespace SoSmooth.Rendering.Meshes
         }
 
         /// <summary>
-        /// Builds and return a mesh with the builder's data.
+        /// Builds and returns a mesh using the builder's current data.
         /// </summary>
+        /// <param name="name">The name of the mesh.</param>
         /// <param name="useNormals">Allow rendering with normals.</param>
         /// <param name="useColors">Allow rendering with vertex color.</param>
-        public Mesh Build(bool useNormals, bool useColors)
+        public Mesh CreateMesh(string name, bool useNormals, bool useColors)
         {
             return new Mesh(
+                name,
                 m_vertices.ToArray(), 
                 m_triangles.ToArray(),
                 useNormals,
@@ -191,22 +203,18 @@ namespace SoSmooth.Rendering.Meshes
             m_builder.AddTriangle(new Triangle(6, 7, 4));
             m_builder.AddTriangle(new Triangle(6, 4, 5));
 
-            Mesh mesh = m_builder.Build(true, true);
+            Mesh mesh = m_builder.CreateMesh("Cube", true, true);
             mesh.RecalculateNormals();
 
             return mesh;
         }
-
-        /// <summary>
-        /// Returns a simple axis-aligned cube centered around (0, 0, 0).
-        /// All edges are length 1.
-        /// </summary>
-        public static Mesh CreateDirectionThing()
+        
+        public static Mesh CreateAxes()
         {
             const float l = 1.0f;
             const float u = 0.05f;
 
-            return new Mesh(
+            return new Mesh("Axes",
                 new Vertex[]
                 {
                     new Vertex(new Vector3(-u, -u, -u),   Color4.Red),

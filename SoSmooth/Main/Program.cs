@@ -46,7 +46,7 @@ namespace SoSmooth
             string filePath;
             if (LineOptionParser.GetValueAsString(args, ARG_FILE, out filePath))
             {
-                Model model = Tr3FileHandler.Instance.Read(filePath);
+                Model model = Tr3.Tr3FileHandler.Instance.Read(filePath);
             }
 
             // launch the UI if not using headless mode

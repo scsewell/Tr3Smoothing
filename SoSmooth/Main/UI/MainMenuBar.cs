@@ -4,7 +4,7 @@ using Gtk;
 namespace SoSmooth
 {
     /// <summary>
-    /// Manages the menu elements at the top of the window.
+    /// Manages the main menu elements.
     /// </summary>
     public class MainMenuBar : MenuBar
     {
@@ -36,6 +36,8 @@ namespace SoSmooth
 
         private void OnOpen(object sender, EventArgs e)
         {
+            Logger.Info("Selecting VRML file to open");
+
             FileChooserDialog fileChooser = new FileChooserDialog(
                 "Open file",
                 m_mainWindow,
@@ -51,7 +53,7 @@ namespace SoSmooth
 
             if (fileChooser.Run() == (int)ResponseType.Accept)
             {
-
+                SmoothingManager.Instance.m_meshes.AddRange(Vrml.VrmlExtractor.Instance.Read(fileChooser.Filename));
             }
 
             fileChooser.Destroy();

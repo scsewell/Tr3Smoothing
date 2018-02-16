@@ -79,7 +79,7 @@ namespace SoSmooth.Scenes
             }
             Transform.SetParent(null);
             scene.AddToRoot(this);
-            TraverseHeirarchy((entity) => entity.m_scene = scene);
+            Traverse((entity) => entity.m_scene = scene);
         }
 
         /// <summary>
@@ -189,7 +189,21 @@ namespace SoSmooth.Scenes
         /// <param name="result">The list discovered components are appended to.</param>
         public void GetComponentsInChildren<T>(List<T> result) where T : Component
         {
-            TraverseHeirarchy((entity) => entity.GetComponents(result));
+            Traverse((entity) => entity.GetComponents(result));
+        }
+
+        /// <summary>
+        /// Recursively calls some function on this entity and all of
+        /// its decendants in the heirarchy.
+        /// </summary>
+        /// <param name="action">A function to perform on each entity.</param>
+        public void Traverse(Action<Entity> action)
+        {
+            action(this);
+            foreach (Transform child in Transform.Children)
+            {
+                child.Entity.Traverse(action);
+            }
         }
 
         /// <summary>
@@ -204,25 +218,11 @@ namespace SoSmooth.Scenes
                 // ensure that this entity and all children inherit the scene of the new parent
                 m_scene.RemoveFromRoot(this);
                 newParent.Entity.Scene.AddToRoot(this);
-                TraverseHeirarchy((entity) => entity.m_scene = newParent.Entity.Scene);
+                Traverse((entity) => entity.m_scene = newParent.Entity.Scene);
             }
             else // if the parent was cleared add the entity to the root of the scene
             {
                 m_scene.AddToRoot(this);
-            }
-        }
-
-        /// <summary>
-        /// Recursively calls some function on this entity and all of
-        /// its decendants in the heirarchy.
-        /// </summary>
-        /// <param name="action">A function to perform on each entity.</param>
-        private void TraverseHeirarchy(Action<Entity> action)
-        {
-            action(this);
-            foreach (Transform child in Transform.Children)
-            {
-                child.Entity.TraverseHeirarchy(action);
             }
         }
 

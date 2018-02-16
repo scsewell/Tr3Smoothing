@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SoSmooth
+namespace SoSmooth.Tr3
 {
     /// <summary>
     /// Parses a tr3 file contour definition.

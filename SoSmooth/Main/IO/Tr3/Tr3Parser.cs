@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace SoSmooth
+namespace SoSmooth.Tr3
 {
     /// <summary>
     /// Parses tr3 files.

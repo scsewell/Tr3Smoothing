@@ -1,7 +1,8 @@
 ﻿using System;
 using OpenTK;
+using SoSmooth.Rendering;
 
-namespace SoSmooth.Rendering.Meshes
+namespace SoSmooth.Meshes
 {
     /// <summary>
     /// Represents a mesh of vertices and triangles. Manages uploading the 
@@ -10,7 +11,24 @@ namespace SoSmooth.Rendering.Meshes
     /// </summary>
     public sealed class Mesh : IDisposable
     {
+        private string m_name;
+
+        private bool m_useNormals;
+        private bool m_useColors;
+        
         private Vertex[] m_vertices;
+        private Triangle[] m_triangles;
+        
+        private IVertexBuffer m_vertexBuffer;
+        private bool m_vertexBufferDirty;
+
+        private IndexBuffer m_indexBuffer;
+        private bool m_indexBufferDirty;
+
+        /// <summary>
+        /// The name of this mesh.
+        /// </summary>
+        public string Name => m_name;
         
         /// <summary>
         /// The vertices of the mesh. The getter returns a copy of the
@@ -37,8 +55,6 @@ namespace SoSmooth.Rendering.Meshes
             }
         }
 
-        private Triangle[] m_triangles;
-
         /// <summary>
         /// The triangles of the mesh. The getter returns a copy of the
         /// actual array, so the setter must be used to update the 
@@ -64,8 +80,6 @@ namespace SoSmooth.Rendering.Meshes
             }
         }
 
-        private bool m_useNormals;
-
         /// <summary>
         /// Should this mesh render using vertex normals.
         /// </summary>
@@ -82,8 +96,6 @@ namespace SoSmooth.Rendering.Meshes
             }
         }
 
-        private bool m_useColors;
-
         /// <summary>
         /// Should this mesh render using vertex colors.
         /// </summary>
@@ -99,9 +111,6 @@ namespace SoSmooth.Rendering.Meshes
                 }
             }
         }
-
-        private IVertexBuffer m_vertexBuffer;
-        private bool m_vertexBufferDirty;
 
         /// <summary>
         /// The vertex buffer object.
@@ -134,9 +143,6 @@ namespace SoSmooth.Rendering.Meshes
             }
         }
 
-        private IndexBuffer m_indexBuffer;
-        private bool m_indexBufferDirty;
-
         /// <summary>
         /// The index buffer object.
         /// </summary>
@@ -155,16 +161,20 @@ namespace SoSmooth.Rendering.Meshes
         /// <summary>
         /// Constructs a new <see cref="Mesh"/>.
         /// </summary>
+        /// <param name="name">The name of the mesh.</param>
         /// <param name="vertices">A vertex array.</param>
         /// <param name="triangles">A triangle array.</param>
         /// <param name="useNormals">Allow rendering with normals.</param>
         /// <param name="useColors">Allow rendering with vertex color.</param>
         public Mesh(
+            string name,
             Vertex[] vertices, 
             Triangle[] triangles,
             bool useNormals,
             bool useColors)
         {
+            m_name = name;
+
             m_vertices = vertices;
             m_triangles = triangles;
 
@@ -181,6 +191,8 @@ namespace SoSmooth.Rendering.Meshes
         /// <param name="mesh">A mesh to clone.</param>
         public Mesh(Mesh mesh)
         {
+            m_name = mesh.Name;
+
             m_vertices = new Vertex[mesh.m_vertices.Length];
             m_triangles = new Triangle[mesh.m_triangles.Length];
 
@@ -224,6 +236,8 @@ namespace SoSmooth.Rendering.Meshes
             {
                 m_vertices[i].normal.Normalize();
             }
+
+            m_vertexBufferDirty = true;
         }
 
         /// <summary>
@@ -288,7 +302,15 @@ namespace SoSmooth.Rendering.Meshes
 
             m_indexBufferDirty = false;
         }
-        
+
+        /// <summary>
+        /// Gets a string describing the instance.
+        /// </summary>
+        public override string ToString()
+        {
+            return $"{{name:\"{m_name}\" verts:{m_vertices.Length} tris:{m_triangles.Length}}}";
+        }
+
         /// <summary>
         /// Deletes all unmanaged resources.
         /// </summary>

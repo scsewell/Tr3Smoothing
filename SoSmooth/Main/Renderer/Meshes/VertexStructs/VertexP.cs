@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using OpenTK;
 
-namespace SoSmooth.Rendering.Meshes.Vertices
+namespace SoSmooth.Rendering.Vertices
 {
     /// <summary>
     /// A vertex for mesh rendering. Consists of a position.

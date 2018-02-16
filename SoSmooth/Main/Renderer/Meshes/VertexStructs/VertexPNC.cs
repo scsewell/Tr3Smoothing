@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace SoSmooth.Rendering.Meshes.Vertices
+namespace SoSmooth.Rendering.Vertices
 {
     /// <summary>
     /// A vertex for mesh rendering. Consists of a position, normal, and color.

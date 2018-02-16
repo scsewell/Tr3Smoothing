@@ -1,5 +1,5 @@
 ﻿using SoSmooth.Rendering;
-using SoSmooth.Rendering.Meshes;
+using SoSmooth.Meshes;
 
 namespace SoSmooth.Scenes
 {

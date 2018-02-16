@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Gdk;
 using Gtk;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using SoSmooth.Rendering;
 using SoSmooth.Scenes;
 
 namespace SoSmooth
@@ -126,6 +126,29 @@ namespace SoSmooth
             // notify a scene update
             if (SceneUpdate != null)
             {
+                List<Entity> roots = Scene.FindEntities("Root");
+                Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
+
+                List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
+                foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
+                {
+                    bool foundMesh = false;
+                    foreach (MeshRenderer renderer in renderers)
+                    {
+                        if (renderer.Mesh == mesh)
+                        {
+                            foundMesh = true;
+                            break;
+                        }
+                    }
+                    if (!foundMesh)
+                    {
+                        MeshRenderer r = new MeshRenderer(root);
+                        r.Mesh = mesh;
+                        r.ShaderProgram = ShaderManager.SHADER_UNLIT;
+                    }
+                }
+
                 SceneUpdate();
             }
 
