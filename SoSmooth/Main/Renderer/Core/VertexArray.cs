@@ -8,10 +8,14 @@ namespace SoSmooth.Rendering
     /// </summary>
     public class VertexArray : GraphicsResource
     {
-        private IVertexBuffer m_vertexBuffer;
-        private bool m_vertexArrayGenerated;
-
         private ShaderProgram m_program;
+        private IVertexBuffer m_vertexBuffer;
+        private IndexBuffer m_indexBuffer;
+        private bool m_vertexArrayGenerated;
+        private bool m_dirty;
+
+        public IVertexBuffer VertexBuffer => m_vertexBuffer;
+        public IndexBuffer IndexBuffer => m_indexBuffer;
 
         /// <summary>
         /// Constructor.
@@ -19,6 +23,7 @@ namespace SoSmooth.Rendering
         public VertexArray()
         {
             m_vertexArrayGenerated = false;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -30,10 +35,23 @@ namespace SoSmooth.Rendering
             if (m_vertexBuffer != vertexBuffer)
             {
                 m_vertexBuffer = vertexBuffer;
-                RegenerateArray();
+                m_dirty = true;
             }
         }
-        
+
+        /// <summary>
+        /// Sets the index buffer paired with this vertex array.
+        /// </summary>
+        /// <param name="indexBuffer">An index buffer object to bind to this object.</param>
+        public void SetIndexBuffer(IndexBuffer indexBuffer)
+        {
+            if (m_indexBuffer != indexBuffer)
+            {
+                m_indexBuffer = indexBuffer;
+                m_dirty = true;
+            }
+        }
+
         /// <summary>
         /// Prepares the vertex attributes for a new shader program.
         /// </summary>
@@ -41,15 +59,24 @@ namespace SoSmooth.Rendering
         public void SetShaderProgram(ShaderProgram program)
         {
             m_program = program;
-            RegenerateArray();
+            m_dirty = true;
         }
 
         /// <summary>
-        /// Sets up a new vertex array object if ready.
+        /// Binds the vertex array.
         /// </summary>
-        public void RegenerateArray()
+        public void Bind()
         {
-            if (m_program != null && m_vertexBuffer != null)
+            UpdateArray();
+            GL.BindVertexArray(this);
+        }
+
+        /// <summary>
+        /// Sets up a new vertex array object if needing to be updated.
+        /// </summary>
+        private void UpdateArray()
+        {
+            if (m_dirty && m_program != null && m_vertexBuffer != null)
             {
                 if (m_vertexArrayGenerated)
                 {
@@ -63,19 +90,19 @@ namespace SoSmooth.Rendering
                 GL.BindVertexArray(this);
                 m_vertexBuffer.Bind(BufferTarget.ArrayBuffer);
 
+                if (m_indexBuffer != null)
+                {
+                    m_indexBuffer.Bind();
+                }
+
                 m_program.SetVertexAttributes(m_vertexBuffer.VertexAttributes);
 
                 GL.BindVertexArray(0);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            }
-        }
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
-        /// <summary>
-        /// Binds the vertex array.
-        /// </summary>
-        public void Bind()
-        {
-            GL.BindVertexArray(this);
+                m_dirty = false;
+            }
         }
 
         /// <summary>

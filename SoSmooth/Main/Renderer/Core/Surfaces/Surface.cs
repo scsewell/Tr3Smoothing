@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
-using System.Collections.ObjectModel;
 
 namespace SoSmooth.Rendering
 {
@@ -11,16 +10,15 @@ namespace SoSmooth.Rendering
     /// </summary>
     public abstract class Surface
     {
+        private static ShaderProgram m_currentProgram = null;
+
         /// <summary>
         /// The shader program used to draw this surface.
         /// </summary>
         protected ShaderProgram Program { get; private set; }
 
-        private readonly List<SurfaceSetting> m_settingsSet = new List<SurfaceSetting>();
-        private readonly List<SurfaceSetting> m_settingsUnSet = new List<SurfaceSetting>();
-
-        public ReadOnlyCollection<SurfaceSetting> Settings { get { return m_settingsSet.AsReadOnly(); } }
-
+        private readonly List<SurfaceSetting> m_settings = new List<SurfaceSetting>();
+        
         /// <summary>
         /// Sets the shader program used to render this surface.
         /// </summary>
@@ -69,11 +67,7 @@ namespace SoSmooth.Rendering
         /// <param name="setting">The setting.</param>
         public void AddSetting(SurfaceSetting setting)
         {
-            m_settingsSet.Add(setting);
-            if (setting.NeedsUnsetting)
-            {
-                m_settingsUnSet.Add(setting);
-            }
+            m_settings.Add(setting);
         }
 
         /// <summary>
@@ -82,10 +76,7 @@ namespace SoSmooth.Rendering
         /// <param name="setting">The setting.</param>
         public void RemoveSetting(SurfaceSetting setting)
         {
-            if (m_settingsSet.Remove(setting) && setting.NeedsUnsetting)
-            {
-                m_settingsUnSet.Remove(setting);
-            }
+            m_settings.Remove(setting);
         }
 
         /// <summary>
@@ -93,8 +84,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void ClearSettings()
         {
-            m_settingsSet.Clear();
-            m_settingsUnSet.Clear();
+            m_settings.Clear();
         }
 
         /// <summary>
@@ -104,19 +94,19 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Render()
         {
-            GL.UseProgram(Program);
+            // only set the program if it is different from what was last used
+            if (m_currentProgram != Program)
+            {
+                m_currentProgram = Program;
+                GL.UseProgram(m_currentProgram);
+            }
 
-            foreach (SurfaceSetting setting in m_settingsSet)
+            foreach (SurfaceSetting setting in m_settings)
             {
                 setting.Set(Program);
             }
             
             OnRender();
-
-            foreach (SurfaceSetting setting in m_settingsUnSet)
-            {
-                setting.UnSet(Program);
-            }
         }
 
         /// <summary>

@@ -4,19 +4,14 @@ using OpenTK.Graphics.OpenGL;
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// This class represents a vertex buffer object that can be rendered with a specified <see cref="BeginMode"/>.
+    /// This class represents a surface rendered using a vertex buffer object.
     /// </summary>
     public abstract class VertexSurface : Surface, IDisposable
     {
         /// <summary>
-        /// The vertex buffer object containing the vertices to render.
-        /// </summary>
-        protected IVertexBuffer m_vertexBuffer;
-
-        /// <summary>
         /// The vertex array object.
         /// </summary>
-        protected VertexArray m_vertexAttributeProvider; 
+        protected VertexArray m_vertexArray; 
 
         private PrimitiveType m_primitiveType;
         protected PrimitiveType PrimitiveType { get { return m_primitiveType; } }
@@ -26,7 +21,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public VertexSurface()
         {
-            m_vertexAttributeProvider = new VertexArray();
+            m_vertexArray = new VertexArray();
         }
 
         /// <summary>
@@ -34,7 +29,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         protected override void OnNewShaderProgram()
         {
-            m_vertexAttributeProvider.SetShaderProgram(Program);
+            m_vertexArray.SetShaderProgram(Program);
         }
 
         /// <summary>
@@ -44,11 +39,7 @@ namespace SoSmooth.Rendering
         /// <param name="primitiveType">Type of the primitives to draw.</param>
         public void SetVertexBuffer(IVertexBuffer vertexBuffer, PrimitiveType primitiveType = PrimitiveType.Triangles)
         {
-            if (m_vertexBuffer != vertexBuffer)
-            {
-                m_vertexBuffer = vertexBuffer;
-                m_vertexAttributeProvider.SetVertexBuffer(vertexBuffer);
-            }
+            m_vertexArray.SetVertexBuffer(vertexBuffer);
             m_primitiveType = primitiveType;
         }
 
@@ -57,14 +48,12 @@ namespace SoSmooth.Rendering
         /// </summary>
         protected override void OnRender()
         {
-            if (m_vertexBuffer.Count == 0)
+            if (m_vertexArray.VertexBuffer != null && m_vertexArray.VertexBuffer.Count > 0)
             {
-                return;
+                m_vertexArray.Bind();
+                GL.DrawArrays(m_primitiveType, 0, m_vertexArray.VertexBuffer.Count);
+                GL.BindVertexArray(0);
             }
-            
-            m_vertexAttributeProvider.Bind();
-            GL.DrawArrays(m_primitiveType, 0, m_vertexBuffer.Count);
-            GL.BindVertexArray(0);
         }
 
         /// <summary>
@@ -72,9 +61,9 @@ namespace SoSmooth.Rendering
         /// </summary>
         public virtual void Dispose()
         {
-            if (m_vertexAttributeProvider != null)
+            if (m_vertexArray != null)
             {
-                m_vertexAttributeProvider.Dispose();
+                m_vertexArray.Dispose();
             }
         }
     }

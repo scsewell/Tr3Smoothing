@@ -16,7 +16,7 @@ namespace SoSmooth
     public class SceneWindow : GLWidget
     {
         private const int OPENGL_VERSION_MAJOR  = 3;
-        private const int OPENGL_VERSION_MINOR  = 0;
+        private const int OPENGL_VERSION_MINOR  = 3;
 
         private const int DEPTH_BUFFER_SIZE     = 24;
         private const int AA_SAMPLES            = 4;
@@ -56,6 +56,8 @@ namespace SoSmooth
         /// <returns>A new <see cref="SceneWindow"/></returns>
         public static SceneWindow CreateSceneWindow()
         {
+            Logger.Info($"Initializing new OpenGL version {OPENGL_VERSION_MAJOR}.{OPENGL_VERSION_MINOR} context");
+
             GraphicsMode mode = new GraphicsMode(DisplayDevice.Default.BitsPerPixel, DEPTH_BUFFER_SIZE, 0, AA_SAMPLES, 0, 0, false);
             return new SceneWindow(mode, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR, GraphicsContextFlags.ForwardCompatible);
         }
@@ -105,8 +107,10 @@ namespace SoSmooth
 
             // preload all shader programs
             ShaderManager.Instance.LoadShaders();
-            
+
             m_viewportDirty = true;
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.ScissorTest);
         }
 
         /// <summary>
@@ -161,14 +165,10 @@ namespace SoSmooth
                 GL.Scissor(0, 0, Allocation.Width, Allocation.Height);
                 m_viewportDirty = false;
             }
-
-            // render the scene
-            if (m_scene != null)
+            
+            if (m_scene == null || !m_scene.Render(Allocation.Width, Allocation.Height))
             {
-                m_scene.Render(Allocation.Width, Allocation.Height);
-            }
-            else
-            {
+                // if there was no valid camera that rendered the scene, clear to black
                 GL.ClearColor(Color4.Black);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             }

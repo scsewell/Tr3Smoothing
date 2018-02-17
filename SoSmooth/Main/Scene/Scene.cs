@@ -49,22 +49,20 @@ namespace SoSmooth.Scenes
         private Entity m_camChild;
         private Entity m_entity1;
         private Entity m_entity2;
-        
+
         /// <summary>
         /// Renders the scene.
         /// </summary>
         /// <param name="resX">The framebuffer horizontal resolution.</param>
         /// <param name="resY">The framebuffer vertical resolution.</param>
-        public void Render(int resX, int resY)
+        /// <returns>True if there is a camera that was able to render the scene.</returns>
+        public bool Render(int resX, int resY)
         {
-            GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.ScissorTest);
-
-            GL.ClearColor(ActiveCamera != null ? ActiveCamera.ClearColor : Color4.Black);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            
             if (ActiveCamera != null)
             {
+                GL.ClearColor(ActiveCamera.ClearColor);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
                 ActiveCamera.SetResolution(resX, resY);
                 /*
                 m_entity1.Transform.LocalPosition = new Vector3((float)Math.Sin(Time.time), 0, 0);
@@ -86,12 +84,17 @@ namespace SoSmooth.Scenes
                     entity.GetComponentsInChildren(renderables);
                 }
 
+                // sort the rendered components to minimize state changes
+                renderables.Sort();
+
                 // handle the rendering of all components
                 foreach (Renderable renderable in renderables)
                 {
                     renderable.Render(ActiveCamera);
                 }
+                return true;
             }
+            return false;
         }
         
         /// <summary>

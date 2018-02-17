@@ -20,7 +20,7 @@
         /// </summary>
         /// <param name="name">The name of the uniform.</param>
         /// <param name="value">The default value of the uniform.</param>
-        public Uniform(string name, T value) : base(false)
+        public Uniform(string name, T value)
         {
             m_name = name;
             Value = value;
