@@ -76,15 +76,17 @@ namespace SoSmooth.Vrml
                                         {
                                             SFVec3f pos = coords.Point.GetValue(index);
                                             Vertex v = new Vertex(new Vector3(pos.X, pos.Y, pos.Z));
-
-                                            indexToVertexIndex.Add(index, (ushort)builder.VertexCount);
+                                            
+                                            i = (ushort)builder.VertexCount;
+                                            indexToVertexIndex.Add(index.Value, i);
                                             builder.AddVertex(v);
                                         }
                                         triangleIndices.Add(i);
                                     }
                                 }
 
-                                Mesh mesh = builder.CreateMesh(anchor.Description, false, false);
+                                Mesh mesh = builder.CreateMesh(anchor.Description, true, true);
+                                mesh.RecalculateNormals();
                                 meshes.Add(mesh);
                                 Logger.Info($"Found Mesh: {mesh}");
                             }

@@ -132,7 +132,7 @@ namespace SoSmooth.Scenes
         {
             foreach (Component c in m_components)
             {
-                if (typeof(T) == c.GetType())
+                if (typeof(T).IsAssignableFrom(c.GetType()))
                 {
                     return (T)c;
                 }

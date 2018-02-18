@@ -18,7 +18,7 @@ namespace SoSmooth.Rendering
         /// Set the index buffer used for this surface.
         /// </summary>
         /// <param name="indexBuffer">The index buffer object to render using.</param>
-        public void SetIndexBuffer(IndexBuffer indexBuffer)
+        public void SetIndexBuffer(IIndexBuffer indexBuffer)
         {
             m_vertexArray.SetIndexBuffer(indexBuffer);
         }
@@ -28,12 +28,14 @@ namespace SoSmooth.Rendering
         /// </summary>
         protected override void OnRender()
         {
-            if (m_vertexArray.VertexBuffer != null && m_vertexArray.VertexBuffer.Count > 0 &&
-                m_vertexArray.IndexBuffer != null && m_vertexArray.IndexBuffer.Count > 0)
+            IVertexBuffer vertBuf = m_vertexArray.VertexBuffer;
+            IIndexBuffer indexBuf = m_vertexArray.IndexBuffer;
+
+            if (vertBuf != null && vertBuf.Count > 0 && indexBuf != null && indexBuf.Count > 0)
             {
                 m_vertexArray.Bind();
-                GL.DrawElements(PrimitiveType, m_vertexArray.IndexBuffer.Count, DrawElementsType.UnsignedShort, 0);
-                GL.BindVertexArray(0);
+                GL.DrawElements(PrimitiveType, indexBuf.Count, indexBuf.ElementType, 0);
+                m_vertexArray.Unbind();
             }
         }
     }

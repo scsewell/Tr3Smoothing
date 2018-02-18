@@ -7,7 +7,7 @@ namespace SoSmooth.Scenes
     /// <summary>
     /// Represents a scene camera.
     /// </summary>
-    public class Camera : Component
+    public sealed class Camera : Component
     {
         private Color4 m_clearColor;
         private float m_fieldOfView;

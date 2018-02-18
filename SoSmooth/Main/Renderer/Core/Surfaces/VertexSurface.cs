@@ -48,11 +48,13 @@ namespace SoSmooth.Rendering
         /// </summary>
         protected override void OnRender()
         {
-            if (m_vertexArray.VertexBuffer != null && m_vertexArray.VertexBuffer.Count > 0)
+            IVertexBuffer vertBuf = m_vertexArray.VertexBuffer;
+
+            if (vertBuf != null && vertBuf.Count > 0)
             {
                 m_vertexArray.Bind();
-                GL.DrawArrays(m_primitiveType, 0, m_vertexArray.VertexBuffer.Count);
-                GL.BindVertexArray(0);
+                GL.DrawArrays(m_primitiveType, 0, vertBuf.Count);
+                m_vertexArray.Unbind();
             }
         }
 

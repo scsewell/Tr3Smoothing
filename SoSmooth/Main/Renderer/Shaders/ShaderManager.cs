@@ -14,7 +14,11 @@ namespace SoSmooth
         /// <summary>
         /// A basic unlit shader.
         /// </summary>
-        public static readonly string SHADER_UNLIT      = "unlit";
+        public static readonly string SHADER_UNLIT  = "unlit";
+        /// <summary>
+        /// A basic lit shader.
+        /// </summary>
+        public static readonly string SHADER_LIT    = "lit";
 
         // The file extentions of shaders in the solution.
         private const string VERT_EXTENTION = "vert";
@@ -93,20 +97,25 @@ namespace SoSmooth
 
         /// <summary>
         /// Gets a shader program by name. The name must match the file names of a
-        /// shader code resource bundled into thi assembly.
+        /// shader code resource bundled into this assembly.
         /// </summary>
         /// <param name="name">The name of the shader program.</param>
-        /// <returns>The shader program or null if none with the name exist.</returns>
-        public ShaderProgram GetProgram(string name)
+        /// <param name="program">The shader program, or null if not found.</param>
+        /// <returns>True if the shader program was successfully found.</returns>
+        public bool GetProgram(string name, out ShaderProgram program)
         {
-            LoadShaders();
-
-            ShaderProgram program;
+            program = null;
+            if (m_shaderPrograms == null)
+            {
+                Logger.Error($"Tried to get shader program \"{name}\" before shaders have been loaded!");
+                return false;
+            }
             if (!m_shaderPrograms.TryGetValue(name, out program))
             {
-                Logger.Info("Could not find shader program with name: " + name);
+                Logger.Info($"Could not find shader program \"{name}\"");
+                return false;
             }
-            return program;
+            return true;
         }
 
         /// <summary>

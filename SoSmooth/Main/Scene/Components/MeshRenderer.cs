@@ -6,14 +6,14 @@ namespace SoSmooth.Scenes
     /// <summary>
     /// Component that handles the rendering of a mesh.
     /// </summary>
-    public class MeshRenderer : Renderable
+    public sealed class MeshRenderer : Renderable
     {
         private IndexedSurface m_surface;
         protected override Surface Surface => m_surface;
 
-        private Matrix4Uniform m_modelMatUniform;
-        private Matrix4Uniform m_viewMatUniform;
-        private Matrix4Uniform m_projMatUniform;
+        private readonly Matrix4Uniform m_modelMatUniform = new Matrix4Uniform("modelMatrix");
+        private readonly Matrix4Uniform m_viewMatUniform = new Matrix4Uniform("viewMatrix");
+        private readonly Matrix4Uniform m_projMatUniform = new Matrix4Uniform("projMatrix");
 
         private Mesh m_mesh;
 
@@ -38,13 +38,24 @@ namespace SoSmooth.Scenes
             m_surface.AddSetting(m_depthMask);
             m_surface.AddSetting(m_blend);
 
-            m_modelMatUniform = new Matrix4Uniform("modelMatrix");
-            m_viewMatUniform = new Matrix4Uniform("viewMatrix");
-            m_projMatUniform = new Matrix4Uniform("projMatrix");
+            m_surface.AddSetting(m_color);
 
             m_surface.AddSetting(m_modelMatUniform);
             m_surface.AddSetting(m_viewMatUniform);
             m_surface.AddSetting(m_projMatUniform);
+        }
+
+        /// <summary>
+        /// Checks if this component is culled.
+        /// </summary>
+        /// <param name="camera">The camera that is currently rendering.</param>
+        protected override bool OnCull(Camera camera)
+        {
+            if (m_mesh == null)
+            {
+                return true;
+            }
+            return false;
         }
         
         /// <summary>
@@ -55,8 +66,8 @@ namespace SoSmooth.Scenes
         {
             if (m_mesh != null)
             {
-                m_surface.SetVertexBuffer(m_mesh.VertexBuffer);
-                m_surface.SetIndexBuffer(m_mesh.IndexBuffer);
+                m_surface.SetVertexBuffer(m_mesh.VBO);
+                m_surface.SetIndexBuffer(m_mesh.IBO);
 
                 m_modelMatUniform.Value = Entity.Transform.LocalToWorldMatix;
                 m_viewMatUniform.Value = camera.ViewMatrix;

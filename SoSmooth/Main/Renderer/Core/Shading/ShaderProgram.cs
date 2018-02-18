@@ -68,7 +68,7 @@ namespace SoSmooth.Rendering
             {
                 string info;
                 GL.GetProgramInfoLog(this, out info);
-                Logger.Error(string.Format("Could not link shader: {0}", info));
+                Logger.Error($"Could not link shader: {info}");
             }
         }
 

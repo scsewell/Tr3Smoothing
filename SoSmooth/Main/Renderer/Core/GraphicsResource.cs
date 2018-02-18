@@ -6,24 +6,17 @@ namespace SoSmooth.Rendering
     public abstract class GraphicsResource : IDisposable
     {
         protected int m_handle;
+        private bool m_disposed = false;
 
         /// <summary>
         /// The handle to the resource.
         /// </summary>
-        public int Handle
-        {
-            get { return m_handle; }
-        }
-
-        private bool m_disposed = false;
+        public int Handle => m_handle;
 
         /// <summary>
         /// Indicates if this instance's unmanaged resources are deleted.
         /// </summary>
-        public bool Disposed
-        {
-            get { return m_disposed; }
-        }
+        public bool Disposed => m_disposed;
 
         /// <summary>
         /// Deletes all unmanaged resources.

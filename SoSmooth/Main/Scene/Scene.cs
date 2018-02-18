@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -23,33 +22,34 @@ namespace SoSmooth.Scenes
         {
             m_rootEntities = new List<Entity>();
             
-            m_camChild = new Entity(this, "CamChildCube");
+            for (int i = 0; i < 100; i++)
+            {
+                Entity cube = new Entity(this, "Cube");
 
-            m_camChild.Transform.LocalScale = new Vector3(1.5f, 1.5f, 1.5f);
-            m_camChild.Transform.LocalPosition = new Vector3(0, 3, 0);
-            MeshRenderer camChildRenderer = new MeshRenderer(m_camChild);
-            camChildRenderer.Mesh = MeshBuilder.CreateCube();
-            camChildRenderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
+                cube.Transform.LocalPosition = Random.GetVector3(25);
+                cube.Transform.LocalRotation = Random.GetRotation();
+                cube.Transform.LocalScale = Random.GetVector3(1);
+
+                MeshRenderer camChildRenderer = new MeshRenderer(cube);
+                camChildRenderer.Mesh = MeshBuilder.CreateCube();
+                camChildRenderer.ShaderProgram = ShaderManager.SHADER_LIT;
+            }
 
             Mesh mesh = MeshBuilder.CreateAxes();
 
-            m_entity1 = new Entity(this, "Cube");
-            MeshRenderer renderer = new MeshRenderer(m_entity1);
+            Entity entity1 = new Entity(this, "Axis1");
+            MeshRenderer renderer = new MeshRenderer(entity1);
             renderer.Mesh = mesh;
             renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
 
-            m_entity2 = new Entity(this, "Cube2");
-            m_entity2.Transform.Parent = m_entity1.Transform;
-            m_entity2.Transform.LocalPosition = new Vector3(-1, 1, 1);
-            MeshRenderer renderer2 = new MeshRenderer(m_entity2);
+            Entity entity2 = new Entity(this, "Axis2");
+            entity2.Transform.Parent = entity1.Transform;
+            entity2.Transform.LocalPosition = new Vector3(-1, 1, 1);
+            MeshRenderer renderer2 = new MeshRenderer(entity2);
             renderer2.Mesh = mesh;
             renderer2.ShaderProgram = ShaderManager.SHADER_UNLIT;
         }
         
-        private Entity m_camChild;
-        private Entity m_entity1;
-        private Entity m_entity2;
-
         /// <summary>
         /// Renders the scene.
         /// </summary>
@@ -64,19 +64,7 @@ namespace SoSmooth.Scenes
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 ActiveCamera.SetResolution(resX, resY);
-                /*
-                m_entity1.Transform.LocalPosition = new Vector3((float)Math.Sin(Time.time), 0, 0);
-                m_entity1.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time);
-
-                m_entity2.Transform.LocalScale = new Vector3((float)Math.Sin(Time.time) + 2, 1, 1);
-                m_entity2.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, 1, 1), Time.time).Inverted();
-                m_entity2.GetComponent<MeshRenderer>().Mesh.UseColors = (Time.time % 6 > 3f);
-
-                //m_camChild.Transform.LocalRotation = Quaternion.FromAxisAngle(new Vector3(1, -1, 1), Time.time);
-
-                m_camChild.Transform.SetParent((Time.time % 3 > 1.5f) ? m_entity1.Transform : null, true);
-                */
-
+                
                 // get all renderable components in the scene
                 List<Renderable> renderables = new List<Renderable>();
                 foreach (Entity entity in m_rootEntities)
@@ -84,14 +72,25 @@ namespace SoSmooth.Scenes
                     entity.GetComponentsInChildren(renderables);
                 }
 
-                // sort the rendered components to minimize state changes
-                renderables.Sort();
-
-                // handle the rendering of all components
+                // do culling on the components
+                List<Renderable> toRender = new List<Renderable>();
                 foreach (Renderable renderable in renderables)
+                {
+                    if (!renderable.IsCulled(ActiveCamera))
+                    {
+                        toRender.Add(renderable);
+                    }
+                }
+
+                // sort the rendered components to minimize state changes
+                toRender.Sort();
+
+                // rendering of all components
+                foreach (Renderable renderable in toRender)
                 {
                     renderable.Render(ActiveCamera);
                 }
+
                 return true;
             }
             return false;

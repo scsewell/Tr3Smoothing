@@ -15,9 +15,6 @@ namespace SoSmooth.Rendering.Vertices
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct VertexPC : IVertexData
     {
-        private static readonly int m_size = Marshal.SizeOf<VertexPC>();
-        private static readonly VertexAttribute[] m_attributes = VertexData.MakeAttributeArray<VertexPC>();
-
         /// <summary>
         /// The position of the vertex.
         /// </summary>
@@ -35,16 +32,6 @@ namespace SoSmooth.Rendering.Vertices
         {
             v_position = position;
             v_color = new Color(color);
-        }
-
-        public int Size()
-        {
-            return m_size;
-        }
-
-        public VertexAttribute[] VertexAttributes()
-        {
-            return m_attributes;
         }
     }
 }

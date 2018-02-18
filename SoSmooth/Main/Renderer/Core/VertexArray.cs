@@ -10,12 +10,12 @@ namespace SoSmooth.Rendering
     {
         private ShaderProgram m_program;
         private IVertexBuffer m_vertexBuffer;
-        private IndexBuffer m_indexBuffer;
+        private IIndexBuffer m_indexBuffer;
         private bool m_vertexArrayGenerated;
         private bool m_dirty;
 
         public IVertexBuffer VertexBuffer => m_vertexBuffer;
-        public IndexBuffer IndexBuffer => m_indexBuffer;
+        public IIndexBuffer IndexBuffer => m_indexBuffer;
 
         /// <summary>
         /// Constructor.
@@ -29,7 +29,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Sets the vertex buffer paired with this vertex array.
         /// </summary>
-        /// <param name="vertexBuffer">A vertex buffer object to set the attributes for.</param>
+        /// <param name="vertexBuffer">A vertex buffer object to bind to this object.</param>
         public void SetVertexBuffer(IVertexBuffer vertexBuffer)
         {
             if (m_vertexBuffer != vertexBuffer)
@@ -43,7 +43,7 @@ namespace SoSmooth.Rendering
         /// Sets the index buffer paired with this vertex array.
         /// </summary>
         /// <param name="indexBuffer">An index buffer object to bind to this object.</param>
-        public void SetIndexBuffer(IndexBuffer indexBuffer)
+        public void SetIndexBuffer(IIndexBuffer indexBuffer)
         {
             if (m_indexBuffer != indexBuffer)
             {
@@ -72,34 +72,51 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
+        /// Unbinds the vertex array.
+        /// </summary>
+        public void Unbind()
+        {
+            GL.BindVertexArray(0);
+        }
+
+        /// <summary>
         /// Sets up a new vertex array object if needing to be updated.
         /// </summary>
         private void UpdateArray()
         {
             if (m_dirty && m_program != null && m_vertexBuffer != null)
             {
+                // destroy the old vertex array
                 if (m_vertexArrayGenerated)
                 {
                     GL.DeleteVertexArray(this);
                     m_vertexArrayGenerated = false;
                 }
 
+                // create a new vertex array
                 m_handle = GL.GenVertexArray();
                 m_vertexArrayGenerated = true;
 
+                // bind the new array
                 GL.BindVertexArray(this);
-                m_vertexBuffer.Bind(BufferTarget.ArrayBuffer);
 
+                // set the source vertex and index buffers
+                m_vertexBuffer.Bind();
                 if (m_indexBuffer != null)
                 {
                     m_indexBuffer.Bind();
                 }
 
+                // set the vertex attributes
                 m_program.SetVertexAttributes(m_vertexBuffer.VertexAttributes);
 
+                // unbind all the buffers
                 GL.BindVertexArray(0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+                m_vertexBuffer.Unbind();
+                if (m_indexBuffer != null)
+                {
+                    m_indexBuffer.Unbind();
+                }
 
                 m_dirty = false;
             }

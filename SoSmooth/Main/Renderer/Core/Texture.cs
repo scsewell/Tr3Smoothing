@@ -26,7 +26,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public Texture()
         {
-            GL.GenTextures(1, out m_handle);
+            m_handle = GL.GenTexture();
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace SoSmooth.Rendering
         /// <param name="height">The texture's height.</param>
         public Texture(int width, int height)
         {
-            GL.GenTextures(1, out m_handle);
+            m_handle = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, this);
 
             // create empty texture
@@ -74,7 +74,7 @@ namespace SoSmooth.Rendering
         /// <param name="disposeBitmap">if true the bitmap is disposed after the texture is created.</param>
         private Texture(Bitmap bitmap, bool preMultiplyAlpha = false, bool disposeBitmap = false)
         {
-            GL.GenTextures(1, out m_handle);
+            m_handle = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, this);
             
             Width = bitmap.Width;

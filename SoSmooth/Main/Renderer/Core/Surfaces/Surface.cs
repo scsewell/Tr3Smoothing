@@ -10,6 +10,9 @@ namespace SoSmooth.Rendering
     /// </summary>
     public abstract class Surface
     {
+        /// <summary>
+        /// The program currently set in the context.
+        /// </summary>
         private static ShaderProgram m_currentProgram = null;
 
         /// <summary>

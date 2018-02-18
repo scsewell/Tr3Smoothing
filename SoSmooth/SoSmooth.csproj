@@ -173,9 +173,13 @@
     <Compile Include="Main\IO\VRML\Main\VrmlTokenType.cs" />
     <Compile Include="Main\IO\VRML\VrmlExtractor.cs" />
     <Compile Include="Main\IO\VRML\Main\VrmlScene.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\Buffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\DynamicBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IIndexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\Color.cs" />
     <Compile Include="Main\Renderer\Core\GraphicsResource.cs" />
-    <Compile Include="Main\Renderer\Core\IndexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\IndexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\RenderTarget.cs" />
     <Compile Include="Main\Renderer\Core\Shading\FragmentShader.cs" />
     <Compile Include="Main\Renderer\Core\Shading\GeometryShader.cs" />
@@ -201,12 +205,13 @@
     <Compile Include="Main\Renderer\Core\Surfaces\Settings\Uniforms\Vector4Uniform.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\VertexSurface.cs" />
     <Compile Include="Main\Renderer\Core\Surfaces\Surface.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\UniformBuffer.cs" />
     <Compile Include="Main\Renderer\Core\VertexArray.cs" />
     <Compile Include="Main\Renderer\Core\Texture.cs" />
-    <Compile Include="Main\Renderer\Core\VertexBuffer.cs" />
-    <Compile Include="Main\Renderer\Core\IVertexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\VertexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IVertexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\IVertexData.cs" />
-    <Compile Include="Main\Renderer\Core\VertexData\VertexData.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\VertexDataHelper.cs" />
     <Compile Include="Main\Renderer\Meshes\AABB.cs" />
     <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
@@ -242,6 +247,7 @@
     <Compile Include="Main\Program.cs" />
     <Compile Include="Main\Utils\Logging\LogLevel.cs" />
     <Compile Include="Main\Utils\Logging\LogWriter.cs" />
+    <Compile Include="Main\Utils\Random.cs" />
     <Compile Include="Main\Utils\Singleton.cs" />
     <Compile Include="Main\Utils\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -253,6 +259,8 @@
     </None>
     <EmbeddedResource Include="Main\Renderer\Shaders\unlit.frag" />
     <EmbeddedResource Include="Main\Renderer\Shaders\unlit.vert" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\lit.frag" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\lit.vert" />
     <None Include="OpenTK.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

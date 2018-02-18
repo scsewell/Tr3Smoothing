@@ -8,14 +8,14 @@ namespace SoSmooth.Meshes
     [StructLayout(LayoutKind.Sequential)]
     public struct Triangle
     {
-        public readonly ushort index0;
-        public readonly ushort index1;
-        public readonly ushort index2;
+        public readonly uint index0;
+        public readonly uint index1;
+        public readonly uint index2;
         
         /// <summary>
         /// Creates a new index triangle.
         /// </summary>
-        public Triangle(ushort i0, ushort i1, ushort i2)
+        public Triangle(uint i0, uint i1, uint i2)
         {
             index0 = i0;
             index1 = i1;

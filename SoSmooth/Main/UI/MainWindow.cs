@@ -51,13 +51,13 @@ namespace SoSmooth
             ShowAll();
             
             Time.SetStartTime();
-            GLib.Idle.Add(UpdateScenes);
+            GLib.Idle.Add(Update);
         }
 
         /// <summary>
         /// Excecutes the main update loop for scene windows.
         /// </summary>
-        private bool UpdateScenes()
+        private bool Update()
         {
             Time.FrameStart();
             m_sceneWindow.QueueDraw();

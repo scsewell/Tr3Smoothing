@@ -4,12 +4,11 @@ using OpenTK;
 
 namespace SoSmooth.Scenes
 {
-
     /// <summary>
     /// Stores spatial orientation and scenegraph heirarchy data. All entities must
     /// have a transform.
     /// </summary>
-    public class Transform : Component
+    public sealed class Transform : Component
     {
         // cached values
         private Vector3 m_localPosition;

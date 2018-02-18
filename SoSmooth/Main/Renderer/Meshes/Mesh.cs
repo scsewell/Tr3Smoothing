@@ -22,7 +22,7 @@ namespace SoSmooth.Meshes
         private IVertexBuffer m_vertexBuffer;
         private bool m_vertexBufferDirty;
 
-        private IndexBuffer m_indexBuffer;
+        private IIndexBuffer m_indexBuffer;
         private bool m_indexBufferDirty;
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// The vertex buffer object.
         /// </summary>
-        public IVertexBuffer VertexBuffer
+        public IVertexBuffer VBO
         {
             get
             {
@@ -146,7 +146,7 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// The index buffer object.
         /// </summary>
-        public IndexBuffer IndexBuffer
+        public IIndexBuffer IBO
         {
             get
             {
@@ -243,32 +243,37 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// Updates the vertex buffer object from the <see cref="Vertices"/> array.
         /// </summary>
-        private void UpdateVertices<TVertexOut>(Func<Vertex, TVertexOut> transform) where TVertexOut : struct, IVertexData
+        /// <typeparam name="TVertex">The type of vertex buffer to use.</typeparam>
+        /// <param name="transform">Function that takes outputs vertices in a bufferable format.</param>
+        private void UpdateVertices<TVertex>(Func<Vertex, TVertex> transform) where TVertex : struct, IVertexData
         {
-            if (m_vertexBuffer != null && m_vertexBuffer.GetType() != typeof(VertexBuffer<TVertexOut>))
+            // if the type of the vertex data has changed we need to create a new buffer
+            if (m_vertexBuffer != null && m_vertexBuffer.GetType() != typeof(VertexBuffer<TVertex>))
             {
                 m_vertexBuffer.Dispose();
                 m_vertexBuffer = null;
             }
 
+            // create vertex buffer if needed
             if (m_vertexBuffer == null)
             {
-                m_vertexBuffer = new VertexBuffer<TVertexOut>(m_vertices.Length);
+                m_vertexBuffer = new VertexBuffer<TVertex>(m_vertices.Length);
             }
 
-            VertexBuffer<TVertexOut> buffer = m_vertexBuffer as VertexBuffer<TVertexOut>;
+            // copy the vertices into the buffer
+            VertexBuffer<TVertex> buffer = m_vertexBuffer as VertexBuffer<TVertex>;
             buffer.Clear();
             
-            ushort offset;
-            TVertexOut[] vertexArray = buffer.WriteVerticesDirectly(m_vertices.Length, out offset);
+            int offset;
+            TVertex[] vertexArray = buffer.WriteDirectly(m_vertices.Length, out offset);
             
             for (int i = 0; i < m_vertices.Length; i++)
             {
                 vertexArray[i] = transform(m_vertices[i]);
             }
-            
-            buffer.BufferData();
 
+            // upload to the GPU
+            buffer.BufferData();
             m_vertexBufferDirty = false;
         }
 
@@ -277,30 +282,74 @@ namespace SoSmooth.Meshes
         /// </summary>
         private void UpdateIndices()
         {
-            if (m_indexBuffer == null)
+            // if the current type of index buffer can't store enough vertices get rid of it
+            if (m_indexBuffer != null && m_indexBuffer.MaxVertices < m_vertices.Length)
             {
-                m_indexBuffer = new IndexBuffer(m_triangles.Length * 3);
+                m_indexBuffer.Dispose();
+                m_indexBuffer = null;
             }
 
-            m_indexBuffer.Clear();
+            // create a new index buffer able to address all of the vertices if needed
+            if (m_indexBuffer == null)
+            {
+                int capacity = m_triangles.Length * 3;
+
+                if (m_vertices.Length <= byte.MaxValue)
+                {
+                    m_indexBuffer = new IndexBuffer<byte>(capacity);
+                }
+                else if (m_vertices.Length <= ushort.MaxValue)
+                {
+                    m_indexBuffer = new IndexBuffer<ushort>(capacity);
+                }
+                else
+                {
+                    m_indexBuffer = new IndexBuffer<uint>(capacity);
+                }
+            }
+
+            // copy the triangles' indices into the buffer
+            if (m_indexBuffer as IndexBuffer<byte> != null)
+            {
+                CopyIndices(m_indexBuffer as IndexBuffer<byte>, index => (byte)index);
+            }
+            else if (m_indexBuffer as IndexBuffer<ushort> != null)
+            {
+                CopyIndices(m_indexBuffer as IndexBuffer<ushort>, index => (ushort)index);
+            }
+            else
+            {
+                CopyIndices(m_indexBuffer as IndexBuffer<uint>, index => index);
+            }
+
+            // upload to the GPU
+            m_indexBuffer.BufferData();
+            m_indexBufferDirty = false;
+        }
+
+        /// <summary>
+        /// Copies the triangle indices into an index buffer.
+        /// </summary>
+        /// <typeparam name="TIndex">The type of index to use.</typeparam>
+        /// <param name="buffer">The index buffer to write indices into.</param>
+        /// <param name="transform">Outputs the type of index needed in the buffer.</param>
+        private void CopyIndices<TIndex>(IndexBuffer<TIndex> buffer, Func<uint, TIndex> transform) where TIndex : struct
+        {
+            buffer.Clear();
 
             int offset;
-            ushort[] indexArray = m_indexBuffer.WriteIndicesDirectly(m_triangles.Length * 3, out offset);
-            
+            TIndex[] indexArray = buffer.WriteDirectly(m_triangles.Length * 3, out offset);
+
             for (int i = 0; i < m_triangles.Length; i++)
             {
                 Triangle triangle = m_triangles[i];
 
-                indexArray[offset] = triangle.index0;
-                indexArray[offset + 1] = triangle.index1;
-                indexArray[offset + 2] = triangle.index2;
+                indexArray[offset]      = transform(triangle.index0);
+                indexArray[offset + 1]  = transform(triangle.index1);
+                indexArray[offset + 2]  = transform(triangle.index2);
 
                 offset += 3;
             }
-
-            m_indexBuffer.BufferData();
-
-            m_indexBufferDirty = false;
         }
 
         /// <summary>

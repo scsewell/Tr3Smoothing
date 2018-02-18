@@ -10,7 +10,7 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This class contains helper types and methods to easily create vertex attribute layouts.
     /// </summary>
-    public static class VertexData
+    public static class VertexDataHelper
     {
         private static readonly Dictionary<Type, AttributeTypeInfo> m_knownTypes = new Dictionary<Type, AttributeTypeInfo>
         {
@@ -81,9 +81,7 @@ namespace SoSmooth.Rendering
                 AttributeTypeInfo info;
                 if (!m_knownTypes.TryGetValue(field.FieldType, out info))
                 {
-                    throw new ArgumentException(string.Format(
-                        "Unknown type [{0}] in vertex struct of type [{1}]",
-                        field.FieldType.FullName, vertexType.FullName));
+                    throw new ArgumentException($"Unknown type [{field.FieldType.FullName}] in vertex struct of type [{vertexType.FullName}]");
                 }
 
                 int fieldSize = Marshal.SizeOf(field.FieldType);

@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using SoSmooth.Rendering;
 
@@ -14,11 +15,18 @@ namespace SoSmooth.Scenes
         protected CullModeSetting m_cullMode = new CullModeSetting();
         protected PolygonModeSetting m_polygonMode = new PolygonModeSetting();
 
+        protected ColorUniform m_color = new ColorUniform("color");
+
         private string m_programName = null;
         private ShaderProgram m_shaderProgram = null;
 
         /// <summary>
-        /// The name of the desired shader program.
+        /// If true this component is allowed to render.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// The name of the desired shader program. Set to null if the shader name is invalid.
         /// </summary>
         public string ShaderProgram
         {
@@ -27,8 +35,15 @@ namespace SoSmooth.Scenes
             {
                 if (m_programName != value)
                 {
-                    m_programName = value;
-                    m_shaderProgram = null;
+                    if (value != null && ShaderManager.Instance.GetProgram(value, out m_shaderProgram))
+                    {
+                        m_programName = value;
+                    }
+                    else
+                    {
+                        m_programName = null;
+                        m_shaderProgram = null;
+                    }
                 }
             }
         }
@@ -62,12 +77,30 @@ namespace SoSmooth.Scenes
         }
 
         /// <summary>
-        /// Sets the face mode of the rendered mesh. Default is <see cref="PolygonMode.Fill"/>.
+        /// Sets the polygon mode of the rendered mesh's front faces. Default is <see cref="PolygonMode.Fill"/>.
         /// </summary>
-        public PolygonMode PolygonMode
+        public PolygonMode FrontFaceMode
         {
             get { return m_polygonMode.FrontFaceMode; }
             set { m_polygonMode.FrontFaceMode = value; }
+        }
+
+        /// <summary>
+        /// Sets the polygon mode of the rendered mesh's back faces. Default is <see cref="PolygonMode.Fill"/>.
+        /// </summary>
+        public PolygonMode BackFaceMode
+        {
+            get { return m_polygonMode.BackFaceMode; }
+            set { m_polygonMode.BackFaceMode = value; }
+        }
+
+        /// <summary>
+        /// The color of the rendered elements. Default is <see cref="Color4.White"/>.
+        /// </summary>
+        public Color4 Color
+        {
+            get { return m_color.Value; }
+            set { m_color.Value = value; }
         }
 
         /// <summary>
@@ -83,25 +116,36 @@ namespace SoSmooth.Scenes
         }
 
         /// <summary>
+        /// Checks if this component is culled and should not render.
+        /// </summary>
+        /// <param name="camera">The camera that is currently rendering.</param>
+        /// <returns>True if this component is culled.</returns>
+        public bool IsCulled(Camera camera)
+        {
+            if (!Enabled || m_shaderProgram == null)
+            {
+                return true;
+            }
+            return OnCull(camera);
+        }
+
+        /// <summary>
+        /// Checks if this component is culled.
+        /// </summary>
+        /// <param name="camera">The camera that is currently rendering.</param>
+        protected virtual bool OnCull(Camera camera)
+        {
+            return false;
+        }
+        
+        /// <summary>
         /// Renders this component.
         /// </summary>
         /// <param name="camera">The camera that is currently rendering.</param>
         public void Render(Camera camera)
         {
-            if (m_programName != null)
-            {
-                if (m_shaderProgram == null)
-                {
-                    m_shaderProgram = ShaderManager.Instance.GetProgram(m_programName);
-                }
-
-                if (m_shaderProgram != null)
-                {
-                    Surface.SetShaderProgram(m_shaderProgram);
-
-                    OnRender(camera);
-                }
-            }
+            Surface.SetShaderProgram(m_shaderProgram);
+            OnRender(camera);
         }
 
         /// <summary>
@@ -130,11 +174,15 @@ namespace SoSmooth.Scenes
                 {
                     return (int)CullMode - (int)other.CullMode;
                 }
-                else if (PolygonMode != other.PolygonMode)
+                else if (FrontFaceMode != other.FrontFaceMode)
                 {
-                    return (int)PolygonMode - (int)other.PolygonMode;
+                    return (int)FrontFaceMode - (int)other.FrontFaceMode;
                 }
-                else if (m_shaderProgram != other.m_shaderProgram && m_shaderProgram != null && other.m_shaderProgram != null)
+                else if (BackFaceMode != other.BackFaceMode)
+                {
+                    return (int)BackFaceMode - (int)other.BackFaceMode;
+                }
+                else if (m_shaderProgram != other.m_shaderProgram)
                 {
                     return m_shaderProgram.GetHashCode() - other.m_shaderProgram.GetHashCode();
                 }
