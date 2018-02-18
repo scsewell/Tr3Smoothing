@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml.Parser.Statements.Extern
+﻿namespace SoSmooth.IO.Vrml.Parser.Statements.Extern
 {
     public class ExternEventInStatement
     {

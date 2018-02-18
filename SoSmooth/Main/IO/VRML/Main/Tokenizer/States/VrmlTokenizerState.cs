@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml.Tokenizer
+﻿namespace SoSmooth.IO.Vrml.Tokenizer
 {
     public abstract class VrmlTokenizerState
     {

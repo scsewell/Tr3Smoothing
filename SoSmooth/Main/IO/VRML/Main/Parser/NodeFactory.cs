@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using SoSmooth.Vrml.Nodes;
+using SoSmooth.IO.Vrml.Nodes;
 
-namespace SoSmooth.Vrml.Parser
+namespace SoSmooth.IO.Vrml.Parser
 {
     public class NodeFactory
     {

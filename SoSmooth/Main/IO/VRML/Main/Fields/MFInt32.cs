@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml.Fields
+﻿namespace SoSmooth.IO.Vrml.Fields
 {
     public class MFInt32 : MField<SFInt32>
     {

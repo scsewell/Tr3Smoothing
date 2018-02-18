@@ -1,12 +1,12 @@
 ﻿using System;
-using SoSmooth.Vrml.Fields;
-using SoSmooth.Vrml.Nodes;
-using SoSmooth.Vrml.Parser.Statements;
-using SoSmooth.Vrml.Parser.Statements.Extern;
-using SoSmooth.Vrml.Parser.Statements.Proto;
-using SoSmooth.Vrml.Tokenizer;
+using SoSmooth.IO.Vrml.Fields;
+using SoSmooth.IO.Vrml.Nodes;
+using SoSmooth.IO.Vrml.Parser.Statements;
+using SoSmooth.IO.Vrml.Parser.Statements.Extern;
+using SoSmooth.IO.Vrml.Parser.Statements.Proto;
+using SoSmooth.IO.Vrml.Tokenizer;
 
-namespace SoSmooth.Vrml.Parser
+namespace SoSmooth.IO.Vrml.Parser
 {
     public class VrmlParser
     {

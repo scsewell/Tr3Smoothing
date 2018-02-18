@@ -1,6 +1,6 @@
-﻿using SoSmooth.Vrml.Fields;
+﻿using SoSmooth.IO.Vrml.Fields;
 
-namespace SoSmooth.Vrml.Nodes
+namespace SoSmooth.IO.Vrml.Nodes
 {
     public class PositionInterpolatorNode : InterpolatorNode<MFVec3f>
     {

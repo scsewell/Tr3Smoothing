@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SoSmooth.Vrml.Parser.Statements.Proto
+namespace SoSmooth.IO.Vrml.Parser.Statements.Proto
 {
     public class ProtoInterfaceDeclarationsStatement
     {

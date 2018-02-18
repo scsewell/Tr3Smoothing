@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml.Nodes
+﻿namespace SoSmooth.IO.Vrml.Nodes
 {
     public class GroupNode : GroupingNode, IChildNode
     {

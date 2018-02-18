@@ -1,6 +1,6 @@
-﻿using SoSmooth.Vrml.Nodes;
+﻿using SoSmooth.IO.Vrml.Nodes;
 
-namespace SoSmooth.Vrml.Fields
+namespace SoSmooth.IO.Vrml.Fields
 {
     public class MFNode : MField<Node>
     {

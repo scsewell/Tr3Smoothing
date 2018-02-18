@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml.Fields
+﻿namespace SoSmooth.IO.Vrml.Fields
 {
     public class MFVec2f : MField<SFVec2f>
     {

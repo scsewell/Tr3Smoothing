@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using SoSmooth.Vrml.Parser;
+using SoSmooth.IO.Vrml.Parser;
 
-namespace SoSmooth.Vrml.Fields
+namespace SoSmooth.IO.Vrml.Fields
 {
     public abstract class MField : Field
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SoSmooth.Vrml.Parser.Statements.Extern
+namespace SoSmooth.IO.Vrml.Parser.Statements.Extern
 {
     public class ExternInterfaceDeclarationsStatement
     {

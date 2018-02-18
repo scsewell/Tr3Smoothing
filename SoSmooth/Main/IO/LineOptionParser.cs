@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SoSmooth
+namespace SoSmooth.IO
 {
     /// <summary>
     /// Handles reading through a set of string for specific arguments.

@@ -1,7 +1,7 @@
 ﻿using System;
-using SoSmooth.Vrml.Fields;
+using SoSmooth.IO.Vrml.Fields;
 
-namespace SoSmooth.Vrml.Parser.Statements.Proto
+namespace SoSmooth.IO.Vrml.Parser.Statements.Proto
 {
     public class ProtoExposedFieldStatement
     {

@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml
+﻿namespace SoSmooth.IO.Vrml
 {
     public enum VrmlTokenType
     {

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using SoSmooth.Vrml.Fields;
-using SoSmooth.Vrml.Nodes;
-using SoSmooth.Vrml.Tokenizer;
+using SoSmooth.IO.Vrml.Fields;
+using SoSmooth.IO.Vrml.Nodes;
+using SoSmooth.IO.Vrml.Tokenizer;
 
-namespace SoSmooth.Vrml.Parser
+namespace SoSmooth.IO.Vrml.Parser
 {
     public class ParserContext
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using SoSmooth.Vrml.Fields;
-using SoSmooth.Vrml.Parser;
+using SoSmooth.IO.Vrml.Fields;
+using SoSmooth.IO.Vrml.Parser;
 
-namespace SoSmooth.Vrml.Nodes
+namespace SoSmooth.IO.Vrml.Nodes
 {
     /// <summary>
     /// Represents a VRML scene node.

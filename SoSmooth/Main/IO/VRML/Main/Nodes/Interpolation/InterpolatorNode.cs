@@ -1,6 +1,6 @@
-﻿using SoSmooth.Vrml.Fields;
+﻿using SoSmooth.IO.Vrml.Fields;
 
-namespace SoSmooth.Vrml.Nodes
+namespace SoSmooth.IO.Vrml.Nodes
 {
     public abstract class InterpolatorNode<T> : InterpolatorNode where T : MField, new()
     {

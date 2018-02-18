@@ -1,4 +1,4 @@
-﻿namespace SoSmooth.Vrml.Parser.Statements
+﻿namespace SoSmooth.IO.Vrml.Parser.Statements
 {
     public class UseStatement
     {

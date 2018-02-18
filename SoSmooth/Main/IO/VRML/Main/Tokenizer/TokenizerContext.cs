@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace SoSmooth.Vrml.Tokenizer
+namespace SoSmooth.IO.Vrml.Tokenizer
 {
     public class TokenizerContext
     {

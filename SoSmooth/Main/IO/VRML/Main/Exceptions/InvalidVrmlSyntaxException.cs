@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SoSmooth.Vrml
+namespace SoSmooth.IO.Vrml
 {
     public class InvalidVrmlSyntaxException : VrmlParseException
     {

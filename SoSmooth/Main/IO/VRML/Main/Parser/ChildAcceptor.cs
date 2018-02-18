@@ -1,8 +1,8 @@
 ﻿using System;
-using SoSmooth.Vrml.Fields;
-using SoSmooth.Vrml.Nodes;
+using SoSmooth.IO.Vrml.Fields;
+using SoSmooth.IO.Vrml.Nodes;
 
-namespace SoSmooth.Vrml.Parser
+namespace SoSmooth.IO.Vrml.Parser
 {
     public class ChildAcceptor : IFieldVisitor
     {

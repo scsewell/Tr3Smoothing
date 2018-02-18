@@ -1,13 +1,13 @@
 ﻿using System.IO;
 using System.Collections.Generic;
-using SoSmooth.Vrml.Tokenizer;
-using SoSmooth.Vrml.Parser;
-using SoSmooth.Vrml.Fields;
-using SoSmooth.Vrml.Nodes;
+using SoSmooth.IO.Vrml.Tokenizer;
+using SoSmooth.IO.Vrml.Parser;
+using SoSmooth.IO.Vrml.Fields;
+using SoSmooth.IO.Vrml.Nodes;
 using SoSmooth.Meshes;
 using OpenTK;
 
-namespace SoSmooth.Vrml
+namespace SoSmooth.IO.Vrml
 {
     public class VrmlExtractor : Singleton<VrmlExtractor>
     {

@@ -53,7 +53,7 @@ namespace SoSmooth
 
             if (fileChooser.Run() == (int)ResponseType.Accept)
             {
-                SmoothingManager.Instance.m_meshes.AddRange(Vrml.VrmlExtractor.Instance.Read(fileChooser.Filename));
+                SmoothingManager.Instance.m_meshes.AddRange(IO.Vrml.VrmlExtractor.Instance.Read(fileChooser.Filename));
             }
 
             fileChooser.Destroy();

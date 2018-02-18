@@ -1,7 +1,7 @@
 ﻿using System;
-using SoSmooth.Vrml.Fields;
+using SoSmooth.IO.Vrml.Fields;
 
-namespace SoSmooth.Vrml.Parser.Statements
+namespace SoSmooth.IO.Vrml.Parser.Statements
 {
     public class ExposedFieldStatement
     {

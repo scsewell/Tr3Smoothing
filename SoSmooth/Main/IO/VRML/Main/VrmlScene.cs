@@ -1,6 +1,6 @@
-﻿using SoSmooth.Vrml.Nodes;
+﻿using SoSmooth.IO.Vrml.Nodes;
 
-namespace SoSmooth.Vrml
+namespace SoSmooth.IO.Vrml
 {
     public class VrmlScene
     {

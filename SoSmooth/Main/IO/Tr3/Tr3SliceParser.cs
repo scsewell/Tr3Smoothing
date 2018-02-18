@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace SoSmooth.Tr3
+namespace SoSmooth.IO.tr3
 {
     /// <summary>
     /// Parses a tr3 file slice definition.

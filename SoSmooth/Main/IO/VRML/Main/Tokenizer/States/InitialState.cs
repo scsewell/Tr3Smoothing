@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SoSmooth.Vrml.Tokenizer
+namespace SoSmooth.IO.Vrml.Tokenizer
 {
     public class InitialState : VrmlTokenizerState
     {

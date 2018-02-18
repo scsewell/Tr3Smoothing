@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace SoSmooth.Tr3
+namespace SoSmooth.IO.tr3
 {
     public static class Tr3DataParser
     {
