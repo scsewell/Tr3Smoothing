@@ -22,7 +22,7 @@ namespace SoSmooth.Rendering.Vertices
         /// <summary>
         /// The normal of the vertex.
         /// </summary>
-        public Vector3h v_normal;
+        public Int2101010 v_normal;
         
         /// <summary>
         /// Creates a new mesh vertex with a given position and normal.
@@ -30,7 +30,7 @@ namespace SoSmooth.Rendering.Vertices
         public VertexPN(Vector3 position, Vector3 normal)
         {
             v_position = position;
-            v_normal = new Vector3h(normal);
+            v_normal = new Int2101010(normal);
         }
     }
 }

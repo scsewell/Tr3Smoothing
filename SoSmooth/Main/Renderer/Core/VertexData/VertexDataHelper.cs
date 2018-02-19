@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
@@ -12,50 +13,41 @@ namespace SoSmooth.Rendering
     /// </summary>
     public static class VertexDataHelper
     {
+        /// <summary>
+        /// Defines how all types that may be used as vertex data should be interpreted.
+        /// </summary>
         private static readonly Dictionary<Type, AttributeTypeInfo> m_knownTypes = new Dictionary<Type, AttributeTypeInfo>
         {
-                { typeof(byte),     ToInfo(VertexAttribPointerType.UnsignedByte,    true) },
-                { typeof(sbyte),    ToInfo(VertexAttribPointerType.Byte,            true) },
+            { typeof(byte),         ToInfo(VertexAttribPointerType.UnsignedByte,    1, true) },
+            { typeof(sbyte),        ToInfo(VertexAttribPointerType.Byte,            1, true) },
 
-                { typeof(short),    ToInfo(VertexAttribPointerType.Short,           false) },
-                { typeof(ushort),   ToInfo(VertexAttribPointerType.UnsignedShort,   false) },
+            { typeof(short),        ToInfo(VertexAttribPointerType.Short,           1, false) },
+            { typeof(ushort),       ToInfo(VertexAttribPointerType.UnsignedShort,   1, false) },
 
-                { typeof(int),      ToInfo(VertexAttribPointerType.Int,             false) },
-                { typeof(uint),     ToInfo(VertexAttribPointerType.UnsignedInt,     false) },
+            { typeof(int),          ToInfo(VertexAttribPointerType.Int,             1, false) },
+            { typeof(uint),         ToInfo(VertexAttribPointerType.UnsignedInt,     1, false) },
+            
+            { typeof(Int2101010),   ToInfo(VertexAttribPointerType.Int2101010Rev,           4, true) },
+            { typeof(UInt2101010),  ToInfo(VertexAttribPointerType.UnsignedInt2101010Rev,   4, true) },
 
-                { typeof(Color),    ToInfo(VertexAttribPointerType.UnsignedByte, true) },
+            { typeof(Color),        ToInfo(VertexAttribPointerType.UnsignedByte,    4, true) },
+            { typeof(Color4),       ToInfo(VertexAttribPointerType.Float,           4, false) },
 
-                { typeof(Half),     ToInfo(VertexAttribPointerType.HalfFloat, false) },
-                { typeof(Vector2h), ToInfo(VertexAttribPointerType.HalfFloat, false) },
-                { typeof(Vector3h), ToInfo(VertexAttribPointerType.HalfFloat, false) },
-                { typeof(Vector4h), ToInfo(VertexAttribPointerType.HalfFloat, false) },
+            { typeof(Half),         ToInfo(VertexAttribPointerType.HalfFloat, 1, false) },
+            { typeof(Vector2h),     ToInfo(VertexAttribPointerType.HalfFloat, 2, false) },
+            { typeof(Vector3h),     ToInfo(VertexAttribPointerType.HalfFloat, 3, false) },
+            { typeof(Vector4h),     ToInfo(VertexAttribPointerType.HalfFloat, 4, false) },
 
-                { typeof(float),    ToInfo(VertexAttribPointerType.Float, false) },
-                { typeof(Vector2),  ToInfo(VertexAttribPointerType.Float, false) },
-                { typeof(Vector3),  ToInfo(VertexAttribPointerType.Float, false) },
-                { typeof(Vector4),  ToInfo(VertexAttribPointerType.Float, false) },
+            { typeof(float),        ToInfo(VertexAttribPointerType.Float, 1, false) },
+            { typeof(Vector2),      ToInfo(VertexAttribPointerType.Float, 2, false) },
+            { typeof(Vector3),      ToInfo(VertexAttribPointerType.Float, 3, false) },
+            { typeof(Vector4),      ToInfo(VertexAttribPointerType.Float, 4, false) },
 
-                { typeof(double),   ToInfo(VertexAttribPointerType.Double, false) },
-                { typeof(Vector2d), ToInfo(VertexAttribPointerType.Double, false) },
-                { typeof(Vector3d), ToInfo(VertexAttribPointerType.Double, false) },
-                { typeof(Vector4d), ToInfo(VertexAttribPointerType.Double, false) },
-            };
-
-        private static readonly Dictionary<VertexAttribPointerType, int> m_attribByteSizes = new Dictionary<VertexAttribPointerType, int>
-            {
-                { VertexAttribPointerType.Byte,                     1 },
-                { VertexAttribPointerType.UnsignedByte,             1 },
-                { VertexAttribPointerType.Fixed,                    1 },
-                { VertexAttribPointerType.Short,                    2 },
-                { VertexAttribPointerType.UnsignedShort,            2 },
-                { VertexAttribPointerType.HalfFloat,                2 },
-                { VertexAttribPointerType.Int,                      4 },
-                { VertexAttribPointerType.UnsignedInt,              4 },
-                { VertexAttribPointerType.Float,                    4 },
-                { VertexAttribPointerType.Int2101010Rev,            4 },
-                { VertexAttribPointerType.UnsignedInt2101010Rev,    4 },
-                { VertexAttribPointerType.Double,                   8 },
-            };
+            { typeof(double),       ToInfo(VertexAttribPointerType.Double, 1, false) },
+            { typeof(Vector2d),     ToInfo(VertexAttribPointerType.Double, 2, false) },
+            { typeof(Vector3d),     ToInfo(VertexAttribPointerType.Double, 3, false) },
+            { typeof(Vector4d),     ToInfo(VertexAttribPointerType.Double, 4, false) },
+        };
         
         /// <summary>
         /// Creates a <see cref="VertexAttribute"/> array from a list of attribute templates.
@@ -66,7 +58,7 @@ namespace SoSmooth.Rendering
         {
             Type vertexType = typeof(TVertex);
             int vertexSize = Marshal.SizeOf(vertexType);
-
+            
             // get all fields in the vertex struct
             FieldInfo[] fields = vertexType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -81,16 +73,12 @@ namespace SoSmooth.Rendering
                 AttributeTypeInfo info;
                 if (!m_knownTypes.TryGetValue(field.FieldType, out info))
                 {
-                    throw new ArgumentException($"Unknown type [{field.FieldType.FullName}] in vertex struct of type [{vertexType.FullName}]");
+                    throw new ArgumentException($"Unknown type \"{field.FieldType.FullName}\" in vertex struct of type \"{vertexType.FullName}\"");
                 }
+                
+                array[i] = new VertexAttribute(field.Name, info.Components, info.Type, vertexSize, offset, info.Normalize);
 
-                int fieldSize = Marshal.SizeOf(field.FieldType);
-
-                // Gets the number of components in vector types and such
-                int count = fieldSize / m_attribByteSizes[info.Type];
-                array[i] = new VertexAttribute(field.Name, count, info.Type, vertexSize, offset, info.Normalize);
-
-                offset += fieldSize;
+                offset += Marshal.SizeOf(field.FieldType);
             }
             return array;
         }
@@ -101,11 +89,13 @@ namespace SoSmooth.Rendering
         private struct AttributeTypeInfo
         {
             public VertexAttribPointerType Type { get; private set; }
+            public int Components { get; private set; }
             public bool Normalize { get; private set; }
 
-            public AttributeTypeInfo(VertexAttribPointerType type, bool normalize)
+            public AttributeTypeInfo(VertexAttribPointerType type, int components, bool normalize)
             {
                 Type = type;
+                Components = components;
                 Normalize = normalize;
             }
         }
@@ -114,10 +104,11 @@ namespace SoSmooth.Rendering
         /// Constructs a new <see cref="AttributeTypeInfo"/>.
         /// </summary>
         /// <param name="type">The type of numeric interpretation in the shader.</param>
+        /// <param name="components">The number of components in the type.</param>
         /// <param name="normalize">Whether to normalise the attribute's value when passing it to the shader.</param>
-        private static AttributeTypeInfo ToInfo(VertexAttribPointerType type, bool normalize)
+        private static AttributeTypeInfo ToInfo(VertexAttribPointerType type, int components, bool normalize)
         {
-            return new AttributeTypeInfo(type, normalize);
+            return new AttributeTypeInfo(type, components, normalize);
         }
     }
 }

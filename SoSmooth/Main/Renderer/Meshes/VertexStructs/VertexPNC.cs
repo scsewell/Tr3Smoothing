@@ -23,7 +23,7 @@ namespace SoSmooth.Rendering.Vertices
         /// <summary>
         /// The normal of the vertex.
         /// </summary>
-        public Vector3h v_normal;
+        public Int2101010 v_normal;
 
         /// <summary>
         /// The color of the vertex.
@@ -36,7 +36,7 @@ namespace SoSmooth.Rendering.Vertices
         public VertexPNC(Vector3 position, Vector3 normal, Color4 color)
         {
             v_position = position;
-            v_normal = new Vector3h(normal);
+            v_normal = new Int2101010(normal);
             v_color = new Color(color);
         }
     }

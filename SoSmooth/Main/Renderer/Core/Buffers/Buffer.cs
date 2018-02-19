@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
@@ -10,19 +8,15 @@ namespace SoSmooth.Rendering
     /// to be buffered on the GPU. A count is used to keep track of how many elements 
     /// to use, much like an array list, mimimizing allocations.
     /// </summary>
-    public abstract class Buffer<DataType> : GraphicsResource where DataType : struct
+    public abstract class Buffer<TData> : GraphicsResource where TData : struct
     {
-        /// <summary>
-        /// A mapping that stores the size in bytes of any types that have been used in a buffer.
-        /// </summary>
-        private static Dictionary<Type, int> m_typeSizes = new Dictionary<Type, int>();
-        
-        protected DataType[] m_buffer;
-        protected int m_count;
+        private static readonly int m_elementSize = Marshal.SizeOf(typeof(TData));
 
         private readonly BufferTarget m_target;
-        private readonly int m_elementSize;
 
+        protected TData[] m_buffer;
+        protected int m_count;
+        
         /// <summary>
         /// The number of elements in the buffer.
         /// </summary>
@@ -36,18 +30,10 @@ namespace SoSmooth.Rendering
         public Buffer(BufferTarget target, int capacity = 1)
         {
             m_handle = GL.GenBuffer();
+
             m_target = target;
-
-            m_buffer = new DataType[capacity];
-
-            // get the size in bytes of each element in the buffer array
-            Type dataType = typeof(DataType);
-            if (!m_typeSizes.TryGetValue(dataType, out m_elementSize))
-            {
-                // if this type has not been used in a buffer yet, compute the element size
-                m_elementSize = Marshal.SizeOf(dataType);
-                m_typeSizes.Add(dataType, m_elementSize);
-            }
+            m_buffer = new TData[capacity];
+            m_count = 0;
         }
 
         /// <summary>
@@ -55,7 +41,14 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Bind()
         {
-            GL.BindBuffer(m_target, this);
+            if (!Disposed)
+            {
+                GL.BindBuffer(m_target, this);
+            }
+            else
+            {
+                Logger.Error($"Attepted to bind disposed buffer: " + this);
+            }
         }
 
         /// <summary>
@@ -63,7 +56,14 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Unbind()
         {
-            GL.BindBuffer(m_target, this);
+            if (!Disposed)
+            {
+                GL.BindBuffer(m_target, 0);
+            }
+            else
+            {
+                Logger.Error($"Attepted to unbind disposed buffer: " + this);
+            }
         }
 
         /// <summary>
@@ -72,9 +72,27 @@ namespace SoSmooth.Rendering
         /// <param name="usageHint">The usage hint.</param>
         public void BufferData(BufferUsageHint usageHint = BufferUsageHint.DynamicDraw)
         {
-            GL.BindBuffer(m_target, this);
-            GL.BufferData(m_target, m_elementSize * m_count, m_buffer, usageHint);
-            GL.BindBuffer(m_target, 0);
+            if (!Disposed)
+            {
+                int requiredSize = m_elementSize * m_count;
+                Logger.Debug($"Buffering: {{size:{m_elementSize} count:{m_count} requiredSize:{requiredSize}}}");
+
+                GL.BindBuffer(m_target, this);
+                GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
+                GL.BindBuffer(m_target, 0);
+            }
+            else
+            {
+                Logger.Error($"Attepted to buffer data from disposed buffer: " + ToString());
+            }
+        }
+
+        /// <summary>
+        /// Gets a string describing this buffer.
+        /// </summary>
+        public override string ToString()
+        {
+            return $"{{{GetType().Name}<{typeof(TData).Name}> Handle:{m_handle} ElementSize:{m_elementSize} Count:{m_count}}}";
         }
 
         /// <summary>

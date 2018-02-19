@@ -63,7 +63,7 @@ namespace SoSmooth.Rendering
         public override string ToString()
         {
             return string.Format(
-                "[name: {0}, size: {1}, type: {2}, normalize: {3}, stride: {4}, offset: {5}]",
+                "{{name: {0}, size: {1}, type: {2}, normalize: {3}, stride: {4}, offset: {5}}}",
                 m_name, m_size, m_type, m_normalize, m_stride, m_offset
                 );
         }

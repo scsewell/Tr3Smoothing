@@ -7,7 +7,7 @@ namespace SoSmooth.Rendering
     /// Adds helper methods to the base buffer class to help with adding and removing
     /// elements.
     /// </summary>
-    public abstract class DynamicBuffer<DataType> : Buffer<DataType> where DataType : struct
+    public abstract class DynamicBuffer<TData> : Buffer<TData> where TData : struct
     {
         /// <summary>
         /// Initialises a new <see cref="DynamicBuffer{DataType}"/> instance.
@@ -34,7 +34,7 @@ namespace SoSmooth.Rendering
         /// Adds an element to the buffer.
         /// </summary>
         /// <param name="element">The element to add to the buffer.</param>
-        public void AddElement(DataType element)
+        public void AddElement(TData element)
         {
             int newCount = m_count + 1;
             EnsureCapacity(newCount);
@@ -49,7 +49,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         /// <param name="e0">The first element to add to the buffer.</param>
         /// <param name="e1">The second element to add to the buffer.</param>
-        public void AddElements(DataType e0, DataType e1)
+        public void AddElements(TData e0, TData e1)
         {
             int newCount = m_count + 2;
             EnsureCapacity(newCount);
@@ -66,7 +66,7 @@ namespace SoSmooth.Rendering
         /// <param name="e0">The first element to add to the buffer.</param>
         /// <param name="e1">The second element to add to the buffer.</param>
         /// <param name="e2">The third element to add to the buffer.</param>
-        public void AddElements(DataType e0, DataType e1, DataType e2)
+        public void AddElements(TData e0, TData e1, TData e2)
         {
             int newCount = m_count + 3;
             EnsureCapacity(newCount);
@@ -85,7 +85,7 @@ namespace SoSmooth.Rendering
         /// <param name="e1">The second element to add to the buffer.</param>
         /// <param name="e2">The third element to add to the buffer.</param>
         /// <param name="e3">The fourth element to add to the buffer.</param>
-        public void AddElements(DataType e0, DataType e1, DataType e2, DataType e3)
+        public void AddElements(TData e0, TData e1, TData e2, TData e3)
         {
             int newCount = m_count + 4;
             EnsureCapacity(newCount);
@@ -102,7 +102,7 @@ namespace SoSmooth.Rendering
         /// Adds elements to the buffer.
         /// </summary>
         /// <param name="elements">The elements to add to the buffer.</param>
-        public void AddElements(params DataType[] elements)
+        public void AddElements(params TData[] elements)
         {
             int newCount = m_count + elements.Length;
             EnsureCapacity(newCount);
@@ -123,7 +123,7 @@ namespace SoSmooth.Rendering
         /// <remarks>Write elements to the array in the indices [offset, offset + count].
         /// Writing outside that range may result in undefined behaviour.</remarks>
         /// <returns>The underlying element array to write to.</returns>
-        public DataType[] WriteDirectly(int count, out int offset)
+        public TData[] WriteDirectly(int count, out int offset)
         {
             int newCount = m_count + count;
             EnsureCapacity(newCount);

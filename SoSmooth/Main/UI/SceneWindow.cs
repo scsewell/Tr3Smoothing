@@ -122,10 +122,10 @@ namespace SoSmooth
             // preload all shader programs
             ShaderManager.Instance.LoadShaders();
 
-            m_viewportDirty = true;
-            
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.ScissorTest);
+
+            m_viewportDirty = true;
 
             m_scene = new Scene();
             new SceneCamera(this);
