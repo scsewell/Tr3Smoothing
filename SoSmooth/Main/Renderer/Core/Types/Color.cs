@@ -4,70 +4,52 @@ using System.Runtime.InteropServices;
 namespace SoSmooth.Rendering
 {
     /// <summary>
-    /// A struct representing a 32-bit argb colour.
+    /// A struct representing a 32-bit rgba color.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Color : IEquatable<Color>
     {
-        private byte m_r, m_g, m_b, m_a;
-
         /// <summary>
-        /// The colour's red value
+        /// The color's red value
         /// </summary>
-        public byte R
-        {
-            get { return m_r; }
-            set { m_r = value; }
-        }
+        private byte R;
 
         /// <summary>
-        /// The colour's green value
+        /// The color's green value
         /// </summary>
-        public byte G
-        {
-            get { return m_g; }
-            set { m_g = value; }
-        }
+        private byte G;
 
         /// <summary>
-        /// The colour's blue value
+        /// The color's blue value
         /// </summary>
-        public byte B
-        {
-            get { return m_b; }
-            set { m_b = value; }
-        }
+        private byte B;
 
         /// <summary>
-        /// The colour's alpha value (0 = fully transparent, 255 = fully opaque)
+        /// The color's alpha value (0 = fully transparent, 255 = fully opaque)
         /// </summary>
-        public byte A
-        {
-            get { return m_a; }
-            set { m_a = value; }
-        }
-
+        private byte A;
+        
         /// <summary>
-        /// The colour, represented as 32-bit unsigned integer, with its colour components in the order ARGB.
+        /// The color, represented as 32-bit unsigned integer, with its color components in the order ARGB.
         /// </summary>
         public uint ARGB
         {
             get
             {
-                return ((uint)m_a << 24) | ((uint)m_r << 16) | ((uint)m_g << 8) | m_b;
+                return ((uint)A << 24) | ((uint)R << 16) | ((uint)G << 8) | B;
             }
         }
 
         /// <summary>
-        /// Returns the hue of the colour in the range 0 to 1.
+        /// Returns the hue of the color in the range 0 to 1.
         /// </summary>
         public float Hue
         {
             get
             {
-                float r = m_r / 255f;
-                float g = m_g / 255f;
-                float b = m_b / 255f;
+                float r = R / 255f;
+                float g = G / 255f;
+                float b = B / 255f;
 
                 float h;
 
@@ -105,31 +87,31 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
-        /// Returns the saturation of the colour in the range 0 to 1.
+        /// Returns the saturation of the color in the range 0 to 1.
         /// </summary>
         public float Saturation
         {
             get
             {
-                byte max = Math.Max(m_r, Math.Max(m_g, m_b));
+                byte max = Math.Max(R, Math.Max(G, B));
                 if (max == 0)
                 {
                     return 0;
                 }
 
-                byte min = Math.Min(m_r, Math.Min(m_g, m_b));
+                byte min = Math.Min(R, Math.Min(G, B));
                 return (float)(max - min) / max;
             }
         }
 
         /// <summary>
-        /// Returns the value (lightness) of the colour in the range 0 to 1.
+        /// Returns the value (lightness) of the color in the range 0 to 1.
         /// </summary>
         public float Value
         {
             get
             {
-                return Math.Max(m_r, Math.Max(m_g, m_b)) / 255f;
+                return Math.Max(R, Math.Max(G, B)) / 255f;
             }
         }
 
@@ -138,12 +120,12 @@ namespace SoSmooth.Rendering
         /// </summary>
         /// <param name="value">The value (brightness) of the color.</param>
         /// <param name="alpha">The opacity of the color.</param>
-        /// <returns>A gray colour with the given value and transparency.</returns>
+        /// <returns>A gray color with the given value and transparency.</returns>
         public Color(byte value = 255, byte alpha = 255) : this(value, value, value, alpha)
         { }
 
         /// <summary>
-        /// Constructs a colour from a red, green, blue and alpha value.
+        /// Constructs a color from a red, green, blue and alpha value.
         /// </summary>
         /// <param name="r">The red value.</param>
         /// <param name="g">The green value.</param>
@@ -151,51 +133,51 @@ namespace SoSmooth.Rendering
         /// <param name="a">The alpha value.</param>
         public Color(byte r, byte g, byte b, byte a = 255)
         {
-            m_r = r;
-            m_g = g;
-            m_b = b;
-            m_a = a;
+            R = r;
+            G = g;
+            B = b;
+            A = a;
         }
 
         /// <summary>
-        /// Constructs a colour from a 4 float color.
+        /// Constructs a color from a 4 float color.
         /// </summary>
         /// <param name="color">The color to approximate.</param>
         public Color(OpenTK.Graphics.Color4 color) : this(color.ToArgb())
         { }
 
         /// <summary>
-        /// Constructs a colour from a 32-bit unsigned integer including the colour components in the order ARGB.
+        /// Constructs a color from a 32-bit unsigned integer including the color components in the order ARGB.
         /// </summary>
-        /// <param name="argb">The unsigned integer representing the colour.</param>
+        /// <param name="argb">The unsigned integer representing the color.</param>
         public Color(uint argb)
         {
-            m_a = (byte)((argb >> 24) & 255);
-            m_r = (byte)((argb >> 16) & 255);
-            m_g = (byte)((argb >> 8) & 255);
-            m_b = (byte)(argb & 255);
+            A = (byte)((argb >> 24) & 255);
+            R = (byte)((argb >> 16) & 255);
+            G = (byte)((argb >> 8) & 255);
+            B = (byte)(argb & 255);
         }
 
         /// <summary>
-        /// Constructs a colour from a 32-bit integer including the colour components in the order ARGB.
+        /// Constructs a color from a 32-bit integer including the color components in the order ARGB.
         /// </summary>
-        /// <param name="argb">The integer representing the colour.</param>
+        /// <param name="argb">The integer representing the color.</param>
         public Color(int argb)
         {
-            m_a = (byte)((argb >> 24) & 255);
-            m_r = (byte)((argb >> 16) & 255);
-            m_g = (byte)((argb >> 8) & 255);
-            m_b = (byte)(argb & 255);
+            A = (byte)((argb >> 24) & 255);
+            R = (byte)((argb >> 16) & 255);
+            G = (byte)((argb >> 8) & 255);
+            B = (byte)(argb & 255);
         }
 
         /// <summary>
-        /// Creates a colour from hue, saturation and value.
+        /// Creates a color from hue, saturation and value.
         /// </summary>
-        /// <param name="h">Hue of the colour [0,1].</param>
-        /// <param name="s">Saturation of the colour [0,1].</param>
-        /// <param name="v">Value of the colour [0,1].</param>
-        /// <param name="a">Alpha of the colour.</param>
-        /// <returns>The constructed colour.</returns>
+        /// <param name="h">Hue of the color [0,1].</param>
+        /// <param name="s">Saturation of the color [0,1].</param>
+        /// <param name="v">Value of the color [0,1].</param>
+        /// <param name="a">Alpha of the color.</param>
+        /// <returns>The constructed color.</returns>
         public static Color FromHSVA(float h, float s, float v, byte a = 255)
         {
             h *= 6;
@@ -250,12 +232,12 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
-        /// Linearly interpolates between two colours and returns the result.
+        /// Linearly interpolates between two colors and returns the result.
         /// </summary>
-        /// <param name="color0">The first colour.</param>
-        /// <param name="color1">The second colour.</param>
+        /// <param name="color0">The first color.</param>
+        /// <param name="color1">The second color.</param>
         /// <param name="p">Interpolation parameter, is clamped to [0, 1].</param>
-        /// <returns>The interpolated colour.</returns>
+        /// <returns>The interpolated color.</returns>
         public static Color Lerp(Color color0, Color color1, float p)
         {
             if (p <= 0)
@@ -269,23 +251,23 @@ namespace SoSmooth.Rendering
 
             float q = 1 - p;
             return new Color(
-                (byte)(color0.m_r * q + color1.m_r * p),
-                (byte)(color0.m_g * q + color1.m_g * p),
-                (byte)(color0.m_b * q + color1.m_b * p),
-                (byte)(color0.m_a * q + color1.m_a * p)
+                (byte)(color0.R * q + color1.R * p),
+                (byte)(color0.G * q + color1.G * p),
+                (byte)(color0.B * q + color1.B * p),
+                (byte)(color0.A * q + color1.A * p)
                 );
         }
         
         /// <summary>
-        /// Checks whether this colour is the same as another.
+        /// Checks whether this color is the same as another.
         /// </summary>
         public bool Equals(Color other)
         {
-            return m_r == other.m_r && m_g == other.m_g && m_b == other.m_b && m_a == other.m_a;
+            return R == other.R && G == other.G && B == other.B && A == other.A;
         }
 
         /// <summary>
-        /// Checks whether this colour is the same as another.
+        /// Checks whether this color is the same as another.
         /// </summary>
         public override bool Equals(object obj)
         {
@@ -303,10 +285,10 @@ namespace SoSmooth.Rendering
         {
             unchecked
             {
-                int hashCode = m_r.GetHashCode();
-                hashCode = (hashCode * 397) ^ m_g.GetHashCode();
-                hashCode = (hashCode * 397) ^ m_b.GetHashCode();
-                hashCode = (hashCode * 397) ^ m_a.GetHashCode();
+                int hashCode = R.GetHashCode();
+                hashCode = (hashCode * 397) ^ G.GetHashCode();
+                hashCode = (hashCode * 397) ^ B.GetHashCode();
+                hashCode = (hashCode * 397) ^ A.GetHashCode();
                 return hashCode;
             }
         }
@@ -329,7 +311,7 @@ namespace SoSmooth.Rendering
         /// <returns><see cref="System.Drawing.Color"/></returns>
         static public implicit operator System.Drawing.Color(Color color)
         {
-            return System.Drawing.Color.FromArgb(color.m_a, color.m_r, color.m_g, color.m_b);
+            return System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
         }
 
         /// <summary>
@@ -339,11 +321,11 @@ namespace SoSmooth.Rendering
         /// <returns><see cref="OpenTK.Graphics.Color4"/></returns>
         static public implicit operator OpenTK.Graphics.Color4(Color color)
         {
-            return new OpenTK.Graphics.Color4(color.m_r, color.m_g, color.m_b, color.m_a);
+            return new OpenTK.Graphics.Color4(color.R, color.G, color.B, color.A);
         }
 
         /// <summary>
-        /// Compares two colours for equality.
+        /// Compares two colors for equality.
         /// </summary>
         static public bool operator == (Color color1, Color color2)
         {
@@ -351,7 +333,7 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
-        /// Compares two colours for inequality.
+        /// Compares two colors for inequality.
         /// </summary>
         public static bool operator != (Color color1, Color color2)
         {
@@ -359,20 +341,20 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
-        /// Multiplies all components of the colour by a given scalar.
+        /// Multiplies all components of the color by a given scalar.
         /// Note that scalar values outside the range of 0 to 1 may result in overflow and cause unexpected results.
         /// </summary>
         static public Color operator *(Color color, float scalar)
         {
             return new Color(
-                (byte)(color.m_r * scalar),
-                (byte)(color.m_g * scalar),
-                (byte)(color.m_b * scalar),
-                (byte)(color.m_a * scalar));
+                (byte)(color.R * scalar),
+                (byte)(color.G * scalar),
+                (byte)(color.B * scalar),
+                (byte)(color.A * scalar));
         }
 
         /// <summary>
-        /// Multiplies all components of the colour by a given scalar.
+        /// Multiplies all components of the color by a given scalar.
         /// Note that scalar values outside the range of 0 to 1 may result in overflow and cause unexpected results.
         /// </summary>
         static public Color operator *(float scalar, Color color)

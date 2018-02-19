@@ -11,8 +11,9 @@ namespace SoSmooth.Rendering
         private ShaderProgram m_program;
         private IVertexBuffer m_vertexBuffer;
         private IIndexBuffer m_indexBuffer;
-        private bool m_vertexArrayGenerated;
         private bool m_dirty;
+
+        private bool m_vertexArrayGenerated;
 
         public IVertexBuffer VertexBuffer => m_vertexBuffer;
         public IIndexBuffer IndexBuffer => m_indexBuffer;

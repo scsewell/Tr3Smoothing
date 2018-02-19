@@ -12,7 +12,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public RenderTarget()
         {
-            GL.GenFramebuffers(1, out m_handle);
+            m_handle = GL.GenFramebuffer();
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         protected override void OnDispose()
         {
-            GL.DeleteFramebuffers(1, ref m_handle);
+            GL.DeleteFramebuffer(m_handle);
         }
     }
 }
