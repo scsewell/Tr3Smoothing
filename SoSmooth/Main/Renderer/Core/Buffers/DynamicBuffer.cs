@@ -42,6 +42,7 @@ namespace SoSmooth.Rendering
             m_buffer[m_count] = element;
 
             m_count = newCount;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -58,6 +59,7 @@ namespace SoSmooth.Rendering
             m_buffer[m_count + 1] = e1;
 
             m_count = newCount;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -76,6 +78,7 @@ namespace SoSmooth.Rendering
             m_buffer[m_count + 2] = e2;
 
             m_count = newCount;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -96,6 +99,7 @@ namespace SoSmooth.Rendering
             m_buffer[m_count + 3] = e3;
 
             m_count = newCount;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -110,6 +114,7 @@ namespace SoSmooth.Rendering
             Array.Copy(elements, 0, m_buffer, m_count, elements.Length);
 
             m_count = newCount;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -127,9 +132,10 @@ namespace SoSmooth.Rendering
         {
             int newCount = m_count + count;
             EnsureCapacity(newCount);
-
             offset = m_count;
+
             m_count = newCount;
+            m_dirty = true;
             return m_buffer;
         }
 
@@ -140,6 +146,7 @@ namespace SoSmooth.Rendering
         public void RemoveElements(int count)
         {
             m_count = Math.Max(m_count - count, 0);
+            m_dirty = true;
         }
 
         /// <summary>
@@ -148,6 +155,7 @@ namespace SoSmooth.Rendering
         public void Clear()
         {
             m_count = 0;
+            m_dirty = true;
         }
     }
 }

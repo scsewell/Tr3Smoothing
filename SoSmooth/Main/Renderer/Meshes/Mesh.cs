@@ -279,6 +279,7 @@ namespace SoSmooth.Meshes
 
         /// <summary>
         /// Updates the index buffer object from the <see cref="Triangles"/> array.
+        /// Ensures that the smallest unsigned integer type possible is used for the buffer.
         /// </summary>
         private void UpdateIndices()
         {
@@ -309,11 +310,11 @@ namespace SoSmooth.Meshes
             }
 
             // copy the triangles' indices into the buffer
-            if (m_indexBuffer as IndexBuffer<byte> != null)
+            if (m_indexBuffer is IndexBuffer<byte>)
             {
                 CopyIndices(m_indexBuffer as IndexBuffer<byte>, index => (byte)index);
             }
-            else if (m_indexBuffer as IndexBuffer<ushort> != null)
+            else if (m_indexBuffer is IndexBuffer<ushort>)
             {
                 CopyIndices(m_indexBuffer as IndexBuffer<ushort>, index => (ushort)index);
             }

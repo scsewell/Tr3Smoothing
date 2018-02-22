@@ -16,6 +16,7 @@ namespace SoSmooth.Rendering
 
         protected TData[] m_buffer;
         protected int m_count;
+        protected bool m_dirty;
         
         /// <summary>
         /// The number of elements in the buffer.
@@ -30,10 +31,11 @@ namespace SoSmooth.Rendering
         public Buffer(BufferTarget target, int capacity = 1)
         {
             m_handle = GL.GenBuffer();
-
             m_target = target;
+
             m_buffer = new TData[capacity];
             m_count = 0;
+            m_dirty = true;
         }
 
         /// <summary>
@@ -67,19 +69,21 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
-        /// Uploads the buffer to the GPU.
+        /// Uploads the buffer to the GPU if it has changed since last buffered.
         /// </summary>
         /// <param name="usageHint">The usage hint.</param>
         public void BufferData(BufferUsageHint usageHint = BufferUsageHint.DynamicDraw)
         {
             if (!Disposed)
             {
-                int requiredSize = m_elementSize * m_count;
-                Logger.Debug($"Buffering: {{size:{m_elementSize} count:{m_count} requiredSize:{requiredSize}}}");
-
-                GL.BindBuffer(m_target, this);
-                GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
-                GL.BindBuffer(m_target, 0);
+                if (m_dirty)
+                {
+                    int requiredSize = m_elementSize * m_count;
+                    GL.BindBuffer(m_target, this);
+                    GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
+                    GL.BindBuffer(m_target, 0);
+                    m_dirty = false;
+                }
             }
             else
             {

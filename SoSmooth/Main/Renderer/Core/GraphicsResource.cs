@@ -3,9 +3,12 @@ using OpenTK.Graphics;
 
 namespace SoSmooth.Rendering
 {
+    /// <summary>
+    /// A class that controls a handle to an unmanaged graphics resource.
+    /// </summary>
     public abstract class GraphicsResource : IDisposable
     {
-        protected int m_handle;
+        protected int m_handle = -1;
         private bool m_disposed = false;
 
         /// <summary>
@@ -41,11 +44,25 @@ namespace SoSmooth.Rendering
             {
                 return;
             }
-            if (GraphicsContext.CurrentContext == null || GraphicsContext.CurrentContext.IsDisposed)
+            if (GraphicsContext.CurrentContext == null)
+            {
+                Logger.Error("Can't dispose a graphics resource while the current graphics context is null!");
+                return;
+            }
+            if (GraphicsContext.CurrentContext.IsDisposed)
             {
                 return;
             }
+
+            // always clean up unmanaged resources to prevent memory leak.
             OnDispose();
+
+            // cleanup of managed data only matters if not called by the garbage collector finalizer.
+            if (disposing)
+            {
+                m_handle = -1;
+            }
+
             m_disposed = true;
         }
 
@@ -55,8 +72,8 @@ namespace SoSmooth.Rendering
         protected abstract void OnDispose();
 
         /// <summary>
-        /// Casts the graphics resource object to its OpenGL instance handle
-        /// for easy use with OpenGL functions.
+        /// Casts the graphics resource object to its instance handle
+        /// for easy use with graphics API functions.
         /// </summary>
         /// <param name="resource">The resource.</param>
         /// <returns>The instance's handle.</returns>
