@@ -177,6 +177,7 @@
     <Compile Include="Main\Renderer\Core\Buffers\DynamicBuffer.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IBuffer.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IIndexBuffer.cs" />
+    <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IUniformBuffer.cs" />
     <Compile Include="Main\Renderer\Core\Types\Color.cs" />
     <Compile Include="Main\Renderer\Core\GraphicsResource.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\IndexBuffer.cs" />
@@ -214,6 +215,8 @@
     <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IVertexBuffer.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\IVertexData.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\VertexDataHelper.cs" />
+    <Compile Include="Main\Renderer\Shaders\BlockData\CameraData.cs" />
+    <Compile Include="Main\Renderer\Shaders\BlockManager.cs" />
     <Compile Include="Main\Utils\Bounds.cs" />
     <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />

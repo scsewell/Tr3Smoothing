@@ -1,6 +1,7 @@
 ﻿using System;
 using OpenTK;
 using OpenTK.Graphics;
+using SoSmooth.Rendering;
 
 namespace SoSmooth.Scenes
 {
@@ -17,9 +18,11 @@ namespace SoSmooth.Scenes
         private int m_resolutionX;
         private int m_resolutionY;
         
-        private Matrix4 m_projectionMatrix;
+        private Matrix4 m_projectionMat;
         private bool m_projectionMatDirty;
-        
+
+        private UniformBuffer<CameraData> m_dataBuffer;
+
         /// <summary>
         /// The background color of the camera.
         /// </summary>
@@ -94,11 +97,11 @@ namespace SoSmooth.Scenes
                         ((float)m_resolutionX) / m_resolutionY,
                         m_nearClip, 
                         m_farClip,
-                        out m_projectionMatrix);
+                        out m_projectionMat);
 
                     m_projectionMatDirty = false;
                 }
-                return m_projectionMatrix;
+                return m_projectionMat;
             }
         }
 
@@ -108,6 +111,11 @@ namespace SoSmooth.Scenes
         public Matrix4 ViewMatrix
         {
             get { return Transform.WorldToLocalMatrix; }
+        }
+        
+        public IUniformBuffer DataBuffer
+        {
+            get { return m_dataBuffer; }
         }
 
         /// <summary>
@@ -151,6 +159,17 @@ namespace SoSmooth.Scenes
         {
             resX = m_resolutionX;
             resY = m_resolutionY;
+        }
+
+        public void PrepareRender()
+        {
+            if (m_dataBuffer == null)
+            {
+                m_dataBuffer = new UniformBuffer<CameraData>();
+            }
+
+            m_dataBuffer.Value = new CameraData(ViewMatrix, ProjectionMatrix);
+            m_dataBuffer.BufferData();
         }
     }
 }

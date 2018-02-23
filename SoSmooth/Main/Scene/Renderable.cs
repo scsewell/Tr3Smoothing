@@ -10,12 +10,14 @@ namespace SoSmooth.Scenes
     /// </summary>
     public abstract class Renderable : Component, IComparable
     {
-        protected BlendSetting m_blend = new BlendSetting();
-        protected DepthMaskSetting m_depthMask = new DepthMaskSetting();
-        protected CullModeSetting m_cullMode = new CullModeSetting();
-        protected PolygonModeSetting m_polygonMode = new PolygonModeSetting();
+        private readonly Surface m_surface;
 
-        protected ColorUniform m_color = new ColorUniform("color");
+        private readonly BlendSetting m_blend = new BlendSetting();
+        private readonly DepthMaskSetting m_depthMask = new DepthMaskSetting();
+        private readonly CullModeSetting m_cullMode = new CullModeSetting();
+        private readonly PolygonModeSetting m_polygonMode = new PolygonModeSetting();
+
+        private readonly ColorUniform m_color = new ColorUniform("u_color");
 
         private string m_programName = null;
         private ShaderProgram m_shaderProgram = null;
@@ -106,13 +108,21 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The surface that is rendered.
         /// </summary>
-        protected abstract Surface Surface { get; }
+        protected Surface Surface => m_surface;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Renderable(Entity entity) : base(entity)
+        public Renderable(Entity entity, Surface surface) : base(entity)
         {
+            m_surface = surface;
+
+            m_surface.AddSetting(m_cullMode);
+            m_surface.AddSetting(m_polygonMode);
+            m_surface.AddSetting(m_depthMask);
+            m_surface.AddSetting(m_blend);
+
+            m_surface.AddSetting(m_color);
         }
 
         /// <summary>

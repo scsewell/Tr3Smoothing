@@ -37,12 +37,7 @@ namespace SoSmooth.Meshes
         /// </summary>
         public Vertex[] Vertices
         {
-            get
-            {
-                Vertex[] vertices = new Vertex[m_vertices.Length];
-                Array.Copy(m_vertices, vertices, m_vertices.Length);
-                return vertices;
-            }
+            get { return m_vertices.Clone() as Vertex[]; }
             set
             {
                 Vertex[] vertices = value;
@@ -62,12 +57,7 @@ namespace SoSmooth.Meshes
         /// </summary>
         public Triangle[] Triangles
         {
-            get
-            {
-                Triangle[] triangles = new Triangle[m_triangles.Length];
-                Array.Copy(m_triangles, triangles, m_triangles.Length);
-                return triangles;
-            }
+            get { return m_triangles.Clone() as Triangle[]; }
             set
             {
                 Triangle[] triangles = value;

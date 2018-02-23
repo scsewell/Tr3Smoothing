@@ -8,12 +8,7 @@ namespace SoSmooth.Scenes
     /// </summary>
     public sealed class MeshRenderer : Renderable
     {
-        private IndexedSurface m_surface;
-        protected override Surface Surface => m_surface;
-
-        private readonly Matrix4Uniform m_modelMatUniform = new Matrix4Uniform("modelMatrix");
-        private readonly Matrix4Uniform m_viewMatUniform = new Matrix4Uniform("viewMatrix");
-        private readonly Matrix4Uniform m_projMatUniform = new Matrix4Uniform("projMatrix");
+        private readonly Matrix4Uniform m_modelMatUniform = new Matrix4Uniform("u_modelMatrix");
 
         private Mesh m_mesh;
 
@@ -29,20 +24,9 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// Constructor.
         /// </summary>
-        public MeshRenderer(Entity entity) : base(entity)
+        public MeshRenderer(Entity entity) : base(entity, new IndexedSurface())
         {
-            m_surface = new IndexedSurface();
-
-            m_surface.AddSetting(m_cullMode);
-            m_surface.AddSetting(m_polygonMode);
-            m_surface.AddSetting(m_depthMask);
-            m_surface.AddSetting(m_blend);
-
-            m_surface.AddSetting(m_color);
-
-            m_surface.AddSetting(m_modelMatUniform);
-            m_surface.AddSetting(m_viewMatUniform);
-            m_surface.AddSetting(m_projMatUniform);
+            Surface.AddSetting(m_modelMatUniform);
         }
 
         /// <summary>
@@ -66,14 +50,14 @@ namespace SoSmooth.Scenes
         {
             if (m_mesh != null)
             {
-                m_surface.SetVertexBuffer(m_mesh.VBO);
-                m_surface.SetIndexBuffer(m_mesh.IBO);
+                IndexedSurface surface = Surface as IndexedSurface;
+
+                surface.SetVertexBuffer(m_mesh.VBO);
+                surface.SetIndexBuffer(m_mesh.IBO);
 
                 m_modelMatUniform.Value = Entity.Transform.LocalToWorldMatix;
-                m_viewMatUniform.Value = camera.ViewMatrix;
-                m_projMatUniform.Value = camera.ProjectionMatrix;
-                    
-                m_surface.Render();
+                
+                surface.Render();
             }
         }
     }

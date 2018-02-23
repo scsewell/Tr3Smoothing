@@ -1,6 +1,13 @@
 ﻿#version 330
 
-uniform mat4 viewMatrix;
+uniform CameraData
+{
+    mat4 view;
+    mat4 viewInv;
+    mat4 proj;
+    mat4 viewProj;
+    vec3 position;
+} cam;
 
 in vec3 f_worldPos;
 in vec3 f_normal;
@@ -18,7 +25,7 @@ void main()
 	// renormalize as the interpolation only preserves direction but not magnitude correctly
 	vec3 normal = normalize(f_normal);
 
-	vec3 halfVector = normalize(-lightDirection + normalize(inverse(viewMatrix)[3].xyz - f_worldPos));
+	vec3 halfVector = normalize(-lightDirection + normalize(cam.position - f_worldPos));
 	vec3 specular = lightSpecularColor.rgb * pow(max(dot(normal, halfVector), 0.0), 100.0);
 
 	// compute the diffuse lighting

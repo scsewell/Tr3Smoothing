@@ -6,7 +6,7 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// Base class for all surfaces. A Surface is an abstract object that can render 
     /// itself to the screen using a shader program and can have a number of settings 
-    /// to modify its behaviour.
+    /// to modify the drawing behaviour.
     /// </summary>
     public abstract class Surface
     {
@@ -93,7 +93,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Renders this surface.
         /// It does so by activating its shader program, setting all its settings, 
-        /// invoking sub class specific render behaviour and then unsetting its settings again.
+        /// and then invoking sub class specific render behaviour.
         /// </summary>
         public void Render()
         {
@@ -108,7 +108,7 @@ namespace SoSmooth.Rendering
             {
                 setting.Set(Program);
             }
-            
+
             OnRender();
         }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 using SoSmooth.Rendering;
 
 namespace SoSmooth
@@ -11,6 +12,18 @@ namespace SoSmooth
     /// </summary>
     public class ShaderManager : Singleton<ShaderManager>
     {
+        // The file extentions of shaders in the solution.
+        private const string VERT_EXTENTION = "vert";
+        private const string GEOM_EXTENTION = "geom";
+        private const string FRAG_EXTENTION = "frag";
+
+        private static readonly string[] SHADER_EXTENTIONS = new string[] 
+        {
+            VERT_EXTENTION,
+            GEOM_EXTENTION,
+            FRAG_EXTENTION
+        };
+
         /// <summary>
         /// A basic unlit shader.
         /// </summary>
@@ -19,14 +32,9 @@ namespace SoSmooth
         /// A basic lit shader.
         /// </summary>
         public static readonly string SHADER_LIT    = "lit";
-
-        // The file extentions of shaders in the solution.
-        private const string VERT_EXTENTION = "vert";
-        private const string GEOM_EXTENTION = "geom";
-        private const string FRAG_EXTENTION = "frag";
-
-        private Dictionary<string, ShaderProgram> m_shaderPrograms;
         
+        private Dictionary<string, ShaderProgram> m_shaderPrograms;
+
         /// <summary>
         /// Loads all shader programs.
         /// </summary>
@@ -48,12 +56,10 @@ namespace SoSmooth
                     if (split.Length >= 2)
                     {
                         string name = split[split.Length - 2];
-                        string type = split[split.Length - 1];
+                        string extention = split[split.Length - 1];
 
                         // shaders are indicated by file extention
-                        if (type == VERT_EXTENTION ||
-                            type == GEOM_EXTENTION ||
-                            type == FRAG_EXTENTION)
+                        if (SHADER_EXTENTIONS.Any(e => extention == e))
                         {
                             string code = LoadResource(assembly, path);
 
@@ -64,7 +70,7 @@ namespace SoSmooth
                                 nameToShaders.Add(name, shaders);
                             }
 
-                            switch (type)
+                            switch (extention)
                             {
                                 case VERT_EXTENTION: shaders.Add(new VertexShader(code)); break;
                                 case GEOM_EXTENTION: shaders.Add(new GeometryShader(code)); break;

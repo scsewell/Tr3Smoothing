@@ -16,31 +16,14 @@ namespace SoSmooth.Rendering
         /// Creates a new shader program.
         /// </summary>
         /// <param name="shaders">The different shaders of the program.</param>
-        public ShaderProgram(params Shader[] shaders) : this(null, (IEnumerable<Shader>)shaders)
+        public ShaderProgram(params Shader[] shaders) : this((IEnumerable<Shader>)shaders)
         { }
 
         /// <summary>
         /// Creates a new shader program.
         /// </summary>
         /// <param name="shaders">The different shaders of the program.</param>
-        public ShaderProgram(IEnumerable<Shader> shaders) : this(null, shaders)
-        { }
-
-        /// <summary>
-        /// Creates a new shader program.
-        /// </summary>
-        /// <param name="preLinkAction">An action to perform before linking the shader program.</param>
-        /// <param name="shaders">The different shaders of the program.</param>
-        public ShaderProgram(Action<ShaderProgram> preLinkAction, params Shader[] shaders)
-            : this(preLinkAction, (IEnumerable<Shader>)shaders)
-        { }
-
-        /// <summary>
-        /// Creates a new shader program.
-        /// </summary>
-        /// <param name="preLinkAction">An action to perform before linking the shader program.</param>
-        /// <param name="shaders">The different shaders of the program.</param>
-        public ShaderProgram(Action<ShaderProgram> preLinkAction, IEnumerable<Shader> shaders)
+        public ShaderProgram(IEnumerable<Shader> shaders)
         {
             m_handle = GL.CreateProgram();
 
@@ -49,18 +32,13 @@ namespace SoSmooth.Rendering
                 GL.AttachShader(this, shader);
             }
 
-            if (preLinkAction != null)
-            {
-                preLinkAction(this);
-            }
-
             GL.LinkProgram(this);
             foreach (Shader shader in shaders)
             {
                 GL.DetachShader(this, shader);
             }
 
-            // throw exception if linking failed
+            // check if linking failed
             int statusCode;
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out statusCode);
 
@@ -70,8 +48,20 @@ namespace SoSmooth.Rendering
                 GL.GetProgramInfoLog(this, out info);
                 Logger.Error($"Could not link shader: {info}");
             }
-        }
 
+            // set the uniform block bindings to the corresponding uniform buffers
+            int uniformBlockCount;
+            GL.GetProgram(this, GetProgramParameterName.ActiveUniformBlocks, out uniformBlockCount);
+
+            for (int i = 0; i < uniformBlockCount; i++)
+            {
+                string name = GL.GetActiveUniformBlockName(this, i);
+                int bindingPoint = BlockManager.GetBindingPoint(name);
+
+                GL.UniformBlockBinding(this, i, bindingPoint);
+            }
+        }
+        
         /// <summary>
         /// Sets the vertex attributes.
         /// </summary>
@@ -83,7 +73,7 @@ namespace SoSmooth.Rendering
                 attribute.SetAttribute(this);
             }
         }
-
+        
         /// <summary>
         /// Gets an attribute's location.
         /// </summary>
@@ -115,7 +105,7 @@ namespace SoSmooth.Rendering
             }
             return i;
         }
-        
+
         /// <summary>
         /// Cleanup unmanaged resources.
         /// </summary>

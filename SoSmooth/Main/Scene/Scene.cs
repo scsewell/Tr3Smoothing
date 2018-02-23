@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using SoSmooth.Meshes;
 
@@ -64,7 +63,8 @@ namespace SoSmooth.Scenes
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 ActiveCamera.SetResolution(resX, resY);
-                
+                ActiveCamera.PrepareRender();
+
                 // get all renderable components in the scene
                 List<Renderable> renderables = new List<Renderable>();
                 foreach (Entity entity in m_rootEntities)

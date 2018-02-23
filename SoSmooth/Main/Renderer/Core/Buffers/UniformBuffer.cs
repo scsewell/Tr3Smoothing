@@ -6,8 +6,10 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// Manages a uniform buffer object.
     /// </summary>
-    public class UniformBuffer<TData> : Buffer<TData> where TData : struct, IEquatable<TData>
+    public class UniformBuffer<TData> : Buffer<TData>, IUniformBuffer where TData : struct, IEquatable<TData>
     {
+        private readonly int m_bindingPoint;
+
         /// <summary>
         /// The value of the uniform in the buffer.
         /// </summary>
@@ -25,11 +27,20 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
+        /// The binding point index for this uniform block.
+        /// </summary>
+        public int BindingPoint => m_bindingPoint;
+        
+        /// <summary>
         /// Initialises a new <see cref="UniformBuffer{Data}"/> instance.
         /// </summary>
         public UniformBuffer() : base(BufferTarget.UniformBuffer, 1)
         {
+            m_bindingPoint = BlockManager.GetBindingPoint(typeof(TData).Name);
+            
             m_count = 1;
+            
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, m_bindingPoint, this);
         }
     }
 }

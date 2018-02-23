@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
@@ -10,9 +11,10 @@ namespace SoSmooth.Rendering
     /// </summary>
     public abstract class Buffer<TData> : GraphicsResource where TData : struct
     {
-        private static readonly int m_elementSize = Marshal.SizeOf(typeof(TData));
+        protected static readonly int m_elementSize = Marshal.SizeOf(typeof(TData));
 
         private readonly BufferTarget m_target;
+        private int m_capacity;
 
         protected TData[] m_buffer;
         protected int m_count;
@@ -30,8 +32,10 @@ namespace SoSmooth.Rendering
         /// <param name="capacity">The initial capacity of the buffer.</param>
         public Buffer(BufferTarget target, int capacity = 1)
         {
-            m_handle = GL.GenBuffer();
             m_target = target;
+
+            m_handle = GL.GenBuffer();
+            m_capacity = 0;
 
             m_buffer = new TData[capacity];
             m_count = 0;
@@ -78,11 +82,22 @@ namespace SoSmooth.Rendering
             {
                 if (m_dirty)
                 {
-                    int requiredSize = m_elementSize * m_count;
                     GL.BindBuffer(m_target, this);
-                    GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
-                    GL.BindBuffer(m_target, 0);
+
+                    // If the allocated buffer on the GPU is large enough, don't reallocate
+                    int requiredSize = m_elementSize * m_count;
+                    if (m_capacity >= requiredSize)
+                    {
+                        GL.BufferSubData(m_target, (IntPtr)0, requiredSize, m_buffer);
+                    }
+                    else
+                    {
+                        GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
+                        m_capacity = requiredSize;
+                    }
                     m_dirty = false;
+
+                    GL.BindBuffer(m_target, 0);
                 }
             }
             else
