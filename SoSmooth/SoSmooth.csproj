@@ -181,7 +181,6 @@
     <Compile Include="Main\Renderer\Core\Types\Color.cs" />
     <Compile Include="Main\Renderer\Core\GraphicsResource.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\IndexBuffer.cs" />
-    <Compile Include="Main\Renderer\Core\RenderTarget.cs" />
     <Compile Include="Main\Renderer\Core\Shading\FragmentShader.cs" />
     <Compile Include="Main\Renderer\Core\Shading\GeometryShader.cs" />
     <Compile Include="Main\Renderer\Core\Shading\Shader.cs" />
@@ -216,7 +215,9 @@
     <Compile Include="Main\Renderer\Core\VertexData\IVertexData.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\VertexDataHelper.cs" />
     <Compile Include="Main\Renderer\Shaders\BlockData\CameraData.cs" />
+    <Compile Include="Main\Renderer\Shaders\BlockData\LightData.cs" />
     <Compile Include="Main\Renderer\Shaders\BlockManager.cs" />
+    <Compile Include="Main\Scene\Components\DirectionalLight.cs" />
     <Compile Include="Main\Utils\Bounds.cs" />
     <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
@@ -262,14 +263,16 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <EmbeddedResource Include="Main\Renderer\Shaders\unlit.frag" />
-    <EmbeddedResource Include="Main\Renderer\Shaders\unlit.vert" />
-    <EmbeddedResource Include="Main\Renderer\Shaders\lit.frag" />
-    <EmbeddedResource Include="Main\Renderer\Shaders\lit.vert" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\unlit.frag" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\unlit.vert" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\lit.frag" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\lit.vert" />
     <None Include="OpenTK.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\common.glinc" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

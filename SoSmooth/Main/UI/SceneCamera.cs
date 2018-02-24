@@ -2,6 +2,7 @@
 using Gdk;
 using Gtk;
 using OpenTK;
+using OpenTK.Graphics;
 using SoSmooth.Scenes;
 
 namespace SoSmooth
@@ -48,12 +49,12 @@ namespace SoSmooth
         /// </summary>
         private const float EASE_TIME = 0.125f;
 
-        private static readonly Quaternion FRONT_VIEW   = new Quaternion(0, 0, 0);
-        private static readonly Quaternion BACK_VIEW    = new Quaternion(MathHelper.Pi, 0, 0);
-        private static readonly Quaternion RIGHT_VIEW   = new Quaternion(MathHelper.PiOver2, 0, 0);
-        private static readonly Quaternion LEFT_VIEW    = new Quaternion(-MathHelper.PiOver2, 0, 0);
-        private static readonly Quaternion TOP_VIEW     = new Quaternion(0, 0, MathHelper.PiOver2);
-        private static readonly Quaternion BOTTOM_VIEW  = new Quaternion(0, 0, -MathHelper.PiOver2);
+        private static readonly Quaternion FRONT_VIEW   = new Quaternion(MathHelper.Pi, 0, 0);
+        private static readonly Quaternion BACK_VIEW    = new Quaternion(0, 0, 0);
+        private static readonly Quaternion RIGHT_VIEW   = new Quaternion(-MathHelper.PiOver2, 0, 0);
+        private static readonly Quaternion LEFT_VIEW    = new Quaternion(MathHelper.PiOver2, 0, 0);
+        private static readonly Quaternion TOP_VIEW     = new Quaternion(MathHelper.Pi, 0, MathHelper.PiOver2);
+        private static readonly Quaternion BOTTOM_VIEW  = new Quaternion(MathHelper.Pi, 0, -MathHelper.PiOver2);
 
         private Transform m_camPivot;
         private Camera m_camera;
@@ -65,37 +66,60 @@ namespace SoSmooth
         private Quaternion m_easeTargetRot;
         private Quaternion m_easeStartRot;
 
-        private float m_yaw = 0;
+        private float m_yaw = MathHelper.Pi;
         private float m_pitch = 0;
-        private float m_zoom = 10;
+        private float m_zoom = 4;
+
+        /// <summary>
+        /// The camera.
+        /// </summary>
+        public Camera Camera => m_camera;
         
         /// <summary>
-        /// Creates a new <see cref="SceneWindow"/> instance.
+        /// Creates a new <see cref="SceneCamera"/> instance.
         /// </summary>
-        /// <param name="sceneWindow">The scene window this camera will exist in.</param>
-        public SceneCamera(SceneWindow sceneWindow)
+        /// <param name="scene">The scene this camera will exist in.</param>
+        public SceneCamera(Scene scene)
         {
-            m_camPivot = new Entity(sceneWindow.Scene, "CameraPivot").Transform;
-            Transform cam = new Entity(sceneWindow.Scene, "Camera").Transform;
+            m_camPivot = new Entity(scene, "CameraPivot").Transform;
+            Transform cam = new Entity(scene, "Camera").Transform;
             
             cam.SetParent(m_camPivot);
-
+            
             cam.LocalRotation = Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2);
 
             m_camera = new Camera(cam.Entity);
-            sceneWindow.Scene.ActiveCamera = m_camera;
 
-            sceneWindow.KeyPressEvent += OnKeyPress;
-            sceneWindow.ButtonPressEvent += OnButtonPress;
-            sceneWindow.MotionNotifyEvent += OnMotion;
-            sceneWindow.ScrollEvent += OnScroll;
-            sceneWindow.SceneUpdate += OnUpdateScene;
+            // Add lights relative to the camera
+            Transform light1 = new Entity(scene, "Light1").Transform;
+            Transform light2 = new Entity(scene, "Light2").Transform;
+            Transform light3 = new Entity(scene, "Light3").Transform;
+
+            light1.SetParent(cam);
+            light2.SetParent(cam);
+            light3.SetParent(cam);
+
+            light1.LocalRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(55), 0, MathHelper.DegreesToRadians(40));
+            light2.LocalRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-40), 0, MathHelper.DegreesToRadians(-5));
+            light3.LocalRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-160), 0, MathHelper.DegreesToRadians(-30));
+
+            DirectionalLight dirLight1 = new DirectionalLight(light1.Entity);
+            DirectionalLight dirLight2 = new DirectionalLight(light2.Entity);
+            DirectionalLight dirLight3 = new DirectionalLight(light3.Entity);
+            
+            dirLight1.MainColor = new Color4(0.65f, 0.65f, 0.65f, 0.0f);
+            dirLight2.MainColor = new Color4(0.4f, 0.4f, 0.55f, 0.0f);
+            dirLight3.MainColor = new Color4(0.5f, 0.5f, 0.86f, 0.0f);
+
+            dirLight1.SpecularColor = new Color4(0.75f, 0.75f, 0.75f, 0.0f);
+            dirLight2.SpecularColor = new Color4(0.2f, 0.2f, 0.2f, 0.0f);
+            dirLight3.SpecularColor = new Color4(0.1f, 0.0f, 0.0f, 0.0f);
         }
 
         /// <summary>
         /// Updates the camera prior to rendering.
         /// </summary>
-        private void OnUpdateScene()
+        public void RenderScene()
         {
             // smoothly blend towards the target orientation if set
             if (m_easing)
@@ -114,9 +138,15 @@ namespace SoSmooth
             // move the clip planes to keep proportion with the camera's distance from the pivot
             m_camera.NearClip = Math.Min(m_zoom * 0.01f, 1);
             m_camera.FarClip = Math.Max(m_zoom * 2, 100);
+
+            // render the scene
+            m_camera.Render();
         }
 
-        private void OnKeyPress(object o, Gtk.KeyPressEventArgs args)
+        /// <summary>
+        /// Called when a key was pressed.
+        /// </summary>
+        public void OnKeyPress(Gtk.KeyPressEventArgs args)
         {
             ModifierType modifierMask = Accelerator.DefaultModMask;
 
@@ -135,7 +165,19 @@ namespace SoSmooth
             }
         }
 
-        private void OnScroll(object o, ScrollEventArgs args)
+        /// <summary>
+        /// Called when a mouse button was pressed.
+        /// </summary>
+        public void OnButtonPress(ButtonPressEventArgs args)
+        {
+            // clear the mouse offset so the the first frame of mouse motion is zero.
+            m_lastMousePos = new Vector2d(args.Event.X, args.Event.Y);
+        }
+
+        /// <summary>
+        /// Called when a mouse scroll wheel was used.
+        /// </summary>
+        public void OnScroll(ScrollEventArgs args)
         {
             float zoomDelta = ZOOM_RATIO * m_zoom;
 
@@ -146,13 +188,10 @@ namespace SoSmooth
             }
         }
 
-        private void OnButtonPress(object o, ButtonPressEventArgs args)
-        {
-            // clear the mouse offset so the the first frame of mouse motion is zero.
-            m_lastMousePos = new Vector2d(args.Event.X, args.Event.Y);
-        }
-
-        private void OnMotion(object o, MotionNotifyEventArgs args)
+        /// <summary>
+        /// Called when the mouse pointer has moved.
+        /// </summary>
+        public void OnMotion(MotionNotifyEventArgs args)
         {
             ModifierType modifierMask = Accelerator.DefaultModMask;
             

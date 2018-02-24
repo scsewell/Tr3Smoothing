@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 using SoSmooth.Rendering;
 
 namespace SoSmooth.Scenes
@@ -22,6 +24,7 @@ namespace SoSmooth.Scenes
         private bool m_projectionMatDirty;
 
         private UniformBuffer<CameraData> m_dataBuffer;
+        private UniformBuffer<LightData> m_lightBuffer;
 
         /// <summary>
         /// The background color of the camera.
@@ -113,11 +116,6 @@ namespace SoSmooth.Scenes
             get { return Transform.WorldToLocalMatrix; }
         }
         
-        public IUniformBuffer DataBuffer
-        {
-            get { return m_dataBuffer; }
-        }
-
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -160,9 +158,13 @@ namespace SoSmooth.Scenes
             resX = m_resolutionX;
             resY = m_resolutionY;
         }
-
-        public void PrepareRender()
+        
+        /// <summary>
+        /// Renders this camera.
+        /// </summary>
+        public void Render()
         {
+            // set up the camera data buffer fo the render
             if (m_dataBuffer == null)
             {
                 m_dataBuffer = new UniformBuffer<CameraData>();
@@ -170,6 +172,38 @@ namespace SoSmooth.Scenes
 
             m_dataBuffer.Value = new CameraData(ViewMatrix, ProjectionMatrix);
             m_dataBuffer.BufferData();
+            
+            // setup the lighting data buffer for the render
+            if (m_lightBuffer == null)
+            {
+                m_lightBuffer = new UniformBuffer<LightData>();
+            }
+
+            m_lightBuffer.Value = Entity.Scene.GetLightData();
+            m_lightBuffer.BufferData();
+
+            // clear the render target
+            GL.ClearColor(m_clearColor);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            
+            // do culling on all renderable components
+            List<Renderable> toRender = new List<Renderable>();
+            foreach (Renderable renderable in Entity.Scene.GetRenderables())
+            {
+                if (!renderable.IsCulled(this))
+                {
+                    toRender.Add(renderable);
+                }
+            }
+
+            // sort the rendered components to minimize state changes
+            toRender.Sort();
+
+            // rendering all active components
+            foreach (Renderable renderable in toRender)
+            {
+                renderable.Render(this);
+            }
         }
     }
 }

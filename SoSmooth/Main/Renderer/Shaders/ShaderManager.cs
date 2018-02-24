@@ -2,13 +2,16 @@
 using System.IO;
 using System.Reflection;
 using System.Linq;
+using System.Text;
 using SoSmooth.Rendering;
 
 namespace SoSmooth
 {
     /// <summary>
     /// Loads shaders files embedded into the assembly. Shaders with the same file
-    /// name are automatically combined into a single program.
+    /// name are automatically combined into a single program. Files ending in .glinc
+    /// will be added to all shader programs, allowing for easily writing shared
+    /// functionality.
     /// </summary>
     public class ShaderManager : Singleton<ShaderManager>
     {
@@ -16,12 +19,13 @@ namespace SoSmooth
         private const string VERT_EXTENTION = "vert";
         private const string GEOM_EXTENTION = "geom";
         private const string FRAG_EXTENTION = "frag";
+        private const string INC_EXTENTION  = "glinc";
 
         private static readonly string[] SHADER_EXTENTIONS = new string[] 
         {
             VERT_EXTENTION,
             GEOM_EXTENTION,
-            FRAG_EXTENTION
+            FRAG_EXTENTION,
         };
 
         /// <summary>
@@ -45,11 +49,29 @@ namespace SoSmooth
                 Logger.Info("Loading shaders...");
 
                 Assembly assembly = Assembly.GetExecutingAssembly();
+                string[] resourceNames = assembly.GetManifestResourceNames();
                 
+                StringBuilder commonBuilder = new StringBuilder();
+
+                // get the common shader files
+                foreach (string path in resourceNames)
+                {
+                    string[] split = path.Split('.');
+                    if (split.Length >= 2)
+                    {
+                        if (split[split.Length - 1] == INC_EXTENTION)
+                        {
+                            commonBuilder.Append(LoadResource(assembly, path));
+                            commonBuilder.Append(System.Environment.NewLine);
+                        }
+                    }
+                }
+                string common = commonBuilder.ToString();
+
                 Dictionary<string, List<Shader>> nameToShaders = new Dictionary<string, List<Shader>>();
 
                 // look through the embedded resources for any shaders
-                foreach (string path in assembly.GetManifestResourceNames())
+                foreach (string path in resourceNames)
                 {
                     string[] split = path.Split('.');
 
@@ -72,9 +94,9 @@ namespace SoSmooth
 
                             switch (extention)
                             {
-                                case VERT_EXTENTION: shaders.Add(new VertexShader(code)); break;
-                                case GEOM_EXTENTION: shaders.Add(new GeometryShader(code)); break;
-                                case FRAG_EXTENTION: shaders.Add(new FragmentShader(code)); break;
+                                case VERT_EXTENTION: shaders.Add(new VertexShader(common + code)); break;
+                                case GEOM_EXTENTION: shaders.Add(new GeometryShader(common + code)); break;
+                                case FRAG_EXTENTION: shaders.Add(new FragmentShader(common + code)); break;
                             }
                         }
                     }
@@ -89,7 +111,7 @@ namespace SoSmooth
 
                     ShaderProgram program = new ShaderProgram(nameShaders.Value);
                     m_shaderPrograms.Add(nameShaders.Key, program);
-
+                    
                     // Unload the shaders since we are done with them
                     foreach (Shader shader in nameShaders.Value)
                     {

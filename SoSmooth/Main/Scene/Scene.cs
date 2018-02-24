@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
-using SoSmooth.Meshes;
+using OpenTK.Graphics;
+using SoSmooth.Rendering;
 
 namespace SoSmooth.Scenes
 {
@@ -10,92 +10,10 @@ namespace SoSmooth.Scenes
     /// </summary>
     public class Scene
     {
-        private List<Entity> m_rootEntities;
+        private List<Entity> m_rootEntities = new List<Entity>();
 
-        /// <summary>
-        /// The camera the scene will render with.
-        /// </summary>
-        public Camera ActiveCamera { get; set; }
-        
-        public Scene()
-        {
-            m_rootEntities = new List<Entity>();
-            
-            for (int i = 0; i < 100; i++)
-            {
-                Entity cube = new Entity(this, "Cube");
+        public Color4 AmbientLight = new Color4(0.05f, 0.05f, 0.05f, 1);
 
-                cube.Transform.LocalPosition = Random.GetVector3(25);
-                cube.Transform.LocalRotation = Random.GetRotation();
-                cube.Transform.LocalScale = Random.GetVector3(1);
-
-                MeshRenderer camChildRenderer = new MeshRenderer(cube);
-                camChildRenderer.Mesh = MeshBuilder.CreateCube();
-                camChildRenderer.ShaderProgram = ShaderManager.SHADER_LIT;
-            }
-
-            Mesh mesh = MeshBuilder.CreateAxes();
-
-            Entity entity1 = new Entity(this, "Axis1");
-            MeshRenderer renderer = new MeshRenderer(entity1);
-            renderer.Mesh = mesh;
-            renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
-
-            Entity entity2 = new Entity(this, "Axis2");
-            entity2.Transform.Parent = entity1.Transform;
-            entity2.Transform.LocalPosition = new Vector3(-1, 1, 1);
-            MeshRenderer renderer2 = new MeshRenderer(entity2);
-            renderer2.Mesh = mesh;
-            renderer2.ShaderProgram = ShaderManager.SHADER_UNLIT;
-        }
-        
-        /// <summary>
-        /// Renders the scene.
-        /// </summary>
-        /// <param name="resX">The framebuffer horizontal resolution.</param>
-        /// <param name="resY">The framebuffer vertical resolution.</param>
-        /// <returns>True if there is a camera that was able to render the scene.</returns>
-        public bool Render(int resX, int resY)
-        {
-            if (ActiveCamera != null)
-            {
-                GL.ClearColor(ActiveCamera.ClearColor);
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-                ActiveCamera.SetResolution(resX, resY);
-                ActiveCamera.PrepareRender();
-
-                // get all renderable components in the scene
-                List<Renderable> renderables = new List<Renderable>();
-                foreach (Entity entity in m_rootEntities)
-                {
-                    entity.GetComponentsInChildren(renderables);
-                }
-
-                // do culling on the components
-                List<Renderable> toRender = new List<Renderable>();
-                foreach (Renderable renderable in renderables)
-                {
-                    if (!renderable.IsCulled(ActiveCamera))
-                    {
-                        toRender.Add(renderable);
-                    }
-                }
-
-                // sort the rendered components to minimize state changes
-                toRender.Sort();
-
-                // rendering of all components
-                foreach (Renderable renderable in toRender)
-                {
-                    renderable.Render(ActiveCamera);
-                }
-
-                return true;
-            }
-            return false;
-        }
-        
         /// <summary>
         /// Finds all entities in this scene with a specific name.
         /// </summary>
@@ -114,6 +32,52 @@ namespace SoSmooth.Scenes
                 });
             }
             return entities;
+        }
+
+        /// <summary>
+        /// Finds all renderable components in the scene.
+        /// </summary>
+        /// <returns>A new list containing all renderable components.</returns>
+        public List<Renderable> GetRenderables()
+        {
+            List<Renderable> renderables = new List<Renderable>();
+            foreach (Entity entity in m_rootEntities)
+            {
+                entity.GetComponentsInChildren(renderables);
+            }
+            return renderables;
+        }
+
+        /// <summary>
+        /// Gets the lighting data for the scene.
+        /// </summary>
+        /// <returns>The light data for the scene.</returns>
+        public LightData GetLightData()
+        {
+            List<DirectionalLight> lights = new List<DirectionalLight>();
+            foreach (Entity entity in m_rootEntities)
+            {
+                entity.GetComponentsInChildren(lights);
+            }
+
+            lights.Sort();
+
+            return new LightData
+            {
+                AmbientColor = AmbientLight,
+
+                Direction0 = (lights.Count > 0) ? lights[0].Transform.Forward : Vector3.Zero,
+                Direction1 = (lights.Count > 1) ? lights[1].Transform.Forward : Vector3.Zero,
+                Direction2 = (lights.Count > 2) ? lights[2].Transform.Forward : Vector3.Zero,
+
+                DiffColor0 = (lights.Count > 0) ? lights[0].MainColor : Color4.Black,
+                DiffColor1 = (lights.Count > 1) ? lights[1].MainColor : Color4.Black,
+                DiffColor2 = (lights.Count > 2) ? lights[2].MainColor : Color4.Black,
+
+                SpecColor0 = (lights.Count > 0) ? lights[0].SpecularColor : Color4.Black,
+                SpecColor1 = (lights.Count > 1) ? lights[1].SpecularColor : Color4.Black,
+                SpecColor2 = (lights.Count > 2) ? lights[2].SpecularColor : Color4.Black,
+            };
         }
 
         /// <summary>

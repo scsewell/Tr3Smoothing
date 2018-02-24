@@ -19,9 +19,10 @@ namespace SoSmooth
         private const int OPENGL_VERSION_MINOR  = 3;
 
         private const int DEPTH_BUFFER_SIZE     = 24;
-        private const int AA_SAMPLES            = 4;
+        private const int AA_SAMPLES            = 8;
         
         private Scene m_scene;
+        private SceneCamera m_sceneCamera;
         private bool m_viewportDirty;
         private Stopwatch m_stopwatch;
         private float m_avgRenterTime;
@@ -40,16 +41,16 @@ namespace SoSmooth
         public Scene Scene
         {
             get { return m_scene; }
-            set { m_scene = value; }
+            set
+            {
+                if (m_scene != value)
+                {
+                    m_scene = value;
+                    m_sceneCamera.Camera.Transform.Root.Entity.Scene = value;
+                }
+            }
         }
 
-        public delegate void SceneUpdateHandler();
-
-        /// <summary>
-        /// Event triggered prior to scene rendering.
-        /// </summary>
-        public event SceneUpdateHandler SceneUpdate;
-        
         /// <summary>
         /// Initializes a new instance of the <see cref="SceneWindow"/> class.
         /// </summary>
@@ -74,7 +75,7 @@ namespace SoSmooth
             int glVersionMajor,
             int glVersionMinor,
             GraphicsContextFlags contextFlags
-            )  : base(graphicsMode, glVersionMajor, glVersionMinor, contextFlags)
+            ) : base(graphicsMode, glVersionMajor, glVersionMinor, contextFlags)
         {
             Name = "SceneWindow";
             CanFocus = true;
@@ -90,8 +91,11 @@ namespace SoSmooth
                 EventMask.Button2MotionMask |
                 EventMask.ScrollMask
             ));
-            
-            m_stopwatch = new Stopwatch();
+
+            KeyPressEvent += OnKeyPress;
+            ButtonPressEvent += OnButtonPress;
+            MotionNotifyEvent += OnMotion;
+            ScrollEvent += OnScroll;
         }
 
         /// <summary>
@@ -126,9 +130,10 @@ namespace SoSmooth
             GL.Enable(EnableCap.ScissorTest);
 
             m_viewportDirty = true;
-
+            
             m_scene = new Scene();
-            new SceneCamera(this);
+            m_sceneCamera = new SceneCamera(Scene);
+            m_stopwatch = new Stopwatch();
         }
 
         /// <summary>
@@ -145,39 +150,34 @@ namespace SoSmooth
         /// </summary>
         protected override void OnRenderFrame()
         {
-            // notify a scene update
-            if (SceneUpdate != null)
+            List<Entity> roots = Scene.FindEntities("Root");
+            Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
+            //root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
+
+            List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
+            foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
             {
-                List<Entity> roots = Scene.FindEntities("Root");
-                Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
-                root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
+                mesh.UseColors = Time.time % 2 < 1;
+                //mesh.UseColors = true;
 
-                List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
-                foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
+                bool foundMesh = false;
+                foreach (MeshRenderer renderer in renderers)
                 {
-                    mesh.UseColors = Time.time % 2 < 1;
-
-                    bool foundMesh = false;
-                    foreach (MeshRenderer renderer in renderers)
+                    if (renderer.Mesh == mesh)
                     {
-                        if (renderer.Mesh == mesh)
-                        {
-                            foundMesh = true;
-                            break;
-                        }
-                    }
-                    if (!foundMesh)
-                    {
-                        MeshRenderer r = new MeshRenderer(root);
-                        r.Mesh = mesh;
-                        r.ShaderProgram = ShaderManager.SHADER_LIT;
-                        r.BackFaceMode = PolygonMode.Line;
+                        foundMesh = true;
+                        break;
                     }
                 }
-
-                SceneUpdate();
+                if (!foundMesh)
+                {
+                    MeshRenderer r = new MeshRenderer(root);
+                    r.Mesh = mesh;
+                    r.ShaderProgram = ShaderManager.SHADER_LIT;
+                    r.BackFaceMode = PolygonMode.Line;
+                }
             }
-
+            
             m_stopwatch.Restart();
 
             // resize the view if it has been changed
@@ -185,15 +185,11 @@ namespace SoSmooth
             {
                 GL.Viewport(0, 0, Allocation.Width, Allocation.Height);
                 GL.Scissor(0, 0, Allocation.Width, Allocation.Height);
+                m_sceneCamera.Camera.SetResolution(Allocation.Width, Allocation.Height);
                 m_viewportDirty = false;
             }
-            
-            if (m_scene == null || !m_scene.Render(Allocation.Width, Allocation.Height))
-            {
-                // if there was no valid camera that rendered the scene, clear to black
-                GL.ClearColor(Color4.Black);
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            }
+
+            m_sceneCamera.RenderScene();
 
             m_stopwatch.Stop();
             m_avgRenterTime = Utils.Lerp(m_avgRenterTime, (float)m_stopwatch.ElapsedTicks / Stopwatch.Frequency, 0.1f);
@@ -204,6 +200,26 @@ namespace SoSmooth
             {
                 Logger.Error("OpenGL Error: " + error);
             }
+        }
+
+        private void OnKeyPress(object o, Gtk.KeyPressEventArgs args)
+        {
+            m_sceneCamera.OnKeyPress(args);
+        }
+
+        private void OnButtonPress(object o, ButtonPressEventArgs args)
+        {
+            m_sceneCamera.OnButtonPress(args);
+        }
+
+        private void OnScroll(object o, ScrollEventArgs args)
+        {
+            m_sceneCamera.OnScroll(args);
+        }
+
+        private void OnMotion(object o, MotionNotifyEventArgs args)
+        {
+            m_sceneCamera.OnMotion(args);
         }
     }
 }

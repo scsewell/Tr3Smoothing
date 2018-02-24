@@ -15,7 +15,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         private static readonly Dictionary<string, int> m_blockDataToBindingPoint = new Dictionary<string, int>()
         {
-            { typeof(CameraData).Name, 0 }
+            { typeof(CameraData).Name, 0 },
+            { typeof(LightData).Name, 1 },
         };
 
         /// <summary>
