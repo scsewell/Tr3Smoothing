@@ -1,3 +1,4 @@
+using System;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
@@ -33,6 +34,8 @@ namespace SoSmooth.Rendering
         /// <param name="vertexBuffer">A vertex buffer object to bind to this object.</param>
         public void SetVertexBuffer(IVertexBuffer vertexBuffer)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (m_vertexBuffer != vertexBuffer)
             {
                 m_vertexBuffer = vertexBuffer;
@@ -46,6 +49,8 @@ namespace SoSmooth.Rendering
         /// <param name="indexBuffer">An index buffer object to bind to this object.</param>
         public void SetIndexBuffer(IIndexBuffer indexBuffer)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (m_indexBuffer != indexBuffer)
             {
                 m_indexBuffer = indexBuffer;
@@ -59,6 +64,8 @@ namespace SoSmooth.Rendering
         /// <param name="program">A shader program.</param>
         public void SetShaderProgram(ShaderProgram program)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             m_program = program;
             m_dirty = true;
         }
@@ -68,6 +75,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Bind()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             UpdateArray();
             GL.BindVertexArray(this);
         }
@@ -77,6 +86,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Unbind()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             GL.BindVertexArray(0);
         }
 
@@ -126,12 +137,14 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Cleanup unmanaged resources.
         /// </summary>
-        protected override void OnDispose()
+        protected override void OnDispose(bool disposing)
         {
             if (m_vertexArrayGenerated)
             {
                 GL.DeleteVertexArray(this);
             }
+
+            base.OnDispose(disposing);
         }
     }
 }

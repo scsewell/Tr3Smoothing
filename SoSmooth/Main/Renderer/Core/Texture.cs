@@ -136,6 +136,8 @@ namespace SoSmooth.Rendering
         /// <param name="height">The new height.</param>
         public void Resize(int width, int height)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             Width = width;
             Height = height;
 
@@ -157,6 +159,8 @@ namespace SoSmooth.Rendering
             TextureWrapMode wrapS,
             TextureWrapMode wrapT)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             GL.BindTexture(TextureTarget.Texture2D, this);
             SetParametersBound(minFilter, magFilter, wrapS, wrapT);
             GL.BindTexture(TextureTarget.Texture2D, 0);
@@ -184,9 +188,11 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Cleanup unmanaged resources.
         /// </summary>
-        protected override void OnDispose()
+        protected override void OnDispose(bool disposing)
         {
             GL.DeleteTexture(this);
+
+            base.OnDispose(disposing);
         }
     }
 }

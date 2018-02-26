@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.Graphics;
 
 namespace SoSmooth
 {
@@ -25,14 +26,6 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Gets a random rotation.
-        /// </summary>
-        public static Quaternion GetRotation()
-        {
-            return Quaternion.FromAxisAngle(GetVector3().Normalized(), Value * MathHelper.TwoPi);
-        }
-
-        /// <summary>
         /// Gets a random vector.
         /// </summary>
         /// <param name="maxMagnitude">The maximum length of the vector.</param>
@@ -53,6 +46,22 @@ namespace SoSmooth
             }
             while (random.LengthSquared > 1);
             return random;
+        }
+
+        /// <summary>
+        /// Gets a random rotation.
+        /// </summary>
+        public static Quaternion GetRotation()
+        {
+            return Quaternion.FromAxisAngle(GetVector3().Normalized(), Value * MathHelper.TwoPi);
+        }
+
+        /// <summary>
+        /// Gets a random color.
+        /// </summary>
+        public static Color4 GetColor()
+        {
+            return new Color4(Value, Value, Value, 1.0f);
         }
     }
 }

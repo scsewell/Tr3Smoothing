@@ -75,6 +75,7 @@ namespace SoSmooth.Scenes
                     m_localPosition = value;
                     MarkClean(DirtyFlag.LocalPos);
                     MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
+                    Moved?.Invoke();
                 }
             }
         }
@@ -99,6 +100,7 @@ namespace SoSmooth.Scenes
                     m_localRotation = value;
                     MarkClean(DirtyFlag.LocalRot);
                     MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat | DirtyFlag.Directions);
+                    Moved?.Invoke();
                 }
             }
         }
@@ -123,6 +125,7 @@ namespace SoSmooth.Scenes
                     m_localScale = value;
                     MarkClean(DirtyFlag.LocalScl);
                     MarkDirty(DirtyFlag.World | DirtyFlag.LtPMat);
+                    Moved?.Invoke();
                 }
             }
         }
@@ -156,7 +159,8 @@ namespace SoSmooth.Scenes
                     ChildrenCacheLocal();
                     m_localToWorldMatrix = value;
                     MarkClean(DirtyFlag.LtWMat);
-                    MarkDirty(DirtyFlag.All);
+                    MarkDirty(DirtyFlag.WtLMat | DirtyFlag.Directions | DirtyFlag.LtPMat | DirtyFlag.LocalScalars);
+                    Moved?.Invoke();
                 }
             }
         }
@@ -178,7 +182,8 @@ namespace SoSmooth.Scenes
                     ChildrenCacheLocal();
                     m_worldToLocalMatrix = value;
                     MarkClean(DirtyFlag.WtLMat);
-                    MarkDirty(DirtyFlag.All);
+                    MarkDirty(DirtyFlag.LtWMat | DirtyFlag.Directions | DirtyFlag.LtPMat | DirtyFlag.LocalScalars);
+                    Moved?.Invoke();
                 }
             }
         }
@@ -231,6 +236,11 @@ namespace SoSmooth.Scenes
             }
         }
 
+        /// <summary>
+        /// Event that is triggered when the transform has been moved.
+        /// </summary>
+        public event Action Moved;
+
         private Transform m_parent;
 
         public delegate void ParentChangedHandler(Transform oldParent, Transform newParent);
@@ -266,10 +276,7 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The children of this transform.
         /// </summary>
-        public IReadOnlyList<Transform> Children
-        {
-            get { return m_children; }
-        }
+        public IReadOnlyList<Transform> Children => m_children;
         
         /// <summary>
         /// Constructor.
@@ -327,6 +334,7 @@ namespace SoSmooth.Scenes
                 {
                     RefreshLocalToParent();
                     MarkDirty(DirtyFlag.World | DirtyFlag.Directions);
+                    Moved?.Invoke();
                 }
 
                 m_parent = newParent;
@@ -465,12 +473,13 @@ namespace SoSmooth.Scenes
             {
                 Logger.Error($"Transform on entity \"{Entity}\" has entered an unrecoverable dirty state: {m_dirtyFlags}");
             }
-
-            if (IsAllDirty(DirtyFlag.World) || IsAnyDirty(DirtyFlag.Directions))
+            
+            if (IsAnyDirty(DirtyFlag.World | DirtyFlag.Directions))
             {
                 foreach (Transform child in m_children)
                 {
                     child.MarkDirty(DirtyFlag.World | DirtyFlag.Directions);
+                    child.Moved?.Invoke();
                 }
             }
         }

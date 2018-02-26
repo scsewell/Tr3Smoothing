@@ -1,18 +1,24 @@
-﻿namespace SoSmooth.Scenes
+﻿using System;
+
+namespace SoSmooth.Scenes
 {
     /// <summary>
     /// Represents a component that can be added to an entity.
     /// </summary>
-    public abstract class Component
+    public abstract class Component : Disposable
     {
-        private readonly Entity m_entity;
+        private Entity m_entity;
 
         /// <summary>
         /// The entity this component is attached to.
         /// </summary>
         public Entity Entity
         {
-            get { return m_entity; }
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_entity;
+            }
         }
 
         /// <summary>
@@ -20,7 +26,11 @@
         /// </summary>
         public Transform Transform
         {
-            get { return m_entity.Transform; }
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_entity.Transform;
+            }
         }
 
         /// <summary>
@@ -39,6 +49,15 @@
         public override string ToString()
         {
             return "(" + GetType().Name + ") " + m_entity.Name;
+        }
+
+        /// <summary>
+        /// Disposes this component and frees held resources
+        /// </summary>
+        /// <param name="entity">True if managed resources should be cleaned up.</param>
+        protected override void OnDispose(bool disposing)
+        {
+            m_entity = null;
         }
     }
 }

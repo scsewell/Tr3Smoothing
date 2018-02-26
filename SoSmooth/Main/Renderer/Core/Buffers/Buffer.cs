@@ -47,14 +47,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Bind()
         {
-            if (!Disposed)
-            {
-                GL.BindBuffer(m_target, this);
-            }
-            else
-            {
-                Logger.Error($"Attepted to bind disposed buffer: " + this);
-            }
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            GL.BindBuffer(m_target, this);
         }
 
         /// <summary>
@@ -62,14 +56,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Unbind()
         {
-            if (!Disposed)
-            {
-                GL.BindBuffer(m_target, 0);
-            }
-            else
-            {
-                Logger.Error($"Attepted to unbind disposed buffer: " + this);
-            }
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            GL.BindBuffer(m_target, 0);
         }
 
         /// <summary>
@@ -78,31 +66,26 @@ namespace SoSmooth.Rendering
         /// <param name="usageHint">The usage hint.</param>
         public void BufferData(BufferUsageHint usageHint = BufferUsageHint.DynamicDraw)
         {
-            if (!Disposed)
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
+            if (m_dirty)
             {
-                if (m_dirty)
+                GL.BindBuffer(m_target, this);
+
+                // If the allocated buffer on the GPU is large enough, don't reallocate
+                int requiredSize = m_elementSize * m_count;
+                if (m_capacity >= requiredSize)
                 {
-                    GL.BindBuffer(m_target, this);
-
-                    // If the allocated buffer on the GPU is large enough, don't reallocate
-                    int requiredSize = m_elementSize * m_count;
-                    if (m_capacity >= requiredSize)
-                    {
-                        GL.BufferSubData(m_target, (IntPtr)0, requiredSize, m_buffer);
-                    }
-                    else
-                    {
-                        GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
-                        m_capacity = requiredSize;
-                    }
-                    m_dirty = false;
-
-                    GL.BindBuffer(m_target, 0);
+                    GL.BufferSubData(m_target, (IntPtr)0, requiredSize, m_buffer);
                 }
-            }
-            else
-            {
-                Logger.Error($"Attepted to buffer data from disposed buffer: " + ToString());
+                else
+                {
+                    GL.BufferData(m_target, requiredSize, m_buffer, usageHint);
+                    m_capacity = requiredSize;
+                }
+                m_dirty = false;
+
+                GL.BindBuffer(m_target, 0);
             }
         }
 
@@ -111,15 +94,18 @@ namespace SoSmooth.Rendering
         /// </summary>
         public override string ToString()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             return $"{{{GetType().Name}<{typeof(TData).Name}> Handle:{m_handle} ElementSize:{m_elementSize} Count:{m_count}}}";
         }
 
         /// <summary>
         /// Cleanup unmanaged resources.
         /// </summary>
-        protected override void OnDispose()
+        protected override void OnDispose(bool disposing)
         {
             GL.DeleteBuffer(this);
+            base.OnDispose(disposing);
         }
     }
 }

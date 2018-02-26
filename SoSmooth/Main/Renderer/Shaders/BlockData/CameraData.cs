@@ -10,11 +10,11 @@ namespace SoSmooth.Rendering
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct CameraData : IEquatable<CameraData>
     {
-        private Matrix4 m_viewMat;
-        private Matrix4 m_viewInvMat;
-        private Matrix4 m_projMat;
-        private Matrix4 m_viewProjMat;
-        private Vector3 m_worldPos;
+        public readonly Matrix4 ViewMat;
+        public readonly Matrix4 ViewInvMat;
+        public readonly Matrix4 ProjMat;
+        public readonly Matrix4 ViewProjMat;
+        public readonly Vector3 WorldPos;
 
         /// <summary>
         /// Constructs a new <see cref="CameraData"/> instance.
@@ -23,15 +23,15 @@ namespace SoSmooth.Rendering
         /// <param name="projMat">The camera's projection matrix.</param>
         public CameraData(Matrix4 viewMat, Matrix4 projMat)
         {
-            m_viewMat = viewMat;
-            m_projMat = projMat;
+            ViewMat = viewMat;
+            ProjMat = projMat;
 
             // store commonly used transformations of the matrices
-            m_viewInvMat = m_viewMat.Inverted();
-            m_viewProjMat = m_viewMat * m_projMat;
+            ViewInvMat = ViewMat.Inverted();
+            ViewProjMat = ViewMat * ProjMat;
 
             // store the camera's world space position
-            m_worldPos = m_viewInvMat.Row3.Xyz;
+            WorldPos = ViewInvMat.Row3.Xyz;
         }
 
         /// <summary>
@@ -42,8 +42,8 @@ namespace SoSmooth.Rendering
         public bool Equals(CameraData other)
         {
             return 
-                m_viewMat == other.m_viewMat &&
-                m_projMat == other.m_projMat;
+                ViewMat == other.ViewMat &&
+                ProjMat == other.ProjMat;
         }
     }
 }

@@ -68,6 +68,8 @@ namespace SoSmooth.Rendering
         /// <param name="vertexAttributes">The vertex attributes to set.</param>
         public void SetVertexAttributes(VertexAttribute[] vertexAttributes)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             foreach (VertexAttribute attribute in vertexAttributes)
             {
                 attribute.SetAttribute(this);
@@ -81,6 +83,8 @@ namespace SoSmooth.Rendering
         /// <returns>The attribute's location, or -1 if not found.</returns>
         public int GetAttributeLocation(string name)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             int i;
             if (!m_attributeLocations.TryGetValue(name, out i))
             {
@@ -97,6 +101,8 @@ namespace SoSmooth.Rendering
         /// <returns>The uniform's location, or -1 if not found.</returns>
         public int GetUniformLocation(string name)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             int i;
             if (!m_uniformLocations.TryGetValue(name, out i))
             {
@@ -109,9 +115,11 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Cleanup unmanaged resources.
         /// </summary>
-        protected override void OnDispose()
+        protected override void OnDispose(bool disposing)
         {
             GL.DeleteProgram(this);
+
+            base.OnDispose(disposing);
         }
     }
 }

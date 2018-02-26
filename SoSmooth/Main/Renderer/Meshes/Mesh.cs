@@ -9,7 +9,7 @@ namespace SoSmooth.Meshes
     /// vertex buffer object and index buffer that represent the mesh on
     /// the GPU.
     /// </summary>
-    public sealed class Mesh : IDisposable
+    public sealed class Mesh : Disposable
     {
         private string m_name;
 
@@ -19,6 +19,8 @@ namespace SoSmooth.Meshes
         private Vertex[] m_vertices;
         private Triangle[] m_triangles;
         
+        private Bounds m_bounds;
+
         private IVertexBuffer m_vertexBuffer;
         private bool m_vertexBufferDirty;
 
@@ -28,8 +30,15 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// The name of this mesh.
         /// </summary>
-        public string Name => m_name;
-        
+        public string Name
+        {
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_name;
+            }
+        }
+
         /// <summary>
         /// The vertices of the mesh. The getter returns a copy of the
         /// actual array, so the setter must be used to update the 
@@ -37,16 +46,21 @@ namespace SoSmooth.Meshes
         /// </summary>
         public Vertex[] Vertices
         {
-            get { return m_vertices.Clone() as Vertex[]; }
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_vertices.Clone() as Vertex[];
+            }
             set
             {
-                Vertex[] vertices = value;
-                if (m_vertices.Length != vertices.Length)
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                if (m_vertices.Length != value.Length)
                 {
-                    Array.Resize(ref m_vertices, vertices.Length);
+                    Array.Resize(ref m_vertices, value.Length);
                 }
-                Array.Copy(vertices, m_vertices, vertices.Length);
+                Array.Copy(value, m_vertices, value.Length);
                 m_vertexBufferDirty = true;
+                RecalculateBounds();
             }
         }
 
@@ -57,16 +71,32 @@ namespace SoSmooth.Meshes
         /// </summary>
         public Triangle[] Triangles
         {
-            get { return m_triangles.Clone() as Triangle[]; }
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_triangles.Clone() as Triangle[];
+            }
             set
             {
-                Triangle[] triangles = value;
-                if (m_triangles.Length != triangles.Length)
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                if (m_triangles.Length != value.Length)
                 {
-                    Array.Resize(ref m_triangles, triangles.Length);
+                    Array.Resize(ref m_triangles, value.Length);
                 }
-                Array.Copy(triangles, m_triangles, triangles.Length);
+                Array.Copy(value, m_triangles, value.Length);
                 m_indexBufferDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// The bounding box of the mesh.
+        /// </summary>
+        public Bounds BoundingBox
+        {
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_bounds;
             }
         }
 
@@ -109,6 +139,8 @@ namespace SoSmooth.Meshes
         {
             get
             {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
                 if (m_vertexBufferDirty)
                 {
                     // Update the buffer with vertices only containing used attributes
@@ -140,6 +172,8 @@ namespace SoSmooth.Meshes
         {
             get
             {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
                 if (m_indexBufferDirty)
                 {
                     UpdateIndices();
@@ -167,12 +201,14 @@ namespace SoSmooth.Meshes
 
             m_vertices = vertices;
             m_triangles = triangles;
-
+            
             m_useNormals = useNormals;
             m_useColors = useColors;
 
             m_vertexBufferDirty = true;
             m_indexBufferDirty = true;
+
+            RecalculateBounds();
         }
 
         /// <summary>
@@ -183,11 +219,10 @@ namespace SoSmooth.Meshes
         {
             m_name = mesh.Name;
 
-            m_vertices = new Vertex[mesh.m_vertices.Length];
-            m_triangles = new Triangle[mesh.m_triangles.Length];
+            m_vertices = mesh.m_vertices.Clone() as Vertex[];
+            m_triangles = mesh.m_triangles.Clone() as Triangle[];
 
-            mesh.m_vertices.CopyTo(m_vertices, 0);
-            mesh.m_triangles.CopyTo(m_triangles, 0);
+            m_bounds = mesh.m_bounds;
 
             m_useNormals = mesh.m_useNormals;
             m_useColors = mesh.m_useColors;
@@ -201,6 +236,8 @@ namespace SoSmooth.Meshes
         /// </summary>
         public void RecalculateNormals()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             // clear the existing vertex normals
             for (int i = 0; i < m_vertices.Length; i++)
             {
@@ -228,6 +265,30 @@ namespace SoSmooth.Meshes
             }
 
             m_vertexBufferDirty = true;
+        }
+
+        /// <summary>
+        /// Computes the axis-aligned bounding box of the mesh.
+        /// </summary>
+        private void RecalculateBounds()
+        {
+            Vector3 min = new Vector3(float.MaxValue);
+            Vector3 max = new Vector3(float.MinValue);
+            
+            for (int i = 0; i < m_vertices.Length; i++)
+            {
+                Vector3 pos = m_vertices[i].position;
+
+                if (pos.X < min.X) { min.X = pos.X; }
+                if (pos.Y < min.Y) { min.Y = pos.Y; }
+                if (pos.Z < min.Z) { min.Z = pos.Z; }
+
+                if (pos.X > max.X) { max.X = pos.X; }
+                if (pos.Y > max.Y) { max.Y = pos.Y; }
+                if (pos.Z > max.Z) { max.Z = pos.Z; }
+            }
+
+            m_bounds = Bounds.FromCorners(min, max);
         }
 
         /// <summary>
@@ -348,30 +409,15 @@ namespace SoSmooth.Meshes
         /// </summary>
         public override string ToString()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             return $"{{name:\"{m_name}\" verts:{m_vertices.Length} tris:{m_triangles.Length}}}";
         }
-
-        /// <summary>
-        /// Deletes all unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Finalizer.
-        /// </summary>
-        ~Mesh()
-        {
-            Dispose(false);
-        }
-
+        
         /// <summary>
         /// Cleanup of unmanaged resources.
         /// </summary>
-        private void Dispose(bool disposing)
+        protected override void OnDispose(bool disposing)
         {
             if (m_vertexBuffer != null)
             {

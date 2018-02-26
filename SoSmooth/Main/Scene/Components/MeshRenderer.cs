@@ -1,5 +1,6 @@
 ﻿using SoSmooth.Rendering;
 using SoSmooth.Meshes;
+using SoSmooth.Rendering.Vertices;
 
 namespace SoSmooth.Scenes
 {
@@ -29,6 +30,9 @@ namespace SoSmooth.Scenes
             Surface.AddSetting(m_modelMatUniform);
         }
 
+        VertexSurface surf;
+        VertexBuffer<VertexP> vertexBuffer;
+
         /// <summary>
         /// Checks if this component is culled.
         /// </summary>
@@ -39,7 +43,52 @@ namespace SoSmooth.Scenes
             {
                 return true;
             }
-            return false;
+
+            Bounds bounds = m_mesh.BoundingBox.Transformed(Transform.LocalToWorldMatix);
+
+            camera.FrustumPlanes.GetType();
+
+            if (vertexBuffer == null)
+            {
+                vertexBuffer = new VertexBuffer<VertexP>();
+
+                surf = new VertexSurface();
+                surf.AddSetting(m_modelMatUniform);
+                surf.SetVertexBuffer(vertexBuffer, OpenTK.Graphics.OpenGL.PrimitiveType.Lines);
+                ShaderProgram program;
+                ShaderManager.Instance.GetProgram(ShaderManager.SHADER_UNLIT, out program);
+                surf.SetShaderProgram(program);
+            }
+
+            vertexBuffer.Clear();
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[0]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[4]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[1]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[5]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[2]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[6]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[3]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[7]));
+            
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[0]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[1]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[1]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[3]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[3]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[2]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[2]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[0]));
+
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[4]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[5]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[5]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[7]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[7]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[6]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[6]));
+            vertexBuffer.AddElement(new VertexP(bounds.Corners[4]));
+            vertexBuffer.BufferData();
+            return !bounds.InFrustum(camera.FrustumPlanes);
         }
         
         /// <summary>
@@ -58,6 +107,9 @@ namespace SoSmooth.Scenes
                 m_modelMatUniform.Value = Entity.Transform.LocalToWorldMatix;
                 
                 surface.Render();
+
+                m_modelMatUniform.Value = OpenTK.Matrix4.Identity;
+                surf.Render();
             }
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 
@@ -8,19 +9,19 @@ namespace SoSmooth.Rendering
     /// itself to the screen using a shader program and can have a number of settings 
     /// to modify the drawing behaviour.
     /// </summary>
-    public abstract class Surface
+    public abstract class Surface : Disposable
     {
         /// <summary>
         /// The program currently set in the context.
         /// </summary>
         private static ShaderProgram m_currentProgram = null;
 
+        private readonly List<SurfaceSetting> m_settings = new List<SurfaceSetting>();
+
         /// <summary>
         /// The shader program used to draw this surface.
         /// </summary>
         protected ShaderProgram Program { get; private set; }
-
-        private readonly List<SurfaceSetting> m_settings = new List<SurfaceSetting>();
         
         /// <summary>
         /// Sets the shader program used to render this surface.
@@ -28,6 +29,8 @@ namespace SoSmooth.Rendering
         /// <param name="program">The program.</param>
         public void SetShaderProgram(ShaderProgram program)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (Program != program)
             {
                 Program = program;
@@ -46,6 +49,8 @@ namespace SoSmooth.Rendering
         /// <param name="settings">The settings.</param>
         public void AddSettings(IEnumerable<SurfaceSetting> settings)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             foreach (SurfaceSetting setting in settings)
             {
                 AddSetting(setting);
@@ -58,6 +63,8 @@ namespace SoSmooth.Rendering
         /// <param name="settings">The settings.</param>
         public void AddSettings(params SurfaceSetting[] settings)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             foreach (SurfaceSetting setting in settings)
             {
                 AddSetting(setting);
@@ -70,6 +77,8 @@ namespace SoSmooth.Rendering
         /// <param name="setting">The setting.</param>
         public void AddSetting(SurfaceSetting setting)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             m_settings.Add(setting);
         }
 
@@ -79,6 +88,8 @@ namespace SoSmooth.Rendering
         /// <param name="setting">The setting.</param>
         public void RemoveSetting(SurfaceSetting setting)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             m_settings.Remove(setting);
         }
 
@@ -87,6 +98,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void ClearSettings()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             m_settings.Clear();
         }
 
@@ -97,6 +110,8 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Render()
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             // only set the program if it is different from what was last used
             if (m_currentProgram != Program)
             {

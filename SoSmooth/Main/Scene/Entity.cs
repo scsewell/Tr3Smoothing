@@ -6,39 +6,47 @@ namespace SoSmooth.Scenes
     /// <summary>
     /// Represents an object that can exist in the scene.
     /// </summary>
-    public class Entity
+    public class Entity : Disposable
     {
-        private Scene m_scene;
         private string m_name;
         private List<Component> m_components;
         private Transform m_transform;
-        
-        /// <summary>
-        /// The scene this entity belongs to.
-        /// </summary>
-        public Scene Scene
-        {
-            get { return m_scene; }
-            set
-            {
-                if (m_scene != value)
-                {
-                    SetScene(value);
-                }
-            }
-        }
+        private Scene m_scene;
 
         /// <summary>
         /// The name of this entity.
         /// </summary>
         public string Name
         {
-            get { return m_name; }
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_name;
+            }
             set
             {
                 if (m_name != value)
                 {
                     SetName(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The scene this entity belongs to.
+        /// </summary>
+        public Scene Scene
+        {
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_scene;
+            }
+            set
+            {
+                if (m_scene != value)
+                {
+                    SetScene(value);
                 }
             }
         }
@@ -48,7 +56,11 @@ namespace SoSmooth.Scenes
         /// </summary>
         public Transform Transform
         {
-            get { return m_transform; }
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_transform;
+            }
         }
 
         /// <summary>
@@ -73,6 +85,8 @@ namespace SoSmooth.Scenes
         /// <param name="scene">The new scene. Must not be null.</param>
         private void SetScene(Scene scene)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (scene == null)
             {
                 throw new ArgumentException("Entity scene must not be null.");
@@ -88,6 +102,8 @@ namespace SoSmooth.Scenes
         /// <param name="name">The name of the entity. Must be non-null and non-whitespace only.</param>
         private void SetName(string name)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (name == null)
             {
                 throw new ArgumentException("Entity name can't be null.");
@@ -106,6 +122,8 @@ namespace SoSmooth.Scenes
         /// <returns> The component intstance.</returns>
         public T AttachComponent<T>(T component) where T : Component
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (component == null)
             {
                 throw new ArgumentException("Can't attach a null component to entity: " + this);
@@ -130,6 +148,8 @@ namespace SoSmooth.Scenes
         /// <returns> The first instance or null if not found.</returns>
         public T GetComponent<T>() where T : Component
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             foreach (Component c in m_components)
             {
                 if (typeof(T).IsAssignableFrom(c.GetType()))
@@ -147,6 +167,8 @@ namespace SoSmooth.Scenes
         /// <returns> All instances or empty list if nothing found.</returns>
         public List<T> GetComponents<T>() where T : Component
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             List<T> components = new List<T>();
             GetComponents(components);
             return components;
@@ -159,6 +181,8 @@ namespace SoSmooth.Scenes
         /// <param name="result">The list discovered components are appended to.</param>
         public void GetComponents<T>(List<T> result) where T : Component
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             foreach (Component c in m_components)
             {
                 if (typeof(T).IsAssignableFrom(c.GetType()))
@@ -176,6 +200,8 @@ namespace SoSmooth.Scenes
         /// <returns> All instances or empty list if nothing found.</returns>
         public List<T> GetComponentsInChildren<T>() where T : Component
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             List<T> components = new List<T>();
             GetComponentsInChildren(components);
             return components;
@@ -189,6 +215,8 @@ namespace SoSmooth.Scenes
         /// <param name="result">The list discovered components are appended to.</param>
         public void GetComponentsInChildren<T>(List<T> result) where T : Component
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             Traverse((entity) => entity.GetComponents(result));
         }
 
@@ -199,6 +227,8 @@ namespace SoSmooth.Scenes
         /// <param name="action">A function to perform on each entity.</param>
         public void Traverse(Action<Entity> action)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             action(this);
             foreach (Transform child in Transform.Children)
             {
@@ -215,10 +245,12 @@ namespace SoSmooth.Scenes
         {
             if (newParent != null)
             {
+                if (oldParent == null)
+                {
+                    m_scene.RemoveFromRoot(this);
+                }
                 // ensure that this entity and all children inherit the scene of the new parent
-                m_scene.RemoveFromRoot(this);
-                newParent.Entity.Scene.AddToRoot(this);
-                Traverse((entity) => entity.m_scene = newParent.Entity.Scene);
+                Traverse((entity) => entity.m_scene = newParent.Entity.m_scene);
             }
             else // if the parent was cleared add the entity to the root of the scene
             {
@@ -232,6 +264,38 @@ namespace SoSmooth.Scenes
         public override string ToString()
         {
             return Name;
+        }
+
+        /// <summary>
+        /// Removes this entity and its children.
+        /// Cleans up any resources held by these entities.
+        /// </summary>
+        protected override void OnDispose(bool disposing)
+        {
+            // remove from scene / parent
+            m_transform.Parent = null;
+            m_scene.RemoveFromRoot(this);
+
+            // recursively disposes all children
+            List<Transform> children = new List<Transform>(m_transform.Children);
+            foreach (Transform child in children)
+            {
+                if (!child.Disposed)
+                {
+                    child.Entity.Dispose();
+                }
+            }
+
+            // dispose all components
+            foreach (Component component in m_components)
+            {
+                component.Dispose();
+            }
+
+            m_name = null;
+            m_components = null;
+            m_transform = null;
+            m_scene = null;
         }
     }
 }

@@ -8,7 +8,7 @@ using SoSmooth.Rendering;
 namespace SoSmooth
 {
     /// <summary>
-    /// Loads shaders files embedded into the assembly. Shaders with the same file
+    /// Loads shader files embedded into the assembly. Shaders with the same file
     /// name are automatically combined into a single program. Files ending in .glinc
     /// will be added to all shader programs, allowing for easily writing shared
     /// functionality.

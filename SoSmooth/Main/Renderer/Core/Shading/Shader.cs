@@ -38,9 +38,11 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Cleanup unmanaged resources.
         /// </summary>
-        protected override void OnDispose()
+        protected override void OnDispose(bool disposing)
         {
             GL.DeleteShader(this);
+
+            base.OnDispose(disposing);
         }
     }
 }

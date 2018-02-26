@@ -12,7 +12,7 @@ namespace SoSmooth
         private static DateTime m_lastFrameEnd = DateTime.Now;
 
         /// <summary>
-        /// The total time in seconds up until the end of last frame.
+        /// The total time in seconds up until the end of last update loop.
         /// </summary>
         public static float time
         {
@@ -20,7 +20,7 @@ namespace SoSmooth
         }
         
         /// <summary>
-        /// The time it took to render the last frame to render.
+        /// The time in seconds since the main update loop last ran.
         /// </summary>
         public static float deltaTime
         {

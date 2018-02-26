@@ -1,4 +1,3 @@
-using System;
 using OpenTK.Graphics.OpenGL;
 
 namespace SoSmooth.Rendering
@@ -6,7 +5,7 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// This class represents a surface rendered using a vertex buffer object.
     /// </summary>
-    public abstract class VertexSurface : Surface, IDisposable
+    public class VertexSurface : Surface
     {
         /// <summary>
         /// The vertex array object.
@@ -14,7 +13,7 @@ namespace SoSmooth.Rendering
         protected VertexArray m_vertexArray; 
 
         private PrimitiveType m_primitiveType;
-        protected PrimitiveType PrimitiveType { get { return m_primitiveType; } }
+        protected PrimitiveType PrimitiveType => m_primitiveType;
         
         /// <summary>
         /// Constructs a new <see cref="VertexSurface"/>.
@@ -61,7 +60,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// Frees unmanaged resources.
         /// </summary>
-        public virtual void Dispose()
+        protected override void OnDispose(bool disposing)
         {
             if (m_vertexArray != null)
             {

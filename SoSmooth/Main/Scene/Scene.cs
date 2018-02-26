@@ -10,9 +10,12 @@ namespace SoSmooth.Scenes
     /// </summary>
     public class Scene
     {
-        private List<Entity> m_rootEntities = new List<Entity>();
+        private readonly List<Entity> m_rootEntities = new List<Entity>();
 
-        public Color4 AmbientLight = new Color4(0.05f, 0.05f, 0.05f, 1);
+        /// <summary>
+        /// The ambient lighting using in the scene.
+        /// </summary>
+        public Color4 AmbientLight = new Color4(0.05f, 0.05f, 0.05f, 1.0f);
 
         /// <summary>
         /// Finds all entities in this scene with a specific name.

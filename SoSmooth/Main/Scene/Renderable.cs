@@ -132,6 +132,8 @@ namespace SoSmooth.Scenes
         /// <returns>True if this component is culled.</returns>
         public bool IsCulled(Camera camera)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             if (!Enabled || m_shaderProgram == null)
             {
                 return true;
@@ -154,6 +156,8 @@ namespace SoSmooth.Scenes
         /// <param name="camera">The camera that is currently rendering.</param>
         public void Render(Camera camera)
         {
+            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+
             Surface.SetShaderProgram(m_shaderProgram);
             OnRender(camera);
         }
@@ -199,6 +203,17 @@ namespace SoSmooth.Scenes
                 return 0;
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Disposes this component and frees held resources
+        /// </summary>
+        /// <param name="entity">True if managed resources should be cleaned up.</param>
+        protected override void OnDispose(bool disposing)
+        {
+            m_surface.Dispose();
+
+            base.OnDispose(disposing);
         }
     }
 }

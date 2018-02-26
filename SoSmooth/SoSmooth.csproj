@@ -223,10 +223,10 @@
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
     <Compile Include="Main\Renderer\Meshes\Mesh.cs" />
     <Compile Include="Main\Renderer\Meshes\Vertex.cs" />
-    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexP.cs" />
-    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexPC.cs" />
-    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexPN.cs" />
-    <Compile Include="Main\Renderer\Meshes\VertexStructs\VertexPNC.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\VertexP.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\VertexPC.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\VertexPN.cs" />
+    <Compile Include="Main\Renderer\Core\VertexData\VertexPNC.cs" />
     <Compile Include="Main\Renderer\Shaders\ShaderManager.cs" />
     <Compile Include="Main\SmoothingManager.cs" />
     <Compile Include="Main\UI\SceneCamera.cs" />
@@ -247,6 +247,7 @@
     <Compile Include="Main\Model\Connection.cs" />
     <Compile Include="Main\Model\Model.cs" />
     <Compile Include="Main\UI\SceneWindow.cs" />
+    <Compile Include="Main\Utils\Disposable.cs" />
     <Compile Include="Main\Utils\Logging\Logger.cs" />
     <Compile Include="Main\IO\LineOptionParser.cs" />
     <Compile Include="Main\UI\MainWindow.cs" />

@@ -150,55 +150,62 @@ namespace SoSmooth
         /// </summary>
         protected override void OnRenderFrame()
         {
-            List<Entity> roots = Scene.FindEntities("Root");
-            Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
-            //root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
-
-            List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
-            foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
+            try
             {
-                mesh.UseColors = Time.time % 2 < 1;
-                //mesh.UseColors = true;
+                List<Entity> roots = Scene.FindEntities("Root");
+                Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
+                root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
 
-                bool foundMesh = false;
-                foreach (MeshRenderer renderer in renderers)
+                List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
+                foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
                 {
-                    if (renderer.Mesh == mesh)
+                    mesh.UseColors = Time.time % 2 < 1;
+                    //mesh.UseColors = true;
+
+                    bool foundMesh = false;
+                    foreach (MeshRenderer renderer in renderers)
                     {
-                        foundMesh = true;
-                        break;
+                        if (renderer.Mesh == mesh)
+                        {
+                            foundMesh = true;
+                            break;
+                        }
+                    }
+                    if (!foundMesh)
+                    {
+                        MeshRenderer r = new MeshRenderer(root);
+                        r.Mesh = mesh;
+                        r.ShaderProgram = ShaderManager.SHADER_LIT;
+                        r.BackFaceMode = PolygonMode.Line;
                     }
                 }
-                if (!foundMesh)
+
+                m_stopwatch.Restart();
+
+                // resize the view if it has been changed
+                if (m_viewportDirty)
                 {
-                    MeshRenderer r = new MeshRenderer(root);
-                    r.Mesh = mesh;
-                    r.ShaderProgram = ShaderManager.SHADER_LIT;
-                    r.BackFaceMode = PolygonMode.Line;
+                    GL.Viewport(0, 0, Allocation.Width, Allocation.Height);
+                    GL.Scissor(0, 0, Allocation.Width, Allocation.Height);
+                    m_sceneCamera.Camera.SetResolution(Allocation.Width, Allocation.Height);
+                    m_viewportDirty = false;
+                }
+
+                m_sceneCamera.RenderScene();
+
+                m_stopwatch.Stop();
+                m_avgRenterTime = Utils.Lerp(m_avgRenterTime, (float)m_stopwatch.ElapsedTicks / Stopwatch.Frequency, 0.1f);
+
+                // report the latest error when rendering the scene, if applicable
+                ErrorCode error = GL.GetError();
+                if (error != ErrorCode.NoError)
+                {
+                    Logger.Error("OpenGL Error: " + error);
                 }
             }
-            
-            m_stopwatch.Restart();
-
-            // resize the view if it has been changed
-            if (m_viewportDirty)
+            catch (Exception e)
             {
-                GL.Viewport(0, 0, Allocation.Width, Allocation.Height);
-                GL.Scissor(0, 0, Allocation.Width, Allocation.Height);
-                m_sceneCamera.Camera.SetResolution(Allocation.Width, Allocation.Height);
-                m_viewportDirty = false;
-            }
-
-            m_sceneCamera.RenderScene();
-
-            m_stopwatch.Stop();
-            m_avgRenterTime = Utils.Lerp(m_avgRenterTime, (float)m_stopwatch.ElapsedTicks / Stopwatch.Frequency, 0.1f);
-
-            // report the latest error when rendering the scene, if applicable
-            ErrorCode error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Logger.Error("OpenGL Error: " + error);
+                Logger.Exception(e);
             }
         }
 

@@ -6,70 +6,50 @@ namespace SoSmooth.Rendering
     /// <summary>
     /// A class that controls a handle to an unmanaged graphics resource.
     /// </summary>
-    public abstract class GraphicsResource : IDisposable
+    public abstract class GraphicsResource : Disposable
     {
         protected int m_handle = -1;
-        private bool m_disposed = false;
 
         /// <summary>
         /// The handle to the resource.
         /// </summary>
-        public int Handle => m_handle;
-
-        /// <summary>
-        /// Indicates if this instance's unmanaged resources are deleted.
-        /// </summary>
-        public bool Disposed => m_disposed;
-
-        /// <summary>
-        /// Deletes all unmanaged resources.
-        /// </summary>
-        public void Dispose()
+        public int Handle
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            get
+            {
+                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                return m_handle;
+            }
         }
         
         /// <summary>
-        /// Finalizer.
+        /// Checks if this instance can be disposed.
         /// </summary>
-        ~GraphicsResource()
+        protected override bool CanDispose()
         {
-            Dispose(false);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (m_disposed)
-            {
-                return;
-            }
             if (GraphicsContext.CurrentContext == null)
             {
                 Logger.Error("Can't dispose a graphics resource while the current graphics context is null!");
-                return;
+                return false;
             }
             if (GraphicsContext.CurrentContext.IsDisposed)
             {
-                return;
+                return false;
             }
+            return true;
+        }
 
-            // always clean up unmanaged resources to prevent memory leak.
-            OnDispose();
-
-            // cleanup of managed data only matters if not called by the garbage collector finalizer.
+        /// <summary>
+        /// Cleans up resources held by this instance.
+        /// </summary>
+        /// <param name="disposing">If true managed resources should be cleaned up.</param>
+        protected override void OnDispose(bool disposing)
+        {
             if (disposing)
             {
                 m_handle = -1;
             }
-
-            m_disposed = true;
         }
-
-        /// <summary>
-        /// Cleanup of unmanaged resources.
-        /// </summary>
-        protected abstract void OnDispose();
 
         /// <summary>
         /// Casts the graphics resource object to its instance handle

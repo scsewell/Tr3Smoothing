@@ -31,6 +31,17 @@ namespace SoSmooth
         }
 
         /// <summary>
+        /// Normalizes a plane.
+        /// </summary>
+        /// <param name="plane">The plane to normalize.</param>
+        /// <returns>The plane with a normalized normal.</returns>
+        public static Vector4 NormalizePlane(Vector4 plane)
+        {
+            plane /= new Vector3(plane).Length;
+            return plane;
+        }
+
+        /// <summary>
         /// Converts a rotation to euler angles.
         /// </summary>
         /// <param name="rot">The rotation to convert to euler angles.</param>

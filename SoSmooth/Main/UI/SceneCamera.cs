@@ -132,9 +132,9 @@ namespace SoSmooth
             {
                 m_camPivot.LocalRotation = GetRotation();
             }
-            
+
             m_camera.Transform.LocalPosition = -m_zoom * Vector3.UnitY;
-            
+
             // move the clip planes to keep proportion with the camera's distance from the pivot
             m_camera.NearClip = Math.Min(m_zoom * 0.01f, 1);
             m_camera.FarClip = Math.Max(m_zoom * 2, 100);
