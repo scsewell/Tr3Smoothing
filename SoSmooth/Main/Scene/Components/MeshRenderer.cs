@@ -44,10 +44,9 @@ namespace SoSmooth.Scenes
                 return true;
             }
 
+            // Get the AABB for the mesh in the scene
             Bounds bounds = m_mesh.BoundingBox.Transformed(Transform.LocalToWorldMatix);
-
-            camera.FrustumPlanes.GetType();
-
+            
             if (vertexBuffer == null)
             {
                 vertexBuffer = new VertexBuffer<VertexP>();
@@ -88,6 +87,7 @@ namespace SoSmooth.Scenes
             vertexBuffer.AddElement(new VertexP(bounds.Corners[6]));
             vertexBuffer.AddElement(new VertexP(bounds.Corners[4]));
             vertexBuffer.BufferData();
+            // only render the mesh if it's bounds are contained by the camera frustum
             return !bounds.InFrustum(camera.FrustumPlanes);
         }
         
@@ -109,7 +109,7 @@ namespace SoSmooth.Scenes
                 surface.Render();
 
                 m_modelMatUniform.Value = OpenTK.Matrix4.Identity;
-                surf.Render();
+                //surf.Render();
             }
         }
     }

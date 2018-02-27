@@ -1,10 +1,11 @@
 ﻿using System;
 using Gtk;
-using SoSmooth.IO;
-using SoSmooth.IO.tr3;
 
 namespace SoSmooth
 {
+    /// <summary>
+    /// The class responsible for application startup.
+    /// </summary>
     public class Program
     {
         /// <summary>
@@ -12,9 +13,7 @@ namespace SoSmooth
         /// </summary>
         public const string NAME = "SoSmooth";
         
-        public const string ARG_VERBOSE     = "-v";
-        public const string ARG_HEADLESS    = "-h";
-        public const string ARG_FILE        = "-file";
+        private const string ARG_VERBOSE     = "-v";
 
         /// <summary>
         /// The main method, called as the executable is started. The
@@ -39,27 +38,10 @@ namespace SoSmooth
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";
             Logger.Info("Running on " + os + " " + platform);
             
-            bool headless = LineOptionParser.HasFlag(args, ARG_HEADLESS);
-            if (headless)
-            {
-                Logger.Info("Starting in headless mode");
-            }
-
-            string filePath;
-            if (LineOptionParser.GetValueAsString(args, ARG_FILE, out filePath))
-            {
-                Model model = Tr3FileHandler.Instance.Read(filePath);
-            }
-
-            // launch the UI if not using headless mode
-            if (!headless)
-            {
-                Logger.Info("Starting in UI mode");
-
-                Application.Init();
-                MainWindow window = new MainWindow();
-                Application.Run();
-            }
+            // launch the UI loop
+            Application.Init();
+            MainWindow window = new MainWindow();
+            Application.Run();
 
             Logger.Info("Exiting application...");
         }

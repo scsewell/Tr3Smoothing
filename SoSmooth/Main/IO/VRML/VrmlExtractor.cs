@@ -39,57 +39,82 @@ namespace SoSmooth.IO.Vrml
 
             List<Mesh> meshes = new List<Mesh>();
             MeshBuilder builder = new MeshBuilder();
-            Dictionary<int, ushort> indexToVertexIndex = new Dictionary<int, ushort>();
-            List<ushort> triangleIndices = new List<ushort>();
+            Dictionary<int, uint> indexToVertexIndex = new Dictionary<int, uint>();
+            List<uint> triangleIndices = new List<uint>();
 
-            foreach (Node node in scene.Root.Children)
+            // Do a depth first search on the VRML scene to find all meshes
+            Stack<GroupingNode> toVisit = new Stack<GroupingNode>();
+            toVisit.Push(scene.Root);
+
+            HashSet<Node> visited = new HashSet<Node>(toVisit);
+
+            string currentDescription = "DefaultName";
+            while (toVisit.Count > 0)
             {
+                GroupingNode node = toVisit.Pop();
+
+                // keep track of the most recent description in the heirarchy to name child meshes using
                 if (node is AnchorNode)
                 {
-                    AnchorNode anchor = node as AnchorNode;
-                    foreach (Node child in anchor.Children)
+                    currentDescription = (node as AnchorNode).Description;
+                }
+
+                foreach (Node child in node.Children)
+                {
+                    // If the child node may chave children nodes we must visit it if we have not already
+                    if (child is GroupingNode)
                     {
-                        if (child is ShapeNode)
+                        if (!visited.Contains(child))
                         {
-                            ShapeNode shape = child as ShapeNode;
+                            toVisit.Push(child as GroupingNode);
+                            visited.Add(child);
+                        }
+                    }
+                    // If the node is a mesh extract it
+                    if (child is ShapeNode)
+                    {
+                        ShapeNode shape = child as ShapeNode;
 
-                            if (shape.Geometry.Node is IndexedFaceSetNode)
+                        if (shape.Geometry.Node is IndexedFaceSetNode)
+                        {
+                            IndexedFaceSetNode indexFaceSet = shape.Geometry.Node as IndexedFaceSetNode;
+                            CoordinateNode coords = indexFaceSet.Coord.Node as CoordinateNode;
+
+                            // The indicies in the mesh we are building may not match those in the file if
+                            // not all points from the coords are used, so maintain a mapping from original
+                            // index in the file to the corresponding index in the mesh currently being built.
+                            builder.Clear();
+                            indexToVertexIndex.Clear();
+                            triangleIndices.Clear();
+                            
+                            foreach (SFInt32 index in indexFaceSet.CoordIndex)
                             {
-                                builder.Clear();
-                                indexToVertexIndex.Clear();
-                                triangleIndices.Clear();
-
-                                IndexedFaceSetNode indexFaceSet = shape.Geometry.Node as IndexedFaceSetNode;
-                                CoordinateNode coords = indexFaceSet.Coord.Node as CoordinateNode;
-                                
-                                foreach (SFInt32 index in indexFaceSet.CoordIndex)
+                                if (index < 0)
                                 {
-                                    if (index < 0)
-                                    {
-                                        builder.AddTriangle(new Triangle(triangleIndices[0], triangleIndices[1], triangleIndices[2]));
-                                        triangleIndices.Clear();
-                                    }
-                                    else
-                                    {
-                                        ushort i;
-                                        if (!indexToVertexIndex.TryGetValue(index, out i))
-                                        {
-                                            SFVec3f pos = coords.Point.GetValue(index);
-                                            Vertex v = new Vertex(new Vector3(pos.X, pos.Y, pos.Z));
-                                            
-                                            i = (ushort)builder.VertexCount;
-                                            indexToVertexIndex.Add(index.Value, i);
-                                            builder.AddVertex(v);
-                                        }
-                                        triangleIndices.Add(i);
-                                    }
+                                    builder.AddTriangle(new Triangle(triangleIndices[0], triangleIndices[1], triangleIndices[2]));
+                                    triangleIndices.Clear();
                                 }
+                                else
+                                {
+                                    uint i;
+                                    if (!indexToVertexIndex.TryGetValue(index, out i))
+                                    {
+                                        SFVec3f pos = coords.Point.GetValue(index);
+                                        Vertex v = new Vertex(new Vector3(pos.X, pos.Y, pos.Z));
 
-                                Mesh mesh = builder.CreateMesh(anchor.Description, true, true);
-                                mesh.RecalculateNormals();
-                                meshes.Add(mesh);
-                                Logger.Info($"Found Mesh: {mesh}");
+                                        i = (uint)builder.VertexCount;
+                                        indexToVertexIndex.Add(index.Value, i);
+                                        builder.AddVertex(v);
+                                    }
+                                    triangleIndices.Add(i);
+                                }
                             }
+
+                            // Generate the mesh and calculate the vertex normals
+                            Mesh mesh = builder.CreateMesh(currentDescription, true, true);
+                            mesh.RecalculateNormals();
+                            meshes.Add(mesh);
+                            Logger.Info($"Found Mesh: {mesh}");
                         }
                     }
                 }

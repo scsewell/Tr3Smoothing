@@ -123,6 +123,8 @@ namespace SoSmooth.Scenes
             m_surface.AddSetting(m_blend);
 
             m_surface.AddSetting(m_color);
+
+            ShaderProgram = ShaderManager.SHADER_UNLIT;
         }
 
         /// <summary>
@@ -157,7 +159,7 @@ namespace SoSmooth.Scenes
         public void Render(Camera camera)
         {
             if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
-
+            
             Surface.SetShaderProgram(m_shaderProgram);
             OnRender(camera);
         }

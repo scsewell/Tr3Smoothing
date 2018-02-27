@@ -134,6 +134,19 @@ namespace SoSmooth
             m_scene = new Scene();
             m_sceneCamera = new SceneCamera(Scene);
             m_stopwatch = new Stopwatch();
+
+            /*
+            for (int i = 0; i < 5000; i++)
+            {
+                Entity entity = new Entity(m_scene);
+                entity.Transform.LocalPosition = Random.GetVector3(20);
+                entity.Transform.LocalRotation = Random.GetRotation();
+                entity.Transform.LocalScale = Random.GetVector3(1);
+
+                MeshRenderer r = new MeshRenderer(entity);
+                r.Mesh = Meshes.MeshBuilder.CreateCube();
+            }
+            */
         }
 
         /// <summary>
@@ -154,12 +167,12 @@ namespace SoSmooth
             {
                 List<Entity> roots = Scene.FindEntities("Root");
                 Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
-                root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
+                //root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
 
                 List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
                 foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
                 {
-                    mesh.UseColors = Time.time % 2 < 1;
+                    //mesh.UseColors = Time.time % 2 < 1;
                     //mesh.UseColors = true;
 
                     bool foundMesh = false;
