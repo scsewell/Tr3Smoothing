@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using SoSmooth.IO.Vrml.Fields;
-using SoSmooth.IO.Vrml.Parser;
 
 namespace SoSmooth.IO.Vrml.Nodes
 {
@@ -33,7 +32,8 @@ namespace SoSmooth.IO.Vrml.Nodes
 
         public Field GetField(string fieldName)
         {
-            if (m_fields.TryGetValue(fieldName, out Field res))
+            Field res;
+            if (m_fields.TryGetValue(fieldName, out res))
             {
                 return res;
             }

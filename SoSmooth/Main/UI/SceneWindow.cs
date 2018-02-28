@@ -79,7 +79,7 @@ namespace SoSmooth
         {
             Name = "SceneWindow";
             CanFocus = true;
-
+            
             Initialized += GLWidgetInitialize;
             SizeAllocated += OnResize;
             

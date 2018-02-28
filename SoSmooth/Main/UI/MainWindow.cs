@@ -64,6 +64,9 @@ namespace SoSmooth
             return true;
         }
         
+        /// <summary>
+        /// Called when the window exit button was pressed
+        /// </summary>
         private void OnDeleteEvent(object sender, DeleteEventArgs a)
         {
             Quit();

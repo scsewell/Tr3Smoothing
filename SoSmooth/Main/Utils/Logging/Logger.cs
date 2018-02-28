@@ -15,7 +15,7 @@ namespace SoSmooth
         /// <summary>
         /// The directory of the log files relative to the application launch directory.
         /// </summary>
-        private static readonly string LOG_DIRECTORY    = "Logs";
+        private static readonly string LOG_DIRECTORY    = "logs";
 
         /// <summary>
         /// The file extention used for log files.

@@ -1,15 +1,13 @@
 language: csharp
 solution: SoSmooth/SoSmooth.sln
+script:
+  - ./build.sh
 deploy:
   provider: releases
   api_key:
     secure: AGzgTKtpS8NMpF6RUvvTbntgO6x+WibP1BHdVFn2kszD74Lr6P2P9NVenwYqKsb8tnLTKEPHn2Gh/NffLfFnqzHEifcYPE/xw/17in7Cum+K4yqKy83TEc3pDWxK90CbEaYTJcJ2rsai21CZpC8TyHdJBW42kUIc00Z9J7j0mUEMq10lwuENH0Ch3lNKgJuArGiIxSRL3C6yNYQY6XyVPM+NuwbiUvjY5Na6QVstFTSaS4hvqdkOCMovuxoD1kjf7/dID+Ka/SCJliFGOILDxWk6hJYtYt9xSgdRme6lMQg8eGsevNbsCky8ebPPFkfNMi9zI8sNPVqBQmm5SWyyQrW2R8fysY57qqTdUivqUcOhfaLcneXkuTs/j0bb88bKG78nHrFw/NL+S8CRB920gn54n9aaml5lZnNeKdQAgfSWBNAF9z3WQ8ZigFfFyGeX2xHFKTAEoSqjv/sT6CIietkxdDy9Bc9Wp+uqhYotTmzG7Vyam+RdGvT+E3E0E+4x91rX3DdcSBncTsm1yIuPwSgbuBX8U4hWpVl8lErzh0XWr8gAJnZmhlbM2JlaTJCNCRV97cAIBQxqioYWnkBDPQAd9Sj5FPFAhkU8jy+PMYKNnfjOBCbUZcJQyJX58XLliNzpxTMW0SEeYWohgcYnqBoODF105X8koUEIwx/ac/I=
   file:
-    - SoSmooth/bin/Release/SoSmooth.exe
-    - SoSmooth/bin/Release/SoSmooth.exe.config
-    - SoSmooth/bin/Release/OpenTK.dll
-    - SoSmooth/bin/Release/OpenTK.dll.config
-    - SoSmooth/bin/Release/GLWidget.dll
+    - SoSmooth/bin/Release/SoSmooth.zip
   skip_cleanup: true
   on:
     repo: scsewell/Tr3Smoothing
