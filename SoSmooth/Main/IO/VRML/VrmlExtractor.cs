@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using SoSmooth.IO.Vrml.Tokenizer;
 using SoSmooth.IO.Vrml.Parser;
@@ -9,16 +10,19 @@ using OpenTK;
 
 namespace SoSmooth.IO.Vrml
 {
+    /// <summary>
+    /// Extracts content from a VRML scene.
+    /// </summary>
     public class VrmlExtractor : Singleton<VrmlExtractor>
     {
         /// <summary>
         /// Reads a VRML file at a specified path, parses the information, and returns the contained models.
         /// </summary>
         /// <param name="filePath">A full path to a valid VRML file.</param>
-        /// <returns>The parsed models.</returns>
+        /// <returns>The extracted models.</returns>
         public List<Mesh> Read(string filePath)
         {
-            string fullPath = System.Environment.ExpandEnvironmentVariables(filePath);
+            string fullPath = Environment.ExpandEnvironmentVariables(filePath);
 
             Logger.Info("Parsing .wrl file at path \"" + fullPath + "\"");
 
@@ -111,7 +115,7 @@ namespace SoSmooth.IO.Vrml
                             }
 
                             // Generate the mesh and calculate the vertex normals
-                            Mesh mesh = builder.CreateMesh(currentDescription, true, true);
+                            Mesh mesh = builder.CreateMesh(currentDescription);
                             mesh.RecalculateNormals();
                             meshes.Add(mesh);
                             Logger.Info($"Found Mesh: {mesh}");

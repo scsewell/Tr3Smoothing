@@ -16,8 +16,8 @@ void main()
         vec3 lightNormal = -light.direction[i];
         vec3 halfVector = normalize(lightNormal + normalize(cam.position - f_worldPos));
 
-        specular += light.specColor[i] * pow(max(dot(normal, halfVector), 0.0), 50.0);
         diffuse += light.diffColor[i] * max(dot(normal, lightNormal), 0.0);
+        specular += light.specColor[i] * pow(max(dot(normal, halfVector), 0.0), 50.0);
     }
 
 	diffuse *= f_color.rgb;

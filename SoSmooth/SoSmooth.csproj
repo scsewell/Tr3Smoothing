@@ -237,9 +237,6 @@
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
     <Compile Include="Main\Renderer\Meshes\Mesh.cs" />
     <Compile Include="Main\Renderer\Meshes\Vertex.cs" />
-    <Compile Include="Main\Renderer\Core\VertexData\VertexP.cs" />
-    <Compile Include="Main\Renderer\Core\VertexData\VertexPC.cs" />
-    <Compile Include="Main\Renderer\Core\VertexData\VertexPN.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\VertexPNC.cs" />
     <Compile Include="Main\Renderer\Shaders\ShaderManager.cs" />
     <Compile Include="Main\SmoothingManager.cs" />

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using SoSmooth.Rendering;
 using SoSmooth.Rendering.Vertices;
@@ -13,14 +14,14 @@ namespace SoSmooth.Scenes
     public sealed class BoundsRenderer : MeshBasedRenderer
     {
         private readonly VertexSurface m_surface;
-        private readonly VertexBuffer<VertexP> m_vertexBuffer;
+        private readonly VertexBuffer<VertexPNC> m_vertexBuffer;
         
         /// <summary>
         /// Constructor.
         /// </summary>
         public BoundsRenderer(Entity entity, Mesh mesh) : base(entity, mesh, new VertexSurface())
         {
-            m_vertexBuffer = new VertexBuffer<VertexP>(24);
+            m_vertexBuffer = new VertexBuffer<VertexPNC>(24);
 
             m_surface = Surface as VertexSurface;
             m_surface.SetVertexBuffer(m_vertexBuffer, PrimitiveType.Lines);
@@ -39,32 +40,32 @@ namespace SoSmooth.Scenes
             m_vertexBuffer.Clear();
 
             // each consecutive pair of elements forms a line segment drawn to form the box wireframe
-            m_vertexBuffer.AddElement(new VertexP(corners[0]));
-            m_vertexBuffer.AddElement(new VertexP(corners[4]));
-            m_vertexBuffer.AddElement(new VertexP(corners[1]));
-            m_vertexBuffer.AddElement(new VertexP(corners[5]));
-            m_vertexBuffer.AddElement(new VertexP(corners[2]));
-            m_vertexBuffer.AddElement(new VertexP(corners[6]));
-            m_vertexBuffer.AddElement(new VertexP(corners[3]));
-            m_vertexBuffer.AddElement(new VertexP(corners[7]));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[0], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[4], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[1], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[5], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[2], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[6], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[3], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[7], Vector3.Zero, Color4.White));
 
-            m_vertexBuffer.AddElement(new VertexP(corners[0]));
-            m_vertexBuffer.AddElement(new VertexP(corners[1]));
-            m_vertexBuffer.AddElement(new VertexP(corners[1]));
-            m_vertexBuffer.AddElement(new VertexP(corners[3]));
-            m_vertexBuffer.AddElement(new VertexP(corners[3]));
-            m_vertexBuffer.AddElement(new VertexP(corners[2]));
-            m_vertexBuffer.AddElement(new VertexP(corners[2]));
-            m_vertexBuffer.AddElement(new VertexP(corners[0]));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[0], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[1], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[1], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[3], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[3], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[2], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[2], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[0], Vector3.Zero, Color4.White));
 
-            m_vertexBuffer.AddElement(new VertexP(corners[4]));
-            m_vertexBuffer.AddElement(new VertexP(corners[5]));
-            m_vertexBuffer.AddElement(new VertexP(corners[5]));
-            m_vertexBuffer.AddElement(new VertexP(corners[7]));
-            m_vertexBuffer.AddElement(new VertexP(corners[7]));
-            m_vertexBuffer.AddElement(new VertexP(corners[6]));
-            m_vertexBuffer.AddElement(new VertexP(corners[6]));
-            m_vertexBuffer.AddElement(new VertexP(corners[4]));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[4], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[5], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[5], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[7], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[7], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[6], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[6], Vector3.Zero, Color4.White));
+            m_vertexBuffer.AddElement(new VertexPNC(corners[4], Vector3.Zero, Color4.White));
 
             // upload the lines to the GPU
             m_vertexBuffer.BufferData();

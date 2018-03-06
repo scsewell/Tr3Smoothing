@@ -52,35 +52,11 @@ namespace SoSmooth.Meshes
             this.normal = normal;
             this.color = color;
         }
-
-        /// <summary>
-        /// Convert to a <see cref="VertexP"/> compact format.
-        /// </summary>
-        public static VertexP ToVerteP(Vertex v)
-        {
-            return new VertexP(v.position);
-        }
-
-        /// <summary>
-        /// Convert to a <see cref="VertexPN"/> compact format.
-        /// </summary>
-        public static VertexPN ToVertePN(Vertex v)
-        {
-            return new VertexPN(v.position, v.normal);
-        }
-
-        /// <summary>
-        /// Convert to a <see cref="VertexPC"/> compact format.
-        /// </summary>
-        public static VertexPC ToVertePC(Vertex v)
-        {
-            return new VertexPC(v.position, v.color);
-        }
-
+        
         /// <summary>
         /// Convert to a <see cref="VertexPNC"/> compact format.
         /// </summary>
-        public static VertexPNC ToVertePNC(Vertex v)
+        public static VertexPNC ToVertexPNC(Vertex v)
         {
             return new VertexPNC(v.position, v.normal, v.color);
         }

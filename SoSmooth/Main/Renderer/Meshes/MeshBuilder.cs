@@ -37,16 +37,13 @@ namespace SoSmooth.Meshes
         /// Builds and returns a mesh using the builder's current data.
         /// </summary>
         /// <param name="name">The name of the mesh.</param>
-        /// <param name="useNormals">Allow rendering with normals.</param>
-        /// <param name="useColors">Allow rendering with vertex color.</param>
-        public Mesh CreateMesh(string name, bool useNormals, bool useColors)
+        public Mesh CreateMesh(string name)
         {
             return new Mesh(
                 name,
                 m_vertices.ToArray(), 
-                m_triangles.ToArray(),
-                useNormals,
-                useColors);
+                m_triangles.ToArray()
+            );
         }
 
         /// <summary>
@@ -203,7 +200,7 @@ namespace SoSmooth.Meshes
             m_builder.AddTriangle(new Triangle(6, 7, 4));
             m_builder.AddTriangle(new Triangle(6, 4, 5));
 
-            Mesh mesh = m_builder.CreateMesh("Cube", true, true);
+            Mesh mesh = m_builder.CreateMesh("Cube");
             mesh.RecalculateNormals();
 
             return mesh;

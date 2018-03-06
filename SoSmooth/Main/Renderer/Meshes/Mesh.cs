@@ -12,9 +12,6 @@ namespace SoSmooth.Meshes
     public sealed class Mesh : Disposable
     {
         private string m_name;
-
-        private bool m_useNormals;
-        private bool m_useColors;
         
         private Vertex[] m_vertices;
         private Triangle[] m_triangles;
@@ -99,39 +96,7 @@ namespace SoSmooth.Meshes
                 return m_bounds;
             }
         }
-
-        /// <summary>
-        /// Should this mesh render using vertex normals.
-        /// </summary>
-        public bool UseNormals
-        {
-            get { return m_useNormals; }
-            set
-            {
-                if (m_useNormals != value)
-                {
-                    m_useNormals = value;
-                    m_vertexBufferDirty = true;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Should this mesh render using vertex colors.
-        /// </summary>
-        public bool UseColors
-        {
-            get { return m_useColors; }
-            set
-            {
-                if (m_useColors != value)
-                {
-                    m_useColors = value;
-                    m_vertexBufferDirty = true;
-                }
-            }
-        }
-
+        
         /// <summary>
         /// The vertex buffer object.
         /// </summary>
@@ -143,23 +108,7 @@ namespace SoSmooth.Meshes
 
                 if (m_vertexBufferDirty)
                 {
-                    // Update the buffer with vertices only containing used attributes
-                    if (UseNormals && UseColors)
-                    {
-                        UpdateVertices(Vertex.ToVertePNC);
-                    }
-                    else if (UseNormals)
-                    {
-                        UpdateVertices(Vertex.ToVertePN);
-                    }
-                    else if (UseColors)
-                    {
-                        UpdateVertices(Vertex.ToVertePC);
-                    }
-                    else
-                    {
-                        UpdateVertices(Vertex.ToVerteP);
-                    }
+                    UpdateVertices(Vertex.ToVertexPNC);
                 }
                 return m_vertexBuffer;
             }
@@ -188,23 +137,16 @@ namespace SoSmooth.Meshes
         /// <param name="name">The name of the mesh.</param>
         /// <param name="vertices">A vertex array.</param>
         /// <param name="triangles">A triangle array.</param>
-        /// <param name="useNormals">Allow rendering with normals.</param>
-        /// <param name="useColors">Allow rendering with vertex color.</param>
         public Mesh(
             string name,
             Vertex[] vertices, 
-            Triangle[] triangles,
-            bool useNormals,
-            bool useColors)
+            Triangle[] triangles)
         {
             m_name = name;
 
             m_vertices = vertices;
             m_triangles = triangles;
             
-            m_useNormals = useNormals;
-            m_useColors = useColors;
-
             m_vertexBufferDirty = true;
             m_indexBufferDirty = true;
 
@@ -223,10 +165,7 @@ namespace SoSmooth.Meshes
             m_triangles = mesh.m_triangles.Clone() as Triangle[];
 
             m_bounds = mesh.m_bounds;
-
-            m_useNormals = mesh.m_useNormals;
-            m_useColors = mesh.m_useColors;
-
+            
             m_vertexBufferDirty = true;
             m_indexBufferDirty = true;
         }
