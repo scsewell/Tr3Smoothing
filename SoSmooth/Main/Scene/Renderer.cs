@@ -38,14 +38,13 @@ namespace SoSmooth.Scenes
             {
                 if (m_programName != value)
                 {
-                    if (value != null && ShaderManager.Instance.GetProgram(value, out m_shaderProgram))
+                    if (ShaderManager.Instance.GetProgram(value, out m_shaderProgram))
                     {
                         m_programName = value;
                     }
                     else
                     {
                         m_programName = null;
-                        m_shaderProgram = null;
                     }
                 }
             }
@@ -142,6 +141,7 @@ namespace SoSmooth.Scenes
             {
                 return true;
             }
+
             return OnCull(camera);
         }
 
@@ -162,8 +162,8 @@ namespace SoSmooth.Scenes
         {
             if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
 
-            m_surface.SetShaderProgram(m_shaderProgram);
             m_modelMatrix.Value = Transform.LocalToWorldMatix;
+            m_surface.SetShaderProgram(m_shaderProgram);
             OnRender(camera);
             m_surface.Render();
         }

@@ -24,13 +24,9 @@ namespace SoSmooth.Scenes
 
             m_surface = Surface as VertexSurface;
             m_surface.SetVertexBuffer(m_vertexBuffer, PrimitiveType.Lines);
-
-            Color = Random.GetColor();
+            
+            ShaderProgram = ShaderManager.SHADER_UNLIT;
             BlendMode = BlendMode.Alpha;
-
-            ShaderProgram program;
-            ShaderManager.Instance.GetProgram(ShaderManager.SHADER_UNLIT, out program);
-            Surface.SetShaderProgram(program);
 
             OnMeshChanged();
         }

@@ -6,7 +6,7 @@ namespace SoSmooth.Rendering
 {
     /// <summary>
     /// Packs a three dimentional unsigned vector using three 10-bit components. 
-    /// This often used in graphics to represent HRD colors.
+    /// This often used in graphics to represent HDR colors.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct UInt2101010

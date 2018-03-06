@@ -13,18 +13,32 @@ namespace SoSmooth.Rendering
         private readonly Dictionary<string, int> m_uniformLocations = new Dictionary<string, int>();
 
         /// <summary>
+        /// Indicates if this program compiled successfuly.
+        /// </summary>
+        public readonly bool IsValid;
+
+        /// <summary>
+        /// The name of this shader program.
+        /// </summary>
+        public readonly string Name;
+
+        /// <summary>
         /// Creates a new shader program.
         /// </summary>
-        /// <param name="shaders">The different shaders of the program.</param>
-        public ShaderProgram(params Shader[] shaders) : this((IEnumerable<Shader>)shaders)
+        /// <param name="name">The name of the program.</param>
+        /// <param name="shaders">The shaders that make up the program.</param>
+        public ShaderProgram(string name, params Shader[] shaders) : this(name, shaders as IEnumerable<Shader>)
         { }
 
         /// <summary>
         /// Creates a new shader program.
         /// </summary>
+        /// <param name="name">The name of the program.</param>
         /// <param name="shaders">The different shaders of the program.</param>
-        public ShaderProgram(IEnumerable<Shader> shaders)
+        public ShaderProgram(string name, IEnumerable<Shader> shaders)
         {
+            Name = name;
+
             m_handle = GL.CreateProgram();
 
             foreach (Shader shader in shaders)
@@ -33,6 +47,7 @@ namespace SoSmooth.Rendering
             }
 
             GL.LinkProgram(this);
+
             foreach (Shader shader in shaders)
             {
                 GL.DetachShader(this, shader);
@@ -41,24 +56,27 @@ namespace SoSmooth.Rendering
             // check if linking failed
             int statusCode;
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out statusCode);
+            IsValid = statusCode == 1;
 
-            if (statusCode != 1)
+            if (IsValid)
+            {
+                // set the uniform block bindings to the corresponding uniform buffers
+                int uniformBlockCount;
+                GL.GetProgram(this, GetProgramParameterName.ActiveUniformBlocks, out uniformBlockCount);
+
+                for (int i = 0; i < uniformBlockCount; i++)
+                {
+                    string blockName = GL.GetActiveUniformBlockName(this, i);
+                    int bindingPoint = BlockManager.GetBindingPoint(blockName);
+
+                    GL.UniformBlockBinding(this, i, bindingPoint);
+                }
+            }
+            else
             {
                 string info;
                 GL.GetProgramInfoLog(this, out info);
-                Logger.Error($"Could not link shader: {info}");
-            }
-
-            // set the uniform block bindings to the corresponding uniform buffers
-            int uniformBlockCount;
-            GL.GetProgram(this, GetProgramParameterName.ActiveUniformBlocks, out uniformBlockCount);
-
-            for (int i = 0; i < uniformBlockCount; i++)
-            {
-                string name = GL.GetActiveUniformBlockName(this, i);
-                int bindingPoint = BlockManager.GetBindingPoint(name);
-
-                GL.UniformBlockBinding(this, i, bindingPoint);
+                Logger.Error($"Could not link shader program: {info}");
             }
         }
         

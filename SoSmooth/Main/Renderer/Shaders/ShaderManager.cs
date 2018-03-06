@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Linq;
@@ -8,14 +9,31 @@ using SoSmooth.Rendering;
 namespace SoSmooth
 {
     /// <summary>
-    /// Loads shader files embedded into the assembly. Shaders with the same file
+    /// Loads shader files embedded in assemblies. Shaders with the same file
     /// name are automatically combined into a single program. Files ending in .glinc
     /// will be added to all shader programs, allowing for easily writing shared
     /// functionality.
     /// </summary>
     public class ShaderManager : Singleton<ShaderManager>
     {
-        // The file extentions of shaders in the solution.
+        /// <summary>
+        /// A basic unlit shader.
+        /// </summary>
+        public static readonly string SHADER_UNLIT = "unlit";
+
+        /// <summary>
+        /// A basic lit shader.
+        /// </summary>
+        public static readonly string SHADER_LIT = "lit";
+
+        /// <summary>
+        /// A shader used when there is a graphics error.
+        /// </summary>
+        private static readonly string SHADER_ERROR = "error";
+
+        private const string GLSL_VERSION = "330";
+
+        // The extentions of shader source files.
         private const string VERT_EXTENTION = "vert";
         private const string GEOM_EXTENTION = "geom";
         private const string FRAG_EXTENTION = "frag";
@@ -27,99 +45,59 @@ namespace SoSmooth
             GEOM_EXTENTION,
             FRAG_EXTENTION,
         };
-
-        /// <summary>
-        /// A basic unlit shader.
-        /// </summary>
-        public static readonly string SHADER_UNLIT  = "unlit";
-        /// <summary>
-        /// A basic lit shader.
-        /// </summary>
-        public static readonly string SHADER_LIT    = "lit";
         
-        private Dictionary<string, ShaderProgram> m_shaderPrograms;
+        private Dictionary<Assembly, string[]> m_assemblyToResName = new Dictionary<Assembly, string[]>();
+        private Dictionary<string, ShaderProgram> m_shaderPrograms = new Dictionary<string, ShaderProgram>();
 
         /// <summary>
-        /// Loads all shader programs.
+        /// Loads all shader programs embedded in assemblies.
         /// </summary>
-        public void LoadShaders()
+        /// <param name="assemblies">The assemblies to search for shader files in.</param>
+        public void LoadShaders(params Assembly[] assemblies)
         {
-            if (m_shaderPrograms == null)
+            LoadShaders(Assembly.GetExecutingAssembly());
+
+            foreach (Assembly assembly in assemblies)
             {
-                Logger.Info("Loading shaders...");
+                LoadShaders(assembly);
+            }
+        }
 
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string[] resourceNames = assembly.GetManifestResourceNames();
-                
-                StringBuilder commonBuilder = new StringBuilder();
+        /// <summary>
+        /// Loads all shader programs embedded in an assembly.
+        /// </summary>
+        /// <param name="assemblies">The assembly to search for shader files in.</param>
+        public void LoadShaders(Assembly assembly)
+        {
+            if (!m_assemblyToResName.ContainsKey(assembly))
+            {
+                m_assemblyToResName.Add(assembly, assembly.GetManifestResourceNames());
 
-                // get the common shader files
-                foreach (string path in resourceNames)
-                {
-                    string[] split = path.Split('.');
-                    if (split.Length >= 2)
-                    {
-                        if (split[split.Length - 1] == INC_EXTENTION)
-                        {
-                            commonBuilder.Append(LoadResource(assembly, path));
-                            commonBuilder.Append(System.Environment.NewLine);
-                        }
-                    }
-                }
-                string common = commonBuilder.ToString();
-
-                Dictionary<string, List<Shader>> nameToShaders = new Dictionary<string, List<Shader>>();
-
-                // look through the embedded resources for any shaders
-                foreach (string path in resourceNames)
-                {
-                    string[] split = path.Split('.');
-
-                    if (split.Length >= 2)
-                    {
-                        string name = split[split.Length - 2];
-                        string extention = split[split.Length - 1];
-
-                        // shaders are indicated by file extention
-                        if (SHADER_EXTENTIONS.Any(e => extention == e))
-                        {
-                            string code = LoadResource(assembly, path);
-
-                            List<Shader> shaders;
-                            if (!nameToShaders.TryGetValue(name, out shaders))
-                            {
-                                shaders = new List<Shader>();
-                                nameToShaders.Add(name, shaders);
-                            }
-
-                            switch (extention)
-                            {
-                                case VERT_EXTENTION: shaders.Add(new VertexShader(common + code)); break;
-                                case GEOM_EXTENTION: shaders.Add(new GeometryShader(common + code)); break;
-                                case FRAG_EXTENTION: shaders.Add(new FragmentShader(common + code)); break;
-                            }
-                        }
-                    }
-                }
+                Logger.Info($"Loading shaders from assembly: {assembly.FullName}");
 
                 // Create programs from shaders sharing a name
-                m_shaderPrograms = new Dictionary<string, ShaderProgram>();
-
-                foreach (KeyValuePair<string, List<Shader>> nameShaders in nameToShaders)
+                foreach (KeyValuePair<string, List<Shader>> nameShaders in GetShaderSources(assembly))
                 {
-                    Logger.Info("Creating program: " + nameShaders.Key);
+                    string name = nameShaders.Key;
+                    List<Shader> shaders = nameShaders.Value;
 
-                    ShaderProgram program = new ShaderProgram(nameShaders.Value);
-                    m_shaderPrograms.Add(nameShaders.Key, program);
-                    
-                    // Unload the shaders since we are done with them
-                    foreach (Shader shader in nameShaders.Value)
+                    if (shaders.Any(s => !s.IsValid))
                     {
-                        shader.Dispose();
+                        Logger.Error($"Can't create program \"{name}\" as source shaders are not valid!");
+                        shaders.ForEach(s => s.Dispose());
+                        continue;
                     }
-                }
 
-                Logger.Info("Finished shader load");
+                    Logger.Info("Creating program: " + name);
+                    ShaderProgram program = new ShaderProgram(name, shaders);
+
+                    if (program.IsValid)
+                    {
+                        m_shaderPrograms.Add(name, program);
+                    }
+                    
+                    shaders.ForEach(s => s.Dispose());
+                }
             }
         }
 
@@ -138,10 +116,16 @@ namespace SoSmooth
                 Logger.Error($"Tried to get shader program \"{name}\" before shaders have been loaded!");
                 return false;
             }
-            if (!m_shaderPrograms.TryGetValue(name, out program))
+            if (name == null || !m_shaderPrograms.TryGetValue(name, out program))
             {
-                Logger.Info($"Could not find shader program \"{name}\"");
+                Logger.Error($"Could not find shader program \"{name ?? "null"}\"!");
+                program = m_shaderPrograms[SHADER_ERROR];
                 return false;
+            }
+            if (!program.IsValid)
+            {
+                Logger.Error($"Requested shader program \"{name}\" didn't compile successfuly!");
+                program = m_shaderPrograms[SHADER_ERROR];
             }
             return true;
         }
@@ -167,6 +151,74 @@ namespace SoSmooth
                 }
             }
             return null;
+        }
+        
+        /// <summary>
+        /// Gets all shaders in an assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly to load shaders from.</param>
+        private Dictionary<string, List<Shader>> GetShaderSources(Assembly assembly)
+        {
+            string common = GetCommon(assembly);
+
+            Dictionary<string, List<Shader>> nameToShaders = new Dictionary<string, List<Shader>>();
+            
+            // look through the embedded resources for any shaders
+            foreach (string path in m_assemblyToResName[assembly])
+            {
+                string[] split = path.Split('.');
+
+                if (split.Length >= 2)
+                {
+                    string name = split[split.Length - 2];
+                    string extention = split[split.Length - 1];
+
+                    // shaders are indicated by file extention
+                    if (SHADER_EXTENTIONS.Any(e => extention == e))
+                    {
+                        string code = LoadResource(assembly, path);
+
+                        List<Shader> shaders;
+                        if (!nameToShaders.TryGetValue(name, out shaders))
+                        {
+                            shaders = new List<Shader>();
+                            nameToShaders.Add(name, shaders);
+                        }
+
+                        switch (extention)
+                        {
+                            case VERT_EXTENTION: shaders.Add(new VertexShader(common + code)); break;
+                            case GEOM_EXTENTION: shaders.Add(new GeometryShader(common + code)); break;
+                            case FRAG_EXTENTION: shaders.Add(new FragmentShader(common + code)); break;
+                        }
+                    }
+                }
+            }
+            return nameToShaders;
+        }
+
+        /// <summary>
+        /// Gets the common shader file content as a string.
+        /// </summary>
+        /// <param name="assembly">The source assembly of the resource names.</param>
+        private string GetCommon(Assembly assembly)
+        {
+            StringBuilder sb = new StringBuilder("#version " + GLSL_VERSION + Environment.NewLine);
+
+            // get the common shader files
+            foreach (string path in m_assemblyToResName[assembly])
+            {
+                string[] split = path.Split('.');
+                if (split.Length >= 2)
+                {
+                    if (split[split.Length - 1] == INC_EXTENTION)
+                    {
+                        sb.Append(LoadResource(assembly, path));
+                        sb.Append(Environment.NewLine);
+                    }
+                }
+            }
+            return sb.ToString();
         }
     }
 }

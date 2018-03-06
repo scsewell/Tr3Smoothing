@@ -1,6 +1,4 @@
-﻿#version 330
-
-#ifndef COMMON_INCLUDE
+﻿#ifndef COMMON_INCLUDE
 #define COMMON_INCLUDE
 
 /*

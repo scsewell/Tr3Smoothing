@@ -2,8 +2,6 @@
 in vec3 f_normal;
 in vec4 f_color;
 
-out vec4 fragColor;
-
 void main()
 {
 	// renormalize as the interpolation only preserves direction but not magnitude correctly
@@ -26,5 +24,5 @@ void main()
 
 	// gamma correct
 	vec3 gamma = vec3(1.0/2.2);
-    fragColor = vec4(pow(diffuse + specular, gamma), f_color.a);
+    gl_FragColor = vec4(pow(diffuse + specular, gamma), f_color.a);
 }

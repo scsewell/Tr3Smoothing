@@ -180,15 +180,15 @@ namespace SoSmooth.Meshes
 
             m_builder.Clear();
 
-            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, -u), Color4.Brown));
-            m_builder.AddVertex(new Vertex(new Vector3(u, -u, -u),  Color4.Red));
-            m_builder.AddVertex(new Vertex(new Vector3(u, u, -u),   Color4.Orange));
-            m_builder.AddVertex(new Vertex(new Vector3(-u, u, -u),  Color4.Yellow));
+            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, -u)));
+            m_builder.AddVertex(new Vertex(new Vector3( u, -u, -u)));
+            m_builder.AddVertex(new Vertex(new Vector3( u,  u, -u)));
+            m_builder.AddVertex(new Vertex(new Vector3(-u,  u, -u)));
 
-            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, u),  Color4.Green));
-            m_builder.AddVertex(new Vertex(new Vector3(u, -u, u),   Color4.Cyan));
-            m_builder.AddVertex(new Vertex(new Vector3(u, u, u),    Color4.Blue));
-            m_builder.AddVertex(new Vertex(new Vector3(-u, u, u),   Color4.Magenta));
+            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, u)));
+            m_builder.AddVertex(new Vertex(new Vector3( u, -u, u)));
+            m_builder.AddVertex(new Vertex(new Vector3( u,  u, u)));
+            m_builder.AddVertex(new Vertex(new Vector3(-u,  u, u)));
 
             m_builder.AddTriangle(new Triangle(0, 3, 2));
             m_builder.AddTriangle(new Triangle(0, 2, 1));

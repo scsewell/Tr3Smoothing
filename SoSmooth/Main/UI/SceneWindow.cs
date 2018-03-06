@@ -143,8 +143,9 @@ namespace SoSmooth
                 entity.Transform.LocalRotation = Random.GetRotation();
                 entity.Transform.LocalScale = Random.GetVector3(1);
 
-                MeshRenderer r = new MeshRenderer(entity);
-                r.Mesh = Meshes.MeshBuilder.CreateCube();
+                MeshRenderer r = new MeshRenderer(entity, Meshes.MeshBuilder.CreateCube());
+                r.ShaderProgram = ShaderManager.SHADER_LIT;
+                r.Color = Random.GetColor();
             }
             */
         }
@@ -167,7 +168,7 @@ namespace SoSmooth
             {
                 List<Entity> roots = Scene.FindEntities("Root");
                 Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
-                root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
+                //root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
 
                 List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
                 foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
@@ -186,11 +187,16 @@ namespace SoSmooth
                     }
                     if (!foundMesh)
                     {
+                        Color4 color = Random.GetColor();
+                        color.A = Random.Value;
+
                         BoundsRenderer b = new BoundsRenderer(root, mesh);
+                        b.Color = color;
                         MeshRenderer r = new MeshRenderer(root, mesh);
-                        r.Mesh = mesh;
                         r.ShaderProgram = ShaderManager.SHADER_LIT;
                         r.BackFaceMode = PolygonMode.Line;
+                        r.Color = color;
+                        r.BlendMode = Rendering.BlendMode.Alpha;
                     }
                 }
 

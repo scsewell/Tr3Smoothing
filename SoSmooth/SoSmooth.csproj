@@ -282,6 +282,8 @@
     <EmbeddedResource Include="Main\Renderer\Shaders\Programs\unlit.vert" />
     <EmbeddedResource Include="Main\Renderer\Shaders\Programs\lit.frag" />
     <EmbeddedResource Include="Main\Renderer\Shaders\Programs\lit.vert" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\error.vert" />
+    <EmbeddedResource Include="Main\Renderer\Shaders\Programs\error.frag" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Main\Renderer\Shaders\Programs\common.glinc" />
