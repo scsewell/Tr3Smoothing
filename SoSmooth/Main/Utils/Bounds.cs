@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using OpenTK;
 
 namespace SoSmooth.Rendering
@@ -21,7 +22,7 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// The corners of the bounding box.
         /// </summary>
-        public readonly Vector3[] Corners;
+        public readonly ReadOnlyCollection<Vector3> Corners;
 
         /// <summary>
         /// Creates a new <see cref="Bounds"/> instance.
@@ -34,7 +35,7 @@ namespace SoSmooth.Rendering
             Size = new Vector3(Math.Abs(size.X), Math.Abs(size.Y), Math.Abs(size.Z));
             
             Vector3 half = 0.5f * Size;
-            Corners = new Vector3[]
+            Corners = Array.AsReadOnly(new Vector3[]
             {
                 Center + new Vector3( half.X,  half.Y,  half.Z),
                 Center + new Vector3( half.X,  half.Y, -half.Z),
@@ -44,7 +45,7 @@ namespace SoSmooth.Rendering
                 Center + new Vector3(-half.X,  half.Y, -half.Z),
                 Center + new Vector3(-half.X, -half.Y,  half.Z),
                 Center + new Vector3(-half.X, -half.Y, -half.Z),
-            };
+            });
         }
 
         /// <summary>
@@ -107,7 +108,7 @@ namespace SoSmooth.Rendering
                     }
                 }
                 // if all points lay on the far side of a frustum plane the box can't be in the frustum
-                if (outside == Corners.Length)
+                if (outside == Corners.Count)
                 {
                     return false;
                 }

@@ -3,7 +3,7 @@
 namespace SoSmooth
 {
     /// <summary>
-    /// A class that contains disposing boiler plate code.
+    /// A class that contains disposal boiler plate code.
     /// </summary>
     public abstract class Disposable : IDisposable
     {

@@ -229,7 +229,9 @@
     <Compile Include="Main\Renderer\Shaders\BlockData\CameraData.cs" />
     <Compile Include="Main\Renderer\Shaders\BlockData\LightData.cs" />
     <Compile Include="Main\Renderer\Shaders\BlockManager.cs" />
+    <Compile Include="Main\Scene\Components\BoundsRenderer.cs" />
     <Compile Include="Main\Scene\Components\DirectionalLight.cs" />
+    <Compile Include="Main\Scene\MeshBasedRenderer.cs" />
     <Compile Include="Main\Utils\Bounds.cs" />
     <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
@@ -247,7 +249,7 @@
     <Compile Include="Main\Scene\Components\MeshRenderer.cs" />
     <Compile Include="Main\Scene\Entity.cs" />
     <Compile Include="Main\Scene\Components\Transform.cs" />
-    <Compile Include="Main\Scene\Renderable.cs" />
+    <Compile Include="Main\Scene\Renderer.cs" />
     <Compile Include="Main\Scene\Scene.cs" />
     <Compile Include="Main\Time.cs" />
     <Compile Include="Main\UI\MainMenuBar.cs" />

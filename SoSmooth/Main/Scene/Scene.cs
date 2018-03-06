@@ -41,9 +41,9 @@ namespace SoSmooth.Scenes
         /// Finds all renderable components in the scene.
         /// </summary>
         /// <returns>A new list containing all renderable components.</returns>
-        public List<Renderable> GetRenderables()
+        public List<Renderer> GetRenderables()
         {
-            List<Renderable> renderables = new List<Renderable>();
+            List<Renderer> renderables = new List<Renderer>();
             foreach (Entity entity in m_rootEntities)
             {
                 entity.GetComponentsInChildren(renderables);

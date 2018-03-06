@@ -1,5 +1,6 @@
 ﻿using OpenTK;
 using OpenTK.Graphics;
+using SoSmooth.Rendering;
 
 namespace SoSmooth
 {
@@ -57,11 +58,13 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Gets a random color.
-        /// </summary>
-        public static Color4 GetColor()
+        /// Gets a random color with alpha = 1.
+        /// </summary
+        /// <param name="minValue">The minimum brightness of the color.</param>
+        /// <param name="minSaturation">The minimum saturation of the color.</param>
+        public static Color4 GetColor(float minValue = 0.5f, float minSaturation = 0.5f)
         {
-            return new Color4(Value, Value, Value, 1.0f);
+            return Color.FromHSVA(Value, GetRange(minSaturation, 1), GetRange(minValue, 1));
         }
     }
 }

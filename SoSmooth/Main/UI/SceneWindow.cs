@@ -167,7 +167,7 @@ namespace SoSmooth
             {
                 List<Entity> roots = Scene.FindEntities("Root");
                 Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
-                //root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
+                root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
 
                 List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
                 foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
@@ -186,7 +186,8 @@ namespace SoSmooth
                     }
                     if (!foundMesh)
                     {
-                        MeshRenderer r = new MeshRenderer(root);
+                        BoundsRenderer b = new BoundsRenderer(root, mesh);
+                        MeshRenderer r = new MeshRenderer(root, mesh);
                         r.Mesh = mesh;
                         r.ShaderProgram = ShaderManager.SHADER_LIT;
                         r.BackFaceMode = PolygonMode.Line;

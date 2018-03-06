@@ -215,8 +215,8 @@ namespace SoSmooth.Scenes
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             
             // do culling on all renderable components
-            List<Renderable> toRender = new List<Renderable>();
-            foreach (Renderable renderable in Entity.Scene.GetRenderables())
+            List<Renderer> toRender = new List<Renderer>();
+            foreach (Renderer renderable in Entity.Scene.GetRenderables())
             {
                 if (!renderable.IsCulled(this))
                 {
@@ -228,7 +228,7 @@ namespace SoSmooth.Scenes
             toRender.Sort();
 
             // rendering all active components
-            foreach (Renderable renderable in toRender)
+            foreach (Renderer renderable in toRender)
             {
                 renderable.Render(this);
             }

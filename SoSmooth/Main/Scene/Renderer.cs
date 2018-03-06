@@ -8,7 +8,7 @@ namespace SoSmooth.Scenes
     /// <summary>
     /// A component that can be drawn in the scene.
     /// </summary>
-    public abstract class Renderable : Component, IComparable
+    public abstract class Renderer : Component, IComparable
     {
         private readonly Surface m_surface;
 
@@ -17,6 +17,7 @@ namespace SoSmooth.Scenes
         private readonly CullModeSetting m_cullMode = new CullModeSetting();
         private readonly PolygonModeSetting m_polygonMode = new PolygonModeSetting();
 
+        private readonly Matrix4Uniform m_modelMatrix = new Matrix4Uniform("u_modelMatrix");
         private readonly ColorUniform m_color = new ColorUniform("u_color");
 
         private string m_programName = null;
@@ -113,7 +114,7 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Renderable(Entity entity, Surface surface) : base(entity)
+        public Renderer(Entity entity, Surface surface) : base(entity)
         {
             m_surface = surface;
 
@@ -122,6 +123,7 @@ namespace SoSmooth.Scenes
             m_surface.AddSetting(m_depthMask);
             m_surface.AddSetting(m_blend);
 
+            m_surface.AddSetting(m_modelMatrix);
             m_surface.AddSetting(m_color);
 
             ShaderProgram = ShaderManager.SHADER_UNLIT;
@@ -159,23 +161,25 @@ namespace SoSmooth.Scenes
         public void Render(Camera camera)
         {
             if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
-            
-            Surface.SetShaderProgram(m_shaderProgram);
+
+            m_surface.SetShaderProgram(m_shaderProgram);
+            m_modelMatrix.Value = Transform.LocalToWorldMatix;
             OnRender(camera);
+            m_surface.Render();
         }
 
         /// <summary>
         /// Render this component.
         /// </summary>
         /// <param name="camera">The camera that is currently rendering.</param>
-        protected abstract void OnRender(Camera camera);
+        protected virtual void OnRender(Camera camera) { }
 
         /// <summary>
         /// Sorts renderables as to ensure the least state changes.
         /// </summary>
         public int CompareTo(object obj)
         {
-            Renderable other = obj as Renderable;
+            Renderer other = obj as Renderer;
             if (other != null)
             {
                 if (BlendMode != other.BlendMode)

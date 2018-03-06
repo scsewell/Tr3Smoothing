@@ -91,7 +91,7 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// The bounding box of the mesh.
         /// </summary>
-        public Bounds BoundingBox
+        public Bounds Bounds
         {
             get
             {
