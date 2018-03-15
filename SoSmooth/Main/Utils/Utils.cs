@@ -29,16 +29,85 @@ namespace SoSmooth
         {
             return -0.5f * (float)Math.Cos(MathHelper.Clamp(t, 0, 1) * Math.PI) + 0.5f;
         }
+        
+        /// <summary>
+        /// Calculates the barycentric coordinates of a points for a triangle.
+        /// </summary>
+        /// <param name="point">The point to test.</param>
+        /// <param name="p0">The triangle's first vertex.</param>
+        /// <param name="p1">The triangle's second vertex.</param>
+        /// <param name="p2">The triangle's third vertex.</param>
+        /// <returns>The barycentric coordinates of the point.</returns>
+        public static Vector3 ToBarycentricCoords(Vector3 point, Vector3 p0, Vector3 p1, Vector3 p2)
+        {
+            Vector3 v0 = p1 - p0;
+            Vector3 v1 = p2 - p0;
+            Vector3 v2 = point - p0;
+            float d00 = Vector3.Dot(v0, v0);
+            float d01 = Vector3.Dot(v0, v1);
+            float d11 = Vector3.Dot(v1, v1);
+            float d20 = Vector3.Dot(v2, v0);
+            float d21 = Vector3.Dot(v2, v1);
+            float denom = d00 * d11 - d01 * d01;
+
+            float v = (d11 * d20 - d01 * d21) / denom;
+            float w = (d00 * d21 - d01 * d20) / denom;
+            float u = 1.0f - v - w;
+
+            return new Vector3(u, v, w);
+        }
+        
+        /// <summary>
+        /// Gets the intersection of a line and triangle if it exists.
+        /// </summary>
+        /// <param name="p0">The first triangle vertex.</param>
+        /// <param name="p1">The second triangle vertex.</param>
+        /// <param name="p2">The third triangle vertex.</param>
+        /// <param name="linePoint">A point on the line.</param>
+        /// <param name="LineDirection">The direction of the line.</param>
+        /// <param name="intersect">The intersect on the triangle's plane. Zero if no intersect.</param>
+        /// <returns>True if the line intersects the triangle.</returns>
+        public static bool RaycastTriangle(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 linePoint, Vector3 lineDirection, out Vector3 intersect)
+        {
+            Plane p = new Plane(p0, p1, p2);
+            if (p.RaycastPlane(linePoint, lineDirection, out intersect))
+            {
+                Vector3 b = ToBarycentricCoords(intersect, p0, p1, p2);
+                return 
+                    0 <= b.X && b.X <= 1 &&
+                    0 <= b.Y && b.Y <= 1 &&
+                    0 <= b.Z && b.Z <= 1;
+            }
+            return false;
+        }
 
         /// <summary>
-        /// Normalizes a plane.
+        /// Calculates the point on a line closest to another point.
         /// </summary>
-        /// <param name="plane">The plane to normalize.</param>
-        /// <returns>The plane with a normalized normal.</returns>
-        public static Vector4 NormalizePlane(Vector4 plane)
+        /// <param name="point">The point to test.</param>
+        /// <param name="lineDirection">The direction of the line.</param>
+        /// <param name="linePoint">The point the line passes through.</param>
+        /// <returns>The closest point on the line.</returns>
+        public static Vector3 ClosestPointOnLine(Vector3 point, Vector3 lineDirection, Vector3 linePoint)
         {
-            plane /= new Vector3(plane).Length;
-            return plane;
+            lineDirection.Normalize();
+            Vector3 p = point - linePoint;
+            float d = Vector3.Dot(p, lineDirection);
+            return d * lineDirection + linePoint;
+        }
+
+        /// <summary>
+        /// Calculates the distance from a line to a point.
+        /// </summary>
+        /// <param name="point">The point to test.</param>
+        /// <param name="lineDirection">The direction of the line.</param>
+        /// <param name="linePoint">The point the line passes through.</param>
+        /// <returns>The minimal distance from the point to the line.</returns>
+        public static float DistanceFromLine(Vector3 point, Vector3 lineDirection, Vector3 linePoint)
+        {
+            Vector3 p = point - linePoint;
+            float d = Vector3.Dot(lineDirection.Normalized(), p);
+            return (float)Math.Sqrt(Vector3.Dot(p, p) - (d * d));
         }
 
         /// <summary>

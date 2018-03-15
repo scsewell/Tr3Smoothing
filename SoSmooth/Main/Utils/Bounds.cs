@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using OpenTK;
 
-namespace SoSmooth.Rendering
+namespace SoSmooth
 {
     /// <summary>
     /// Represents an axis aligned bounding box (AABB).
@@ -69,18 +70,18 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
-        /// Gets an AABB that will bound all corners of this bounds after applying some transformation.
+        /// Gets an AABB that will bound a set of transformation points.
         /// </summary>
-        /// <param name="transform">The transformation to apply to these bounds.</param>
-        /// <returns>A new bounds instance.</returns>
-        public Bounds Transformed(Matrix4 transform)
+        /// <param name="points">The set of points to bound.</param>
+        /// <returns>A new axis aligned bounding box.</returns>
+        public static Bounds FromPoints(ReadOnlyCollection<Vector3> points)
         {
             Vector3 min = new Vector3(float.MaxValue);
             Vector3 max = new Vector3(float.MinValue);
 
-            foreach (Vector3 corner in Corners)
+            for (int i = 0; i < points.Count; i++)
             {
-                Vector3 pos = Vector3.TransformPosition(corner, transform);
+                Vector3 pos = points[i];
                 if (pos.X < min.X) { min.X = pos.X; }
                 if (pos.Y < min.Y) { min.Y = pos.Y; }
                 if (pos.Z < min.Z) { min.Z = pos.Z; }
@@ -93,9 +94,44 @@ namespace SoSmooth.Rendering
         }
 
         /// <summary>
+        /// Gets an AABB that will bound a set of transformation points.
+        /// </summary>
+        /// <param name="points">The set of points to bound.</param>
+        /// <param name="transform">The transformation to apply to all points.</param>
+        /// <returns>A new axis aligned bounding box.</returns>
+        public static Bounds FromPoints(ReadOnlyCollection<Vector3> points, Matrix4 transform)
+        {
+            Vector3 min = new Vector3(float.MaxValue);
+            Vector3 max = new Vector3(float.MinValue);
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                Vector3 pos = Vector3.TransformPosition(points[i], transform);
+                if (pos.X < min.X) { min.X = pos.X; }
+                if (pos.Y < min.Y) { min.Y = pos.Y; }
+                if (pos.Z < min.Z) { min.Z = pos.Z; }
+
+                if (pos.X > max.X) { max.X = pos.X; }
+                if (pos.Y > max.Y) { max.Y = pos.Y; }
+                if (pos.Z > max.Z) { max.Z = pos.Z; }
+            }
+            return FromCorners(min, max);
+        }
+
+        /// <summary>
+        /// Gets an AABB that will bound all corners of this bounds after applying some transformation.
+        /// </summary>
+        /// <param name="transform">The transformation to apply to these bounds.</param>
+        /// <returns>A new bounds instance.</returns>
+        public Bounds Transformed(Matrix4 transform)
+        {
+            return FromPoints(Corners, transform);
+        }
+        
+        /// <summary>
         /// Tests if this bounding box overlaps with or is contained by a frustum.
         /// </summary>
-        public bool InFrustum(Vector4[] planes)
+        public bool InFrustum(Plane[] planes)
         {
             for (int i = 0; i < 6; i++)
             {

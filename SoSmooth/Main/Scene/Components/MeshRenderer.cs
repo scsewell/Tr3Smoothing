@@ -21,8 +21,7 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// Render this mesh.
         /// </summary>
-        /// <param name="camera">The camera that is rendering.</param>
-        protected override void OnRender(Camera camera)
+        protected override void OnRender()
         {
             m_surface.SetVertexBuffer(m_mesh.VBO);
             m_surface.SetIndexBuffer(m_mesh.IBO);

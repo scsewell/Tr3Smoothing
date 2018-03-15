@@ -32,6 +32,9 @@ namespace SoSmooth.Scenes
             OnMeshChanged();
         }
 
+        /// <summary>
+        /// Called when the mesh has changed.
+        /// </summary>
         protected override void OnMeshChanged()
         {
             ReadOnlyCollection<Vector3> corners = m_mesh.Bounds.Corners;
@@ -69,6 +72,17 @@ namespace SoSmooth.Scenes
 
             // upload the lines to the GPU
             m_vertexBuffer.BufferData();
+        }
+
+        /// <summary>
+        /// Disposes this component and frees held resources
+        /// </summary>
+        /// <param name="entity">True if managed resources should be cleaned up.</param>
+        protected override void OnDispose(bool disposing)
+        {
+            m_vertexBuffer.Dispose();
+
+            base.OnDispose(disposing);
         }
     }
 }

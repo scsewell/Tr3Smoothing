@@ -237,6 +237,21 @@ namespace SoSmooth.Scenes
         }
 
         /// <summary>
+        /// The world space position of the transform.
+        /// </summary>
+        public Vector3 Position => LocalToWorldMatix.ExtractTranslation();
+
+        /// <summary>
+        /// The world space rotation of the transform.
+        /// </summary>
+        public Quaternion Rotation => LocalToWorldMatix.ExtractRotation();
+
+        /// <summary>
+        /// The world space position of the transform.
+        /// </summary>
+        public Vector3 Scale => LocalToWorldMatix.ExtractScale();
+
+        /// <summary>
         /// Event that is triggered when the transform has been moved.
         /// </summary>
         public event Action Moved;

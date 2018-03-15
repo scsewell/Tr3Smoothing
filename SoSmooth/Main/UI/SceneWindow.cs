@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Gdk;
 using Gtk;
@@ -23,33 +22,36 @@ namespace SoSmooth
         
         private Scene m_scene;
         private SceneCamera m_sceneCamera;
-        private bool m_viewportDirty;
-        private Stopwatch m_stopwatch;
-        private float m_avgRenterTime;
-
+        private SceneMeshes m_sceneMeshes;
+        private Stopwatch m_stopwatch = new Stopwatch();
+        private float m_avgRenterTime = 0;
+        private bool m_viewportDirty = true;
+        private bool m_cursorOver = false;
+        
         /// <summary>
         /// The average render time in seconds.
         /// </summary>
-        public float RenderTime
-        {
-            get { return m_avgRenterTime; }
-        }
+        public float RenderTime { get { return m_avgRenterTime; } }
 
         /// <summary>
         /// The scene displayed in this window.
         /// </summary>
-        public Scene Scene
-        {
-            get { return m_scene; }
-            set
-            {
-                if (m_scene != value)
-                {
-                    m_scene = value;
-                    m_sceneCamera.Camera.Transform.Root.Entity.Scene = value;
-                }
-            }
-        }
+        public Scene Scene { get { return m_scene; } }
+
+        /// <summary>
+        /// The camera in this window.
+        /// </summary>
+        public SceneCamera Camera { get { return m_sceneCamera; } }
+
+        /// <summary>
+        /// The meshes in this window.
+        /// </summary>
+        public SceneMeshes Meshes { get { return m_sceneMeshes; } }
+
+        /// <summary>
+        /// Event triggered before rendering the scene.
+        /// </summary>
+        public event System.Action Update;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SceneWindow"/> class.
@@ -79,11 +81,15 @@ namespace SoSmooth
         {
             Name = "SceneWindow";
             CanFocus = true;
-            
+            CanDefault = true;
+            ReceivesDefault = true;
+
             Initialized += GLWidgetInitialize;
             SizeAllocated += OnResize;
             
             AddEvents((int)(
+                EventMask.EnterNotifyMask |
+                EventMask.LeaveNotifyMask |
                 EventMask.KeyPressMask |
                 EventMask.KeyReleaseMask |
                 EventMask.ButtonPressMask |
@@ -91,7 +97,7 @@ namespace SoSmooth
                 EventMask.Button2MotionMask |
                 EventMask.ScrollMask
             ));
-
+            
             KeyPressEvent += OnKeyPress;
             ButtonPressEvent += OnButtonPress;
             MotionNotifyEvent += OnMotion;
@@ -125,29 +131,13 @@ namespace SoSmooth
 
             // preload all shader programs
             ShaderManager.Instance.LoadShaders();
-
+            
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.ScissorTest);
-
-            m_viewportDirty = true;
             
             m_scene = new Scene();
-            m_sceneCamera = new SceneCamera(Scene);
-            m_stopwatch = new Stopwatch();
-
-            /*
-            for (int i = 0; i < 5000; i++)
-            {
-                Entity entity = new Entity(m_scene);
-                entity.Transform.LocalPosition = Random.GetVector3(20);
-                entity.Transform.LocalRotation = Random.GetRotation();
-                entity.Transform.LocalScale = Random.GetVector3(1);
-
-                MeshRenderer r = new MeshRenderer(entity, Meshes.MeshBuilder.CreateCube());
-                r.ShaderProgram = ShaderManager.SHADER_LIT;
-                r.Color = Random.GetColor();
-            }
-            */
+            m_sceneCamera = new SceneCamera(this);
+            m_sceneMeshes = new SceneMeshes(this);
         }
 
         /// <summary>
@@ -166,41 +156,7 @@ namespace SoSmooth
         {
             try
             {
-                List<Entity> roots = Scene.FindEntities("Root");
-                Entity root = roots.Count == 0 ? new Entity(Scene, "Root") : roots[0];
-                //root.Transform.LocalRotation = Quaternion.FromEulerAngles(Time.time, 0, 0);
-
-                List<MeshRenderer> renderers = root.GetComponents<MeshRenderer>();
-                foreach (Meshes.Mesh mesh in SmoothingManager.Instance.m_meshes)
-                {
-                    //mesh.UseColors = Time.time % 2 < 1;
-                    //mesh.UseColors = true;
-
-                    bool foundMesh = false;
-                    foreach (MeshRenderer renderer in renderers)
-                    {
-                        if (renderer.Mesh == mesh)
-                        {
-                            foundMesh = true;
-                            break;
-                        }
-                    }
-                    if (!foundMesh)
-                    {
-                        Color4 color = Random.GetColor();
-                        color.A = Random.Value;
-
-                        BoundsRenderer b = new BoundsRenderer(root, mesh);
-                        b.Color = color;
-                        MeshRenderer r = new MeshRenderer(root, mesh);
-                        r.ShaderProgram = ShaderManager.SHADER_LIT;
-                        r.BackFaceMode = PolygonMode.Line;
-                        r.Color = color;
-                        r.BlendMode = Rendering.BlendMode.Alpha;
-                    }
-                }
-
-                m_stopwatch.Restart();
+                Update?.Invoke();
 
                 // resize the view if it has been changed
                 if (m_viewportDirty)
@@ -211,9 +167,10 @@ namespace SoSmooth
                     m_viewportDirty = false;
                 }
 
+                m_stopwatch.Restart();
                 m_sceneCamera.RenderScene();
-
                 m_stopwatch.Stop();
+
                 m_avgRenterTime = Utils.Lerp(m_avgRenterTime, (float)m_stopwatch.ElapsedTicks / Stopwatch.Frequency, 0.1f);
 
                 // report the latest error when rendering the scene, if applicable
@@ -229,14 +186,30 @@ namespace SoSmooth
             }
         }
 
-        private void OnKeyPress(object o, Gtk.KeyPressEventArgs args)
+        protected override bool OnEnterNotifyEvent(EventCrossing evnt)
         {
-            m_sceneCamera.OnKeyPress(args);
+            m_cursorOver = true;
+            return base.OnEnterNotifyEvent(evnt);
+        }
+
+        protected override bool OnLeaveNotifyEvent(EventCrossing evnt)
+        {
+            m_cursorOver = false;
+            return base.OnLeaveNotifyEvent(evnt);
+        }
+
+        public void OnKeyPress(object o, Gtk.KeyPressEventArgs args)
+        {
+            if (m_cursorOver)
+            {
+                m_sceneCamera.OnKeyPress(args);
+            }
         }
 
         private void OnButtonPress(object o, ButtonPressEventArgs args)
         {
             m_sceneCamera.OnButtonPress(args);
+            m_sceneMeshes.OnButtonPress(args);
         }
 
         private void OnScroll(object o, ScrollEventArgs args)

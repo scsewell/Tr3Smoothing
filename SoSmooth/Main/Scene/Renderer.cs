@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using SoSmooth.Rendering;
@@ -10,6 +11,7 @@ namespace SoSmooth.Scenes
     /// </summary>
     public abstract class Renderer : Component, IComparable
     {
+        protected Bounds m_bounds;
         private readonly Surface m_surface;
 
         private readonly BlendSetting m_blend = new BlendSetting();
@@ -132,8 +134,7 @@ namespace SoSmooth.Scenes
         /// Checks if this component is culled and should not render.
         /// </summary>
         /// <param name="camera">The camera that is currently rendering.</param>
-        /// <returns>True if this component is culled.</returns>
-        public bool IsCulled(Camera camera)
+        public bool IsCulled()
         {
             if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
 
@@ -141,15 +142,13 @@ namespace SoSmooth.Scenes
             {
                 return true;
             }
-
-            return OnCull(camera);
+            return OnCull();
         }
 
         /// <summary>
         /// Checks if this component is culled.
         /// </summary>
-        /// <param name="camera">The camera that is currently rendering.</param>
-        protected virtual bool OnCull(Camera camera)
+        protected virtual bool OnCull()
         {
             return false;
         }
@@ -157,22 +156,20 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// Renders this component.
         /// </summary>
-        /// <param name="camera">The camera that is currently rendering.</param>
-        public void Render(Camera camera)
+        public void Render()
         {
             if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
 
             m_modelMatrix.Value = Transform.LocalToWorldMatix;
             m_surface.SetShaderProgram(m_shaderProgram);
-            OnRender(camera);
+            OnRender();
             m_surface.Render();
         }
 
         /// <summary>
         /// Render this component.
         /// </summary>
-        /// <param name="camera">The camera that is currently rendering.</param>
-        protected virtual void OnRender(Camera camera) { }
+        protected virtual void OnRender() { }
 
         /// <summary>
         /// Sorts renderables as to ensure the least state changes.

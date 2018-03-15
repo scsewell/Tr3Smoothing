@@ -12,7 +12,8 @@ namespace SoSmooth
     {
         private List<string> m_buffer = new List<string>();
         private object m_bufferLock = new object();
-        
+        private object m_writeLock = new object();
+
         private uint m_bytesWritten = 0;
 
         /// <summary>
@@ -45,20 +46,23 @@ namespace SoSmooth
                     toWrite.AddRange(m_buffer);
                     m_buffer.Clear();
                 }
-                
-                // write to the current log file and close the stream
-                using (StreamWriter stream = File.AppendText(Logger.Instance.LogPath))
-                {
-                    // log the buffered messages
-                    foreach (string line in toWrite)
-                    {
-                        stream.Write(line);
-                        m_bytesWritten += (uint)line.Length;
 
-                        // Optionally print the message out to the console
-                        if (Logger.Instance.echoToConsole)
+                // write to the current log file and close the stream
+                lock (m_bufferLock)
+                {
+                    using (StreamWriter stream = File.AppendText(Logger.Instance.LogPath))
+                    {
+                        // log the buffered messages
+                        foreach (string line in toWrite)
                         {
-                            Console.Write(line);
+                            stream.Write(line);
+                            m_bytesWritten += (uint)line.Length;
+
+                            // Optionally print the message out to the console
+                            if (Logger.Instance.echoToConsole)
+                            {
+                                Console.Write(line);
+                            }
                         }
                     }
                 }
@@ -71,12 +75,35 @@ namespace SoSmooth
         /// <summary>
         /// Adds a message to the message buffer.
         /// </summary>
-        /// <param name="message">The log message.</param>
+        /// <param name="message">The message to log.</param>
         public void BufferMessage(string message)
         {
             lock (m_bufferLock)
             {
                 m_buffer.Add(message);
+            }
+        }
+
+        /// <summary>
+        /// Logs a message synchronously.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        public void WriteSynchronous(string message)
+        {
+            lock (m_bufferLock)
+            {
+                // write to the current log file and close the stream
+                using (StreamWriter stream = File.AppendText(Logger.Instance.LogPath))
+                {
+                    stream.Write(message);
+                    m_bytesWritten += (uint)message.Length;
+
+                    // Optionally print the message out to the console
+                    if (Logger.Instance.echoToConsole)
+                    {
+                        Console.Write(message);
+                    }
+                }
             }
         }
     }

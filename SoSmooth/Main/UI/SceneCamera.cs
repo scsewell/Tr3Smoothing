@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Gdk;
 using Gtk;
 using OpenTK;
 using OpenTK.Graphics;
 using SoSmooth.Scenes;
+using SoSmooth.Meshes;
 
 namespace SoSmooth
 {
@@ -56,6 +58,8 @@ namespace SoSmooth
         private static readonly Quaternion TOP_VIEW     = new Quaternion(MathHelper.Pi, 0, MathHelper.PiOver2);
         private static readonly Quaternion BOTTOM_VIEW  = new Quaternion(MathHelper.Pi, 0, -MathHelper.PiOver2);
 
+        private readonly SceneWindow m_window;
+
         private Transform m_camPivot;
         private Camera m_camera;
 
@@ -63,8 +67,12 @@ namespace SoSmooth
 
         private bool m_easing;
         private float m_easeStartTime;
+        private Vector3 m_easeStartPos;
+        private Vector3 m_easeTargetPos;
         private Quaternion m_easeTargetRot;
         private Quaternion m_easeStartRot;
+        private float m_easeStartZoom;
+        private float m_easeTargetZoom;
 
         private float m_yaw = MathHelper.Pi;
         private float m_pitch = 0;
@@ -78,27 +86,24 @@ namespace SoSmooth
         /// <summary>
         /// Creates a new <see cref="SceneCamera"/> instance.
         /// </summary>
-        /// <param name="scene">The scene this camera will exist in.</param>
-        public SceneCamera(Scene scene)
+        /// <param name="window">The scene window this camera will exist in.</param>
+        public SceneCamera(SceneWindow window)
         {
-            m_camPivot = new Entity(scene, "CameraPivot").Transform;
-            Transform cam = new Entity(scene, "Camera").Transform;
-            
-            cam.SetParent(m_camPivot);
-            
-            cam.LocalRotation = Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2);
+            m_window = window;
+            m_window.Update += OnUpdate;
 
-            m_camera = new Camera(cam.Entity);
+            m_camPivot = new Entity(window.Scene, "CameraPivot").Transform;
 
+            Entity cam = new Entity(m_camPivot.Entity, "Camera");
+            m_camera = new Camera(cam);
+
+            cam.Transform.LocalRotation = Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2);
+            
             // Add lights relative to the camera
-            Transform light1 = new Entity(scene, "Light1").Transform;
-            Transform light2 = new Entity(scene, "Light2").Transform;
-            Transform light3 = new Entity(scene, "Light3").Transform;
-
-            light1.SetParent(cam);
-            light2.SetParent(cam);
-            light3.SetParent(cam);
-
+            Transform light1 = new Entity(cam, "Light1").Transform;
+            Transform light2 = new Entity(cam, "Light2").Transform;
+            Transform light3 = new Entity(cam, "Light3").Transform;
+            
             light1.LocalRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(55), 0, MathHelper.DegreesToRadians(40));
             light2.LocalRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-40), 0, MathHelper.DegreesToRadians(-5));
             light3.LocalRotation = Quaternion.FromEulerAngles(MathHelper.DegreesToRadians(-160), 0, MathHelper.DegreesToRadians(-30));
@@ -119,13 +124,15 @@ namespace SoSmooth
         /// <summary>
         /// Updates the camera prior to rendering.
         /// </summary>
-        public void RenderScene()
+        public void OnUpdate()
         {
             // smoothly blend towards the target orientation if set
             if (m_easing)
             {
                 float fac = MathHelper.Clamp(Utils.Ease((Time.time - m_easeStartTime) / EASE_TIME), 0, 1);
+                m_camPivot.LocalPosition = Vector3.Lerp(m_easeStartPos, m_easeTargetPos, fac);
                 m_camPivot.LocalRotation = Quaternion.Slerp(m_easeStartRot, m_easeTargetRot, fac);
+                m_zoom = Utils.Lerp(m_easeStartZoom, m_easeTargetZoom, fac);
                 m_easing = fac < 1;
             }
             else
@@ -138,8 +145,13 @@ namespace SoSmooth
             // move the clip planes to keep proportion with the camera's distance from the pivot
             m_camera.NearClip = Math.Min(m_zoom * 0.01f, 1);
             m_camera.FarClip = Math.Max(m_zoom * 2, 100);
+        }
 
-            // render the scene
+        /// <summary>
+        /// Renders the scene.
+        /// </summary>
+        public void RenderScene()
+        {
             m_camera.Render();
         }
 
@@ -162,6 +174,7 @@ namespace SoSmooth
                 case Gdk.Key.KP_6: YawCamera(ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_8: PitchCamera(-ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_2: PitchCamera(ROTATE_STEP_SIZE); break;
+                case Gdk.Key.f: EaseToSelected(); break;
             }
         }
 
@@ -199,7 +212,7 @@ namespace SoSmooth
             bool shift = (args.Event.State & modifierMask) == ModifierType.ShiftMask;
             bool middleMouse = (args.Event.State & ModifierType.Button2Mask) != 0;
 
-            if (middleMouse)
+            if (middleMouse && !m_easing)
             {
                 // get the amount the mouse has moved since last event
                 Vector2d newMousePos = new Vector2d(args.Event.X, args.Event.Y);
@@ -234,7 +247,10 @@ namespace SoSmooth
         /// <param name="zoomDelta">The amount to offset the zoom.</param>
         private void ZoomCamera(float zoomDelta)
         {
-            m_zoom = MathHelper.Clamp(m_zoom + zoomDelta, ZOOM_MIN, ZOOM_MAX);
+            if (!m_easing)
+            {
+                m_zoom = MathHelper.Clamp(m_zoom + zoomDelta, ZOOM_MIN, ZOOM_MAX);
+            }
         }
 
         /// <summary>
@@ -276,9 +292,56 @@ namespace SoSmooth
                 m_easeStartRot = currentRotation;
                 m_easeTargetRot = targetRotation;
 
+                m_easeStartPos = m_camPivot.LocalPosition;
+                m_easeTargetPos = m_camPivot.LocalPosition;
+
+                m_easeStartZoom = m_zoom;
+                m_easeTargetZoom = m_zoom;
+
                 Vector3 euler = targetRotation.ToEulerAngles();
                 m_yaw = euler.Z;
                 m_pitch = euler.X;
+            }
+        }
+
+        /// <summary>
+        /// Smoothly moves the camera to view selected objects.
+        /// </summary>
+        private void EaseToSelected()
+        {
+            List<Vector3> boundCorners = new List<Vector3>();
+            foreach (Mesh mesh in MeshManager.Instance.Selected)
+            {
+                Entity entity = m_window.Meshes.GetEntity(mesh);
+                Bounds b = mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
+                boundCorners.AddRange(b.Corners);
+            }
+
+            if (boundCorners.Count > 0)
+            {
+                Bounds totalBound = Bounds.FromPoints(boundCorners.AsReadOnly());
+                float boundSize = totalBound.Size.Length * 1.5f;
+
+                Vector3 targetPos = totalBound.Center;
+                float targetZoom = Math.Max(boundSize, boundSize / m_camera.AspectRatio);
+
+                if (m_camPivot.LocalPosition != targetPos || m_zoom != targetZoom)
+                {
+                    m_easing = true;
+                    m_easeStartTime = Time.time;
+
+                    m_easeStartPos = m_camPivot.LocalPosition;
+                    m_easeTargetPos = targetPos;
+
+                    Quaternion currentRotation = GetRotation();
+                    m_easeStartRot = currentRotation;
+                    m_easeTargetRot = currentRotation;
+
+                    m_easeStartZoom = m_zoom;
+                    m_easeTargetZoom = targetZoom;
+
+                    m_camPivot.LocalPosition = totalBound.Center;
+                }
             }
         }
 

@@ -23,7 +23,7 @@ namespace SoSmooth.Scenes
         private Matrix4 m_projectionMat;
         private bool m_projectionMatDirty;
         
-        private Vector4[] m_frustumPlanes;
+        private Plane[] m_frustumPlanes;
         private bool m_planesDirty;
 
         private UniformBuffer<CameraData> m_dataBuffer;
@@ -55,6 +55,11 @@ namespace SoSmooth.Scenes
                 }
             }
         }
+
+        /// <summary>
+        /// The aspect ratio of the camera.
+        /// </summary>
+        public float AspectRatio => (float)m_resolutionX / m_resolutionY;
         
         /// <summary>
         /// The distance of the near clip plane before which nothing is rendered.
@@ -101,6 +106,14 @@ namespace SoSmooth.Scenes
         }
 
         /// <summary>
+        /// The view matrix inverse of this camera.
+        /// </summary>
+        public Matrix4 ViewMatrixInverse
+        {
+            get { return Transform.LocalToWorldMatix; }
+        }
+
+        /// <summary>
         /// The projection matrix of this camera.
         /// </summary>
         public Matrix4 ProjectionMatrix
@@ -111,7 +124,7 @@ namespace SoSmooth.Scenes
                 {
                     Matrix4.CreatePerspectiveFieldOfView(
                         MathHelper.DegreesToRadians(m_fieldOfView),
-                        ((float)m_resolutionX) / m_resolutionY,
+                        AspectRatio,
                         m_nearClip, 
                         m_farClip,
                         out m_projectionMat);
@@ -125,7 +138,7 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The world space frustum planes of this camera.
         /// </summary>
-        public Vector4[] FrustumPlanes
+        public Plane[] FrustumPlanes
         {
             get
             {
@@ -136,6 +149,11 @@ namespace SoSmooth.Scenes
                 return m_frustumPlanes;
             }
         }
+
+        /// <summary>
+        /// The camera currently rendering if applicable, or null.
+        /// </summary>
+        public static Camera current;
 
         /// <summary>
         /// Constructor.
@@ -150,7 +168,7 @@ namespace SoSmooth.Scenes
             m_projectionMatDirty = true;
             m_planesDirty = true;
 
-            m_frustumPlanes = new Vector4[6];
+            m_frustumPlanes = new Plane[6];
 
             Transform.Moved += OnCameraMoved;
         }
@@ -192,6 +210,8 @@ namespace SoSmooth.Scenes
         /// </summary>
         public void Render()
         {
+            current = this;
+
             // set up the camera data buffer fo the render
             if (m_dataBuffer == null)
             {
@@ -216,11 +236,11 @@ namespace SoSmooth.Scenes
             
             // do culling on all renderable components
             List<Renderer> toRender = new List<Renderer>();
-            foreach (Renderer renderable in Entity.Scene.GetRenderables())
+            foreach (Renderer renderer in Entity.Scene.GetRenderables())
             {
-                if (!renderable.IsCulled(this))
+                if (!renderer.IsCulled())
                 {
-                    toRender.Add(renderable);
+                    toRender.Add(renderer);
                 }
             }
             
@@ -228,10 +248,81 @@ namespace SoSmooth.Scenes
             toRender.Sort();
 
             // rendering all active components
-            foreach (Renderer renderable in toRender)
+            foreach (Renderer renderer in toRender)
             {
-                renderable.Render(this);
+                renderer.Render();
             }
+
+            current = null;
+        }
+
+        /// <summary>
+        /// Gets a vector pointing out along a given pixel coordinate on the screen.
+        /// </summary>
+        /// <param name="point">The screen position in pixels.</param>
+        public Vector3 ScreenPointToWorldDirection(Vector2 point)
+        {
+            Vector3 clipPoint = new Vector3(
+                2.0f * ((point.X / m_resolutionX) - 0.5f),
+                2.0f * (-((point.Y / m_resolutionY) - 0.5f)),
+                1.0f
+            );
+            Vector3 worldPoint = Vector3.TransformPerspective(clipPoint, ProjectionMatrix.Inverted() * ViewMatrixInverse);
+            return (worldPoint - Transform.Position).Normalized();
+        }
+
+        /// <summary>
+        /// Computes the camera frustum planes in world space.
+        /// </summary>
+        private void ComputeFrustumPlanes()
+        {
+            Matrix4 viewProj = ViewMatrix * ProjectionMatrix;
+            viewProj.Transpose();
+
+            // Left clipping plane
+            m_frustumPlanes[0] = new Plane(new Vector4(
+                viewProj.M41 + viewProj.M11,
+                viewProj.M42 + viewProj.M12,
+                viewProj.M43 + viewProj.M13,
+                viewProj.M44 + viewProj.M14
+            ));
+            // Right clipping plane
+            m_frustumPlanes[1] = new Plane(new Vector4(
+                viewProj.M41 - viewProj.M11,
+                viewProj.M42 - viewProj.M12,
+                viewProj.M43 - viewProj.M13,
+                viewProj.M44 - viewProj.M14
+            ));
+            // Top clipping plane
+            m_frustumPlanes[2] = new Plane(new Vector4(
+                viewProj.M41 - viewProj.M21,
+                viewProj.M42 - viewProj.M22,
+                viewProj.M43 - viewProj.M23,
+                viewProj.M44 - viewProj.M24
+            ));
+            // Bottom clipping plane
+            m_frustumPlanes[3] = new Plane(new Vector4(
+                viewProj.M41 + viewProj.M21,
+                viewProj.M42 + viewProj.M22,
+                viewProj.M43 + viewProj.M23,
+                viewProj.M44 + viewProj.M24
+            ));
+            // Near clipping plane
+            m_frustumPlanes[4] = new Plane(new Vector4(
+                viewProj.M41 + viewProj.M31,
+                viewProj.M42 + viewProj.M32,
+                viewProj.M43 + viewProj.M33,
+                viewProj.M44 + viewProj.M34
+            ));
+            // Far clipping plane
+            m_frustumPlanes[5] = new Plane(new Vector4(
+                viewProj.M41 - viewProj.M31,
+                viewProj.M42 - viewProj.M32,
+                viewProj.M43 - viewProj.M33,
+                viewProj.M44 - viewProj.M34
+            ));
+            
+            m_planesDirty = false;
         }
 
         /// <summary>
@@ -240,60 +331,6 @@ namespace SoSmooth.Scenes
         private void OnCameraMoved()
         {
             m_planesDirty = true;
-        }
-
-        /// <summary>
-        /// Computes the camera frustum planes in world space.
-        /// </summary>
-        private void ComputeFrustumPlanes()
-        {
-            // clear the existing plane values
-            for (int i = 0; i < m_frustumPlanes.Length; i++)
-            {
-                m_frustumPlanes[i] = new Vector4();
-            }
-
-            Matrix4 viewProj = ViewMatrix * ProjectionMatrix;
-            viewProj.Transpose();
-
-            // Left clipping plane
-            m_frustumPlanes[0].X = viewProj.M41 + viewProj.M11;
-            m_frustumPlanes[0].Y = viewProj.M42 + viewProj.M12;
-            m_frustumPlanes[0].Z = viewProj.M43 + viewProj.M13;
-            m_frustumPlanes[0].W = viewProj.M44 + viewProj.M14;
-            // Right clipping plane
-            m_frustumPlanes[1].X = viewProj.M41 - viewProj.M11;
-            m_frustumPlanes[1].Y = viewProj.M42 - viewProj.M12;
-            m_frustumPlanes[1].Z = viewProj.M43 - viewProj.M13;
-            m_frustumPlanes[1].W = viewProj.M44 - viewProj.M14;
-            // Top clipping plane
-            m_frustumPlanes[2].X = viewProj.M41 - viewProj.M21;
-            m_frustumPlanes[2].Y = viewProj.M42 - viewProj.M22;
-            m_frustumPlanes[2].Z = viewProj.M43 - viewProj.M23;
-            m_frustumPlanes[2].W = viewProj.M44 - viewProj.M24;
-            // Bottom clipping plane
-            m_frustumPlanes[3].X = viewProj.M41 + viewProj.M21;
-            m_frustumPlanes[3].Y = viewProj.M42 + viewProj.M22;
-            m_frustumPlanes[3].Z = viewProj.M43 + viewProj.M23;
-            m_frustumPlanes[3].W = viewProj.M44 + viewProj.M24;
-            // Near clipping plane
-            m_frustumPlanes[4].X = viewProj.M41 + viewProj.M31;
-            m_frustumPlanes[4].Y = viewProj.M42 + viewProj.M32;
-            m_frustumPlanes[4].Z = viewProj.M43 + viewProj.M33;
-            m_frustumPlanes[4].W = viewProj.M44 + viewProj.M34;
-            // Far clipping plane
-            m_frustumPlanes[5].X = viewProj.M41 - viewProj.M31;
-            m_frustumPlanes[5].Y = viewProj.M42 - viewProj.M32;
-            m_frustumPlanes[5].Z = viewProj.M43 - viewProj.M33;
-            m_frustumPlanes[5].W = viewProj.M44 - viewProj.M34;
-
-            // normalize the planes
-            for (int i = 0; i < m_frustumPlanes.Length; i++)
-            {
-                m_frustumPlanes[i] = Utils.NormalizePlane(m_frustumPlanes[i]);
-            }
-
-            m_planesDirty = false;
         }
     }
 }

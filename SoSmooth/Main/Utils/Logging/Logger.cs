@@ -15,12 +15,12 @@ namespace SoSmooth
         /// <summary>
         /// The directory of the log files relative to the application launch directory.
         /// </summary>
-        private static readonly string LOG_DIRECTORY    = "logs";
+        private static readonly string LOG_DIRECTORY = "logs";
 
         /// <summary>
         /// The file extention used for log files.
         /// </summary>
-        private static readonly string FILE_EXTENTION   = ".log";
+        private static readonly string FILE_EXTENTION = ".log";
 
         /// <summary>
         /// The maximum number of logs before the oldest will be automatically removed.
@@ -41,7 +41,13 @@ namespace SoSmooth
         /// <summary>
         /// If true logged messages will also be printed to the console.
         /// </summary>
-        public bool echoToConsole;
+        public bool echoToConsole = false;
+
+        /// <summary>
+        /// If true logged messages are written to file on another thread. This helps with 
+        /// performance, but messages may not be written out after a crash.
+        /// </summary>
+        public bool writeAsynchronously = true;
 
         private readonly LogWriter m_writer;
         private readonly FileInfo m_logInfo;
@@ -84,7 +90,7 @@ namespace SoSmooth
             echoToConsole = false;
             m_writer = new LogWriter();
         }
-        
+
         /// <summary>
         /// Logs the given object.
         /// </summary>
@@ -210,7 +216,14 @@ namespace SoSmooth
                     line += stackTrace;
                 }
 
-                m_writer.BufferMessage(line);
+                if (writeAsynchronously)
+                {
+                    m_writer.BufferMessage(line);
+                }
+                else
+                {
+                    m_writer.WriteSynchronous(line);
+                }
             }
         }
     }

@@ -232,6 +232,10 @@
     <Compile Include="Main\Scene\Components\BoundsRenderer.cs" />
     <Compile Include="Main\Scene\Components\DirectionalLight.cs" />
     <Compile Include="Main\Scene\MeshBasedRenderer.cs" />
+    <Compile Include="Main\TaubinSmoother.cs" />
+    <Compile Include="Main\UI\MainContent.cs" />
+    <Compile Include="Main\UI\MeshList.cs" />
+    <Compile Include="Main\UI\SceneMeshes.cs" />
     <Compile Include="Main\Utils\Bounds.cs" />
     <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />
@@ -239,7 +243,7 @@
     <Compile Include="Main\Renderer\Meshes\Vertex.cs" />
     <Compile Include="Main\Renderer\Core\VertexData\VertexPNC.cs" />
     <Compile Include="Main\Renderer\Shaders\ShaderManager.cs" />
-    <Compile Include="Main\SmoothingManager.cs" />
+    <Compile Include="Main\MeshManager.cs" />
     <Compile Include="Main\UI\SceneCamera.cs" />
     <Compile Include="Main\Scene\Component.cs" />
     <Compile Include="Main\Scene\Components\Camera.cs" />
@@ -265,6 +269,7 @@
     <Compile Include="Main\Program.cs" />
     <Compile Include="Main\Utils\Logging\LogLevel.cs" />
     <Compile Include="Main\Utils\Logging\LogWriter.cs" />
+    <Compile Include="Main\Utils\Plane.cs" />
     <Compile Include="Main\Utils\Random.cs" />
     <Compile Include="Main\Utils\Singleton.cs" />
     <Compile Include="Main\Utils\Utils.cs" />

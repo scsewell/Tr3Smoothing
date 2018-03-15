@@ -66,6 +66,16 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="parent">The parent of the new entity.</param>
+        /// <param name="name">The name of the entity. Must be non-null and non-whitespace only.</param>
+        public Entity(Entity parent, string name = "NewEntity") : this(parent.Scene)
+        {
+            Transform.SetParent(parent.Transform, false);
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         /// <param name="scene">The scene to add the entity to.</param>
         /// <param name="name">The name of the entity. Must be non-null and non-whitespace only.</param>
         public Entity(Scene scene, string name = "NewEntity")

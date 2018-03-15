@@ -29,7 +29,7 @@ namespace SoSmooth.Rendering
         {
             if (GraphicsContext.CurrentContext == null)
             {
-                Logger.Error("Can't dispose a graphics resource while the current graphics context is null!");
+                Logger.Error($"Can't dispose a graphics resource while the current graphics context is null! Type:{GetType().Name} {ToString()}");
                 return false;
             }
             if (GraphicsContext.CurrentContext.IsDisposed)

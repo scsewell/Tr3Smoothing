@@ -9,7 +9,6 @@ namespace SoSmooth.Scenes
     public abstract class MeshBasedRenderer : Renderer
     {
         protected Mesh m_mesh;
-        protected Bounds m_bounds;
         private bool m_boundsDirty = true;
 
         /// <summary>
@@ -50,8 +49,7 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// Checks if this component is culled.
         /// </summary>
-        /// <param name="camera">The camera that is currently rendering.</param>
-        protected override bool OnCull(Camera camera)
+        protected override bool OnCull()
         {
             if (m_mesh == null)
             {
@@ -66,7 +64,7 @@ namespace SoSmooth.Scenes
             }
 
             // only render the mesh if it's bounds are contained by the camera frustum
-            return !m_bounds.InFrustum(camera.FrustumPlanes);
+            return !m_bounds.InFrustum(Camera.current.FrustumPlanes);
         }
 
         /// <summary>

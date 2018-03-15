@@ -25,8 +25,6 @@ namespace SoSmooth
         /// </summary>
         private const int DEFAULT_HEIGHT = 600;
 
-        private SceneWindow m_sceneWindow;
-
         /// <summary>
         /// Constructor that assembles the separate UI regions.
         /// </summary>
@@ -37,31 +35,18 @@ namespace SoSmooth
             SetSizeRequest(MIN_WIDTH, MIN_HEIGHT);
             SetDefaultSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
             WindowPosition = WindowPosition.CenterOnParent;
-
+            
             DeleteEvent += OnDeleteEvent;
             
             MainMenuBar menuBar = new MainMenuBar(this);
-            m_sceneWindow = SceneWindow.CreateSceneWindow();
-
+            MainContent content = new MainContent();
+            
             VBox vBox = new VBox(false, 0);
             vBox.PackStart(menuBar, false, false, 0);
-            vBox.PackStart(m_sceneWindow, true, true, 0);
+            vBox.PackStart(content, true, true, 0);
 
             Add(vBox);
             ShowAll();
-            
-            Time.SetStartTime();
-            GLib.Idle.Add(Update);
-        }
-
-        /// <summary>
-        /// Excecutes the main update loop for scene windows.
-        /// </summary>
-        private bool Update()
-        {
-            Time.FrameStart();
-            m_sceneWindow.QueueDraw();
-            return true;
         }
         
         /// <summary>

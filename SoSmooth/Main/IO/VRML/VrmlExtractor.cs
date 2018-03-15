@@ -84,6 +84,12 @@ namespace SoSmooth.IO.Vrml
                             IndexedFaceSetNode indexFaceSet = shape.Geometry.Node as IndexedFaceSetNode;
                             CoordinateNode coords = indexFaceSet.Coord.Node as CoordinateNode;
 
+                            // Must have at least one index given to be a mesh
+                            if (indexFaceSet.CoordIndex.Length == 0)
+                            {
+                                continue;
+                            }
+
                             // The indicies in the mesh we are building may not match those in the file if
                             // not all points from the coords are used, so maintain a mapping from original
                             // index in the file to the corresponding index in the mesh currently being built.

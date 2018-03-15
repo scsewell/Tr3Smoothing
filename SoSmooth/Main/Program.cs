@@ -39,8 +39,10 @@ namespace SoSmooth
             string platform = Environment.Is64BitOperatingSystem ? "x64" : "x86";
             Logger.Info("Running on " + os + " " + platform);
             
-            // launch the UI loop
+            // Start the UI
             Application.Init();
+            //Settings.Default.ThemeName = "theme/gtk-2.0/gtkrc";
+            //Rc.Parse("./theme/gtk-2.0/gtkrc");
             MainWindow window = new MainWindow();
             Application.Run();
 
