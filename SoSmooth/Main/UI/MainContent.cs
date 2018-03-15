@@ -12,7 +12,7 @@ namespace SoSmooth
         /// <summary>
         /// Constructor.
         /// </summary>
-        public MainContent()
+        public MainContent(MainWindow window)
         {
             // the left controls
             ActiveMeshControls activeMesh = new ActiveMeshControls();
@@ -20,7 +20,7 @@ namespace SoSmooth
             MeshList meshList = new MeshList();
 
             VBox leftControls = new VBox(false, 0);
-            leftControls.WidthRequest = 300;
+            leftControls.WidthRequest = 250;
             leftControls.PackStart(activeMesh, false, false, 0);
             leftControls.PackStart(separator, false, false, 0);
             leftControls.PackStart(meshList, true, true, 0);
@@ -32,7 +32,7 @@ namespace SoSmooth
             // the scene content
             VBox sceneBox = new VBox();
             m_sceneWindow = SceneWindow.CreateSceneWindow();
-            SceneToolbar sceneToolbar = new SceneToolbar(m_sceneWindow);
+            SceneToolbar sceneToolbar = new SceneToolbar(window, m_sceneWindow);
 
             sceneBox.PackStart(sceneToolbar, false, false, 0);
             sceneBox.PackStart(m_sceneWindow, true, true, 0);
@@ -40,8 +40,7 @@ namespace SoSmooth
             // fit everything into the main window
             Pack1(frame, false, false);
             Pack2(sceneBox, true, true);
-
-            KeyPressEvent += meshList.OnKeyPress;
+            
             KeyPressEvent += m_sceneWindow.OnKeyPress;
 
             Time.SetStartTime();

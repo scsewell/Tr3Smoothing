@@ -39,7 +39,7 @@ namespace SoSmooth
             DeleteEvent += OnDeleteEvent;
             
             MainMenuBar menuBar = new MainMenuBar(this);
-            MainContent content = new MainContent();
+            MainContent content = new MainContent(this);
             
             VBox vBox = new VBox(false, 0);
             vBox.PackStart(menuBar, false, false, 0);

@@ -169,28 +169,35 @@ namespace SoSmooth
         /// <param name="mesh">The mesh to select.</param>
         public void SetSelectedMeshes(IEnumerable<Mesh> meshes)
         {
-            // clear any old selection
-            SetActiveMesh(null, true);
-
-            // add the new selection
             if (meshes != null)
             {
-                foreach (Mesh mesh in meshes)
+                // clear any old selection
+                SetActiveMesh(null, true);
+
+                // add the new selection
+                if (meshes != null)
                 {
-                    if (mesh != null)
+                    foreach (Mesh mesh in meshes)
                     {
-                        m_selected.Add(mesh);
+                        if (mesh != null)
+                        {
+                            m_selected.Add(mesh);
+                        }
                     }
                 }
+
+                // notify the selection change
+                SelectionChanged?.Invoke(m_selected);
+
+                // make the first selected mesh active
+                if (m_selected.Count > 0)
+                {
+                    SetActiveMesh(m_selected.First(), false);
+                }
             }
-
-            // notify the selection change
-            SelectionChanged?.Invoke(m_selected);
-
-            // make the first selected mesh active
-            if (m_selected.Count > 0)
+            else
             {
-                SetActiveMesh(m_selected.First(), false);
+                SetActiveMesh(null, true);
             }
         }
         
@@ -237,6 +244,30 @@ namespace SoSmooth
                 // notify the new visibility
                 VisibilityChanged?.Invoke(mesh, visibility);
             }
+        }
+
+        /// <summary>
+        /// Delects all meshes if any are selected and selects all meshes is none are selected.
+        /// </summary>
+        public void ToggleSelected()
+        {
+            if (m_selected.Count > 0)
+            {
+                SetSelectedMeshes(null);
+            }
+            else
+            {
+                SetSelectedMeshes(m_visible);
+            }
+        }
+
+        /// <summary>
+        /// Removes all selected meshes.
+        /// </summary>
+        public void DeleteSelected()
+        {
+            List<Mesh> selected = new List<Mesh>(m_selected);
+            RemoveMeshes(selected);
         }
 
         /// <summary>

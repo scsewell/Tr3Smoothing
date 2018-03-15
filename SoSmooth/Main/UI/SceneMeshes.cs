@@ -168,27 +168,7 @@ namespace SoSmooth
                 }
             }
         }
-
-        /// <summary>
-        /// Called when key is pressed while focused.
-        /// </summary>
-        public void OnKeyPress(Gtk.KeyPressEventArgs args)
-        {
-            switch (args.Event.Key)
-            {
-                case Gdk.Key.Delete:
-                    List<Mesh> selected = new List<Mesh>(MeshManager.Instance.Selected);
-                    MeshManager.Instance.RemoveMeshes(selected);
-                    break;
-                case Gdk.Key.h:
-                    MeshManager.Instance.HideSelected();
-                    break;
-                case Gdk.Key.H:
-                    MeshManager.Instance.ShowAll();
-                    break;
-            }
-        }
-
+        
         /// <summary>
         /// Called when a mouse button was pressed.
         /// </summary>

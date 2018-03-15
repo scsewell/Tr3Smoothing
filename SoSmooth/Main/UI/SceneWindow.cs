@@ -204,7 +204,6 @@ namespace SoSmooth
             if (m_cursorOver)
             {
                 m_sceneCamera.OnKeyPress(args);
-                m_sceneMeshes.OnKeyPress(args);
             }
         }
 

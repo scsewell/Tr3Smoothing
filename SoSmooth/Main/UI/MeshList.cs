@@ -104,18 +104,6 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Called when key is pressed while focused.
-        /// </summary>
-        public void OnKeyPress(object o, KeyPressEventArgs args)
-        {
-            if (args.Event.Key == Gdk.Key.Delete)
-            {
-                List<Mesh> selected = new List<Mesh>(MeshManager.Instance.Selected);
-                MeshManager.Instance.RemoveMeshes(selected);
-            }
-        }
-
-        /// <summary>
         /// Called when a visibility checkbox has changed.
         /// </summary>
         private void OnVisibleToggled(object o, ToggledArgs args)

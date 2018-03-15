@@ -51,12 +51,12 @@ namespace SoSmooth
         /// </summary>
         private const float EASE_TIME = 0.125f;
 
-        private static readonly Quaternion FRONT_VIEW   = new Quaternion(MathHelper.Pi, 0, 0);
-        private static readonly Quaternion BACK_VIEW    = new Quaternion(0, 0, 0);
-        private static readonly Quaternion RIGHT_VIEW   = new Quaternion(-MathHelper.PiOver2, 0, 0);
-        private static readonly Quaternion LEFT_VIEW    = new Quaternion(MathHelper.PiOver2, 0, 0);
-        private static readonly Quaternion TOP_VIEW     = new Quaternion(MathHelper.Pi, 0, MathHelper.PiOver2);
-        private static readonly Quaternion BOTTOM_VIEW  = new Quaternion(MathHelper.Pi, 0, -MathHelper.PiOver2);
+        public static readonly Quaternion FRONT_VIEW   = new Quaternion(MathHelper.Pi, 0, 0);
+        public static readonly Quaternion BACK_VIEW    = new Quaternion(0, 0, 0);
+        public static readonly Quaternion RIGHT_VIEW   = new Quaternion(-MathHelper.PiOver2, 0, 0);
+        public static readonly Quaternion LEFT_VIEW    = new Quaternion(MathHelper.PiOver2, 0, 0);
+        public static readonly Quaternion TOP_VIEW     = new Quaternion(MathHelper.Pi, 0, -MathHelper.PiOver2);
+        public static readonly Quaternion BOTTOM_VIEW  = new Quaternion(MathHelper.Pi, 0, MathHelper.PiOver2);
 
         private readonly SceneWindow m_window;
 
@@ -167,14 +167,10 @@ namespace SoSmooth
 
             switch (args.Event.Key)
             {
-                case Gdk.Key.KP_1: EaseCamera(ctrl ? BACK_VIEW : FRONT_VIEW); break;
-                case Gdk.Key.KP_3: EaseCamera(ctrl ? LEFT_VIEW : RIGHT_VIEW); break;
-                case Gdk.Key.KP_7: EaseCamera(ctrl ? TOP_VIEW : BOTTOM_VIEW); break;
                 case Gdk.Key.KP_4: YawCamera(-ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_6: YawCamera(ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_8: PitchCamera(-ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_2: PitchCamera(ROTATE_STEP_SIZE); break;
-                case Gdk.Key.f: EaseToMeshes(MeshManager.Instance.Selected); break;
             }
         }
 
@@ -277,7 +273,7 @@ namespace SoSmooth
         /// Smoothly moves the camera to a target orientation.
         /// </summary>
         /// <param name="rotation">The desired rotation.</param>
-        private void EaseCamera(Quaternion rotation)
+        public void EaseCamera(Quaternion rotation)
         {
             EaseCamera(m_camPivot.LocalPosition, rotation, m_zoom);
         }
@@ -287,7 +283,7 @@ namespace SoSmooth
         /// </summary>
         /// <param name="position">The desired pivot position.</param>
         /// <param name="zoom">The desired room.</param>
-        private void EaseCamera(Vector3 position, float zoom)
+        public void EaseCamera(Vector3 position, float zoom)
         {
             EaseCamera(position, GetRotation(), zoom);
         }
@@ -298,7 +294,7 @@ namespace SoSmooth
         /// <param name="position">The desired pivot position.</param>
         /// <param name="rotation">The desired rotation.</param>
         /// <param name="zoom">The desired room.</param>
-        private void EaseCamera(Vector3 position, Quaternion rotation, float zoom)
+        public void EaseCamera(Vector3 position, Quaternion rotation, float zoom)
         {
             Vector3 currentPosition = m_camPivot.LocalPosition;
             Quaternion currentRotation = GetRotation();
