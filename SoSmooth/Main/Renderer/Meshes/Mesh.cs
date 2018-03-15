@@ -31,7 +31,7 @@ namespace SoSmooth.Meshes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_name;
             }
         }
@@ -45,19 +45,33 @@ namespace SoSmooth.Meshes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_vertices.Clone() as Vertex[];
             }
             set
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 if (m_vertices.Length != value.Length)
                 {
                     Array.Resize(ref m_vertices, value.Length);
                 }
                 Array.Copy(value, m_vertices, value.Length);
                 m_vertexBufferDirty = true;
+
+                // the bounds might no longer be valid it the vertex positions were modified
                 RecalculateBounds();
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of vertices in the mesh.
+        /// </summary>
+        public int VertexCount
+        {
+            get
+            {
+                ValidateDispose();
+                return m_vertices.Length;
             }
         }
 
@@ -70,12 +84,12 @@ namespace SoSmooth.Meshes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_triangles.Clone() as Triangle[];
             }
             set
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 if (m_triangles.Length != value.Length)
                 {
                     Array.Resize(ref m_triangles, value.Length);
@@ -86,13 +100,25 @@ namespace SoSmooth.Meshes
         }
 
         /// <summary>
+        /// Gets the number of triangles in the mesh.
+        /// </summary>
+        public int TriangleCount
+        {
+            get
+            {
+                ValidateDispose();
+                return m_triangles.Length;
+            }
+        }
+
+        /// <summary>
         /// The bounding box of the mesh.
         /// </summary>
         public Bounds Bounds
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_bounds;
             }
         }
@@ -104,7 +130,7 @@ namespace SoSmooth.Meshes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
 
                 if (m_vertexBufferDirty)
                 {
@@ -121,7 +147,7 @@ namespace SoSmooth.Meshes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
 
                 if (m_indexBufferDirty)
                 {
@@ -175,7 +201,7 @@ namespace SoSmooth.Meshes
         /// </summary>
         public void RecalculateNormals()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             // clear the existing vertex normals
             for (int i = 0; i < m_vertices.Length; i++)
@@ -348,8 +374,6 @@ namespace SoSmooth.Meshes
         /// </summary>
         public override string ToString()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
-
             return $"{{name:\"{m_name}\" verts:{m_vertices.Length} tris:{m_triangles.Length}}}";
         }
         

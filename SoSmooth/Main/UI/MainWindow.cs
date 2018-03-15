@@ -19,11 +19,11 @@ namespace SoSmooth
         /// <summary>
         /// The default pixel width of the window.
         /// </summary>
-        private const int DEFAULT_WIDTH = 800;
+        private const int DEFAULT_WIDTH = 1280;
         /// <summary>
         /// The default pixel height of the window.
         /// </summary>
-        private const int DEFAULT_HEIGHT = 600;
+        private const int DEFAULT_HEIGHT = 800;
 
         /// <summary>
         /// Constructor that assembles the separate UI regions.

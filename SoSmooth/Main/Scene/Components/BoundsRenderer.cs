@@ -42,34 +42,38 @@ namespace SoSmooth.Scenes
             // clear any lines
             m_vertexBuffer.Clear();
 
+            // get the underlying buffer
+            int offset;
+            VertexPNC[] verts = m_vertexBuffer.WriteDirectly(24, out offset);
+
             // each consecutive pair of elements forms a line segment drawn to form the box wireframe
-            m_vertexBuffer.AddElement(new VertexPNC(corners[0], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[4], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[1], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[5], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[2], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[6], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[3], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[7], Vector3.Zero, Color4.White));
+            verts[0]    = new VertexPNC(corners[0], Vector3.Zero, Color4.White);
+            verts[1]    = new VertexPNC(corners[4], Vector3.Zero, Color4.White);
+            verts[2]    = new VertexPNC(corners[1], Vector3.Zero, Color4.White);
+            verts[3]    = new VertexPNC(corners[5], Vector3.Zero, Color4.White);
+            verts[4]    = new VertexPNC(corners[2], Vector3.Zero, Color4.White);
+            verts[5]    = new VertexPNC(corners[6], Vector3.Zero, Color4.White);
+            verts[6]    = new VertexPNC(corners[3], Vector3.Zero, Color4.White);
+            verts[7]    = new VertexPNC(corners[7], Vector3.Zero, Color4.White);
 
-            m_vertexBuffer.AddElement(new VertexPNC(corners[0], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[1], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[1], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[3], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[3], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[2], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[2], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[0], Vector3.Zero, Color4.White));
+            verts[8]    = new VertexPNC(corners[0], Vector3.Zero, Color4.White);
+            verts[9]    = new VertexPNC(corners[1], Vector3.Zero, Color4.White);
+            verts[10]   = new VertexPNC(corners[1], Vector3.Zero, Color4.White);
+            verts[11]   = new VertexPNC(corners[3], Vector3.Zero, Color4.White);
+            verts[12]   = new VertexPNC(corners[3], Vector3.Zero, Color4.White);
+            verts[13]   = new VertexPNC(corners[2], Vector3.Zero, Color4.White);
+            verts[14]   = new VertexPNC(corners[2], Vector3.Zero, Color4.White);
+            verts[15]   = new VertexPNC(corners[0], Vector3.Zero, Color4.White);
 
-            m_vertexBuffer.AddElement(new VertexPNC(corners[4], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[5], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[5], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[7], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[7], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[6], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[6], Vector3.Zero, Color4.White));
-            m_vertexBuffer.AddElement(new VertexPNC(corners[4], Vector3.Zero, Color4.White));
-
+            verts[16]   = new VertexPNC(corners[4], Vector3.Zero, Color4.White);
+            verts[17]   = new VertexPNC(corners[5], Vector3.Zero, Color4.White);
+            verts[18]   = new VertexPNC(corners[5], Vector3.Zero, Color4.White);
+            verts[19]   = new VertexPNC(corners[7], Vector3.Zero, Color4.White);
+            verts[20]   = new VertexPNC(corners[7], Vector3.Zero, Color4.White);
+            verts[21]   = new VertexPNC(corners[6], Vector3.Zero, Color4.White);
+            verts[22]   = new VertexPNC(corners[6], Vector3.Zero, Color4.White);
+            verts[23]   = new VertexPNC(corners[4], Vector3.Zero, Color4.White);
+            
             // upload the lines to the GPU
             m_vertexBuffer.BufferData();
         }

@@ -34,8 +34,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public Color4 ClearColor
         {
-            get { return m_clearColor; }
-            set { m_clearColor = value; }
+            get
+            {
+                ValidateDispose();
+                return m_clearColor;
+            }
+            set
+            {
+                ValidateDispose();
+                m_clearColor = value;
+            }
         }
 
         /// <summary>
@@ -44,9 +52,14 @@ namespace SoSmooth.Scenes
         /// </summary>
         public float FieldOfView
         {
-            get { return m_fieldOfView; }
+            get
+            {
+                ValidateDispose();
+                return m_fieldOfView;
+            }
             set
             {
+                ValidateDispose();
                 if (m_fieldOfView != value)
                 {
                     m_fieldOfView = MathHelper.Clamp(value, 0.001f, 180);
@@ -59,7 +72,14 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The aspect ratio of the camera.
         /// </summary>
-        public float AspectRatio => (float)m_resolutionX / m_resolutionY;
+        public float AspectRatio
+        {
+            get
+            {
+                ValidateDispose();
+                return (float)m_resolutionX / m_resolutionY;
+            }
+        }
         
         /// <summary>
         /// The distance of the near clip plane before which nothing is rendered.
@@ -67,9 +87,14 @@ namespace SoSmooth.Scenes
         /// </summary>
         public float NearClip
         {
-            get { return m_nearClip; }
+            get
+            {
+                ValidateDispose();
+                return m_nearClip;
+            }
             set
             {
+                ValidateDispose();
                 if (m_nearClip != value)
                 {
                     m_nearClip = Math.Max(value, 0.001f);
@@ -85,9 +110,14 @@ namespace SoSmooth.Scenes
         /// </summary>
         public float FarClip
         {
-            get { return m_farClip; }
+            get
+            {
+                ValidateDispose();
+                return m_farClip;
+            }
             set
             {
+                ValidateDispose();
                 if (m_farClip != value)
                 {
                     m_farClip = Math.Max(value, 0.001f);
@@ -102,7 +132,11 @@ namespace SoSmooth.Scenes
         /// </summary>
         public Matrix4 ViewMatrix
         {
-            get { return Transform.WorldToLocalMatrix; }
+            get
+            {
+                ValidateDispose();
+                return Transform.WorldToLocalMatrix;
+            }
         }
 
         /// <summary>
@@ -110,7 +144,11 @@ namespace SoSmooth.Scenes
         /// </summary>
         public Matrix4 ViewMatrixInverse
         {
-            get { return Transform.LocalToWorldMatix; }
+            get
+            {
+                ValidateDispose();
+                return Transform.LocalToWorldMatix;
+            }
         }
 
         /// <summary>
@@ -120,6 +158,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 if (m_projectionMatDirty)
                 {
                     Matrix4.CreatePerspectiveFieldOfView(
@@ -142,6 +181,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 if (m_planesDirty)
                 {
                     ComputeFrustumPlanes();
@@ -180,6 +220,7 @@ namespace SoSmooth.Scenes
         /// <param name="resY">The vertical rendering resolution in pixels.</param>
         public void SetResolution(int resX, int resY)
         {
+            ValidateDispose();
             if (m_resolutionX != resX)
             {
                 m_resolutionX = resX;
@@ -201,6 +242,7 @@ namespace SoSmooth.Scenes
         /// <param name="resY">The vertical rendering resolution in pixels.</param>
         public void GetResolution(out int resX, out int resY)
         {
+            ValidateDispose();
             resX = m_resolutionX;
             resY = m_resolutionY;
         }
@@ -210,6 +252,9 @@ namespace SoSmooth.Scenes
         /// </summary>
         public void Render()
         {
+            ValidateDispose();
+
+            // mark this as the currently rendering camera
             current = this;
 
             // set up the camera data buffer fo the render
@@ -262,6 +307,7 @@ namespace SoSmooth.Scenes
         /// <param name="point">The screen position in pixels.</param>
         public Vector3 ScreenPointToWorldDirection(Vector2 point)
         {
+            ValidateDispose();
             Vector3 clipPoint = new Vector3(
                 2.0f * ((point.X / m_resolutionX) - 0.5f),
                 2.0f * (-((point.Y / m_resolutionY) - 0.5f)),

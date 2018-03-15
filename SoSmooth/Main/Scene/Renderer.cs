@@ -25,19 +25,38 @@ namespace SoSmooth.Scenes
         private string m_programName = null;
         private ShaderProgram m_shaderProgram = null;
 
+        private bool m_enabled = true;
+
         /// <summary>
         /// If true this component is allowed to render.
         /// </summary>
-        public bool Enabled { get; set; } = true;
+        public bool Enabled
+        {
+            get
+            {
+                ValidateDispose();
+                return m_enabled;
+            }
+            set
+            {
+                ValidateDispose();
+                m_enabled = value;
+            }
+        }
 
         /// <summary>
         /// The name of the desired shader program. Set to null if the shader name is invalid.
         /// </summary>
         public string ShaderProgram
         {
-            get { return m_programName; }
+            get
+            {
+                ValidateDispose();
+                return m_programName;
+            }
             set
             {
+                ValidateDispose();
                 if (m_programName != value)
                 {
                     if (ShaderManager.Instance.GetProgram(value, out m_shaderProgram))
@@ -58,8 +77,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public BlendMode BlendMode
         {
-            get { return m_blend.BlendMode; }
-            set { m_blend.BlendMode = value; }
+            get
+            {
+                ValidateDispose();
+                return m_blend.BlendMode;
+            }
+            set
+            {
+                ValidateDispose();
+                m_blend.BlendMode = value;
+            }
         }
 
         /// <summary>
@@ -67,8 +94,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public bool WriteDepth
         {
-            get { return m_depthMask.WriteDepth; }
-            set { m_depthMask.WriteDepth = value; }
+            get
+            {
+                ValidateDispose();
+                return m_depthMask.WriteDepth;
+            }
+            set
+            {
+                ValidateDispose();
+                m_depthMask.WriteDepth = value;
+            }
         }
 
         /// <summary>
@@ -76,8 +111,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public CullMode CullMode
         {
-            get { return m_cullMode.CullMode; }
-            set { m_cullMode.CullMode = value; }
+            get
+            {
+                ValidateDispose();
+                return m_cullMode.CullMode;
+            }
+            set
+            {
+                ValidateDispose();
+                m_cullMode.CullMode = value;
+            }
         }
 
         /// <summary>
@@ -85,8 +128,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public PolygonMode FrontFaceMode
         {
-            get { return m_polygonMode.FrontFaceMode; }
-            set { m_polygonMode.FrontFaceMode = value; }
+            get
+            {
+                ValidateDispose();
+                return m_polygonMode.FrontFaceMode;
+            }
+            set
+            {
+                ValidateDispose();
+                m_polygonMode.FrontFaceMode = value;
+            }
         }
 
         /// <summary>
@@ -94,8 +145,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public PolygonMode BackFaceMode
         {
-            get { return m_polygonMode.BackFaceMode; }
-            set { m_polygonMode.BackFaceMode = value; }
+            get
+            {
+                ValidateDispose();
+                return m_polygonMode.BackFaceMode;
+            }
+            set
+            {
+                ValidateDispose();
+                m_polygonMode.BackFaceMode = value;
+            }
         }
 
         /// <summary>
@@ -103,8 +162,16 @@ namespace SoSmooth.Scenes
         /// </summary>
         public Color4 Color
         {
-            get { return m_color.Value; }
-            set { m_color.Value = value; }
+            get
+            {
+                ValidateDispose();
+                return m_color.Value;
+            }
+            set
+            {
+                ValidateDispose();
+                m_color.Value = value;
+            }
         }
 
         /// <summary>
@@ -136,7 +203,7 @@ namespace SoSmooth.Scenes
         /// <param name="camera">The camera that is currently rendering.</param>
         public bool IsCulled()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (!Enabled || m_shaderProgram == null)
             {
@@ -158,7 +225,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         public void Render()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_modelMatrix.Value = Transform.LocalToWorldMatix;
             m_surface.SetShaderProgram(m_shaderProgram);
@@ -176,6 +243,8 @@ namespace SoSmooth.Scenes
         /// </summary>
         public int CompareTo(object obj)
         {
+            ValidateDispose();
+
             Renderer other = obj as Renderer;
             if (other != null)
             {

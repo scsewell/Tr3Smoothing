@@ -36,7 +36,7 @@ namespace SoSmooth.Rendering
         /// <param name="element">The element to add to the buffer.</param>
         public void AddElement(TData element)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int newCount = m_count + 1;
             EnsureCapacity(newCount);
@@ -54,7 +54,7 @@ namespace SoSmooth.Rendering
         /// <param name="e1">The second element to add to the buffer.</param>
         public void AddElements(TData e0, TData e1)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int newCount = m_count + 2;
             EnsureCapacity(newCount);
@@ -74,7 +74,7 @@ namespace SoSmooth.Rendering
         /// <param name="e2">The third element to add to the buffer.</param>
         public void AddElements(TData e0, TData e1, TData e2)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int newCount = m_count + 3;
             EnsureCapacity(newCount);
@@ -96,7 +96,7 @@ namespace SoSmooth.Rendering
         /// <param name="e3">The fourth element to add to the buffer.</param>
         public void AddElements(TData e0, TData e1, TData e2, TData e3)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int newCount = m_count + 4;
             EnsureCapacity(newCount);
@@ -116,7 +116,7 @@ namespace SoSmooth.Rendering
         /// <param name="elements">The elements to add to the buffer.</param>
         public void AddElements(params TData[] elements)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int newCount = m_count + elements.Length;
             EnsureCapacity(newCount);
@@ -140,7 +140,7 @@ namespace SoSmooth.Rendering
         /// <returns>The underlying element array to write to.</returns>
         public TData[] WriteDirectly(int count, out int offset)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int newCount = m_count + count;
             EnsureCapacity(newCount);
@@ -157,7 +157,7 @@ namespace SoSmooth.Rendering
         /// <param name="count">The number of elements to remove.</param>
         public void RemoveElements(int count)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_count = Math.Max(m_count - count, 0);
             m_dirty = true;
@@ -168,7 +168,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Clear()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_count = 0;
             m_dirty = true;

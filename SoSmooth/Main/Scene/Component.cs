@@ -16,7 +16,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_entity;
             }
         }
@@ -28,7 +28,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_entity.Transform;
             }
         }

@@ -19,10 +19,7 @@ namespace SoSmooth
         /// <summary>
         /// The number of bytes written to the log file.
         /// </summary>
-        public uint LogFileSize
-        {
-            get { return m_bytesWritten; }
-        }
+        public uint LogFileSize => m_bytesWritten;
 
         public LogWriter()
         {
@@ -48,7 +45,7 @@ namespace SoSmooth
                 }
 
                 // write to the current log file and close the stream
-                lock (m_bufferLock)
+                lock (m_writeLock)
                 {
                     using (StreamWriter stream = File.AppendText(Logger.Instance.LogPath))
                     {
@@ -90,7 +87,7 @@ namespace SoSmooth
         /// <param name="message">The message to log.</param>
         public void WriteSynchronous(string message)
         {
-            lock (m_bufferLock)
+            lock (m_writeLock)
             {
                 // write to the current log file and close the stream
                 using (StreamWriter stream = File.AppendText(Logger.Instance.LogPath))

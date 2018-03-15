@@ -20,6 +20,7 @@ namespace SoSmooth.Rendering
         /// <param name="indexBuffer">The index buffer object to render using.</param>
         public void SetIndexBuffer(IIndexBuffer indexBuffer)
         {
+            ValidateDispose();
             m_vertexArray.SetIndexBuffer(indexBuffer);
         }
 

@@ -63,8 +63,11 @@ namespace SoSmooth.Scenes
                 entity.GetComponentsInChildren(lights);
             }
 
+            // sort the lights by intensity
             lights.Sort();
 
+            // Sets the lighting data for the scene. The number of lights is limited, so
+            // the brightest lights are used
             return new LightData
             {
                 AmbientColor = AmbientLight,

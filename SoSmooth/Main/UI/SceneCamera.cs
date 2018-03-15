@@ -174,7 +174,7 @@ namespace SoSmooth
                 case Gdk.Key.KP_6: YawCamera(ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_8: PitchCamera(-ROTATE_STEP_SIZE); break;
                 case Gdk.Key.KP_2: PitchCamera(ROTATE_STEP_SIZE); break;
-                case Gdk.Key.f: EaseToSelected(); break;
+                case Gdk.Key.f: EaseToMeshes(MeshManager.Instance.Selected); break;
             }
         }
 
@@ -242,14 +242,85 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Moves the camera in or out from the pivot by some amount.
+        /// Smoothly moves the camera to view selected objects.
         /// </summary>
-        /// <param name="zoomDelta">The amount to offset the zoom.</param>
-        private void ZoomCamera(float zoomDelta)
+        public void EaseToMeshes(IEnumerable<Mesh> toView)
         {
-            if (!m_easing)
+            List<Vector3> boundCorners = new List<Vector3>();
+
+            // get the bounding box for all of the meshes to view in the scene
+            foreach (Mesh mesh in toView)
             {
-                m_zoom = MathHelper.Clamp(m_zoom + zoomDelta, ZOOM_MIN, ZOOM_MAX);
+                Entity entity = m_window.Meshes.GetEntity(mesh);
+                if (entity != null)
+                {
+                    Bounds b = mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
+                    boundCorners.AddRange(b.Corners);
+                }
+            }
+
+            if (boundCorners.Count > 0)
+            {
+                // get a bounding box around all the individual bounds for each mesh
+                Bounds totalBound = Bounds.FromPoints(boundCorners.AsReadOnly());
+                float distance = totalBound.Size.Length * 1.25f;
+
+                // the selectoin should be centered and take up most of the screen
+                Vector3 targetPos = totalBound.Center;
+                float targetZoom = Math.Max(distance, distance / m_camera.AspectRatio);
+
+                EaseCamera(targetPos, targetZoom);
+            }
+        }
+
+        /// <summary>
+        /// Smoothly moves the camera to a target orientation.
+        /// </summary>
+        /// <param name="rotation">The desired rotation.</param>
+        private void EaseCamera(Quaternion rotation)
+        {
+            EaseCamera(m_camPivot.LocalPosition, rotation, m_zoom);
+        }
+
+        /// <summary>
+        /// Smoothly moves the camera to a target orientation.
+        /// </summary>
+        /// <param name="position">The desired pivot position.</param>
+        /// <param name="zoom">The desired room.</param>
+        private void EaseCamera(Vector3 position, float zoom)
+        {
+            EaseCamera(position, GetRotation(), zoom);
+        }
+
+        /// <summary>
+        /// Smoothly moves the camera to a target orientation.
+        /// </summary>
+        /// <param name="position">The desired pivot position.</param>
+        /// <param name="rotation">The desired rotation.</param>
+        /// <param name="zoom">The desired room.</param>
+        private void EaseCamera(Vector3 position, Quaternion rotation, float zoom)
+        {
+            Vector3 currentPosition = m_camPivot.LocalPosition;
+            Quaternion currentRotation = GetRotation();
+            float currentZoom = m_zoom;
+
+            // if the desired camera orientation is different ease to it
+            if (currentPosition != position | currentRotation != rotation || currentZoom != zoom)
+            {
+                m_easing = true;
+                m_easeStartTime = Time.time;
+                
+                m_easeStartPos = currentPosition;
+                m_easeStartRot = currentRotation;
+                m_easeStartZoom = currentZoom;
+
+                m_easeTargetPos = position;
+                m_easeTargetRot = rotation;
+                m_easeTargetZoom = zoom;
+
+                Vector3 euler = rotation.ToEulerAngles();
+                m_yaw = euler.Z;
+                m_pitch = euler.X;
             }
         }
 
@@ -278,70 +349,14 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Smoothly moves the camera to a target orientation.
+        /// Moves the camera in or out from the pivot by some amount.
         /// </summary>
-        /// <param name="targetRotation">The goal rotation.</param>
-        private void EaseCamera(Quaternion targetRotation)
+        /// <param name="zoomDelta">The amount to offset the zoom.</param>
+        private void ZoomCamera(float zoomDelta)
         {
-            Quaternion currentRotation = GetRotation();
-
-            if (currentRotation != targetRotation)
+            if (!m_easing)
             {
-                m_easing = true;
-                m_easeStartTime = Time.time;
-                m_easeStartRot = currentRotation;
-                m_easeTargetRot = targetRotation;
-
-                m_easeStartPos = m_camPivot.LocalPosition;
-                m_easeTargetPos = m_camPivot.LocalPosition;
-
-                m_easeStartZoom = m_zoom;
-                m_easeTargetZoom = m_zoom;
-
-                Vector3 euler = targetRotation.ToEulerAngles();
-                m_yaw = euler.Z;
-                m_pitch = euler.X;
-            }
-        }
-
-        /// <summary>
-        /// Smoothly moves the camera to view selected objects.
-        /// </summary>
-        private void EaseToSelected()
-        {
-            List<Vector3> boundCorners = new List<Vector3>();
-            foreach (Mesh mesh in MeshManager.Instance.Selected)
-            {
-                Entity entity = m_window.Meshes.GetEntity(mesh);
-                Bounds b = mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
-                boundCorners.AddRange(b.Corners);
-            }
-
-            if (boundCorners.Count > 0)
-            {
-                Bounds totalBound = Bounds.FromPoints(boundCorners.AsReadOnly());
-                float boundSize = totalBound.Size.Length * 1.5f;
-
-                Vector3 targetPos = totalBound.Center;
-                float targetZoom = Math.Max(boundSize, boundSize / m_camera.AspectRatio);
-
-                if (m_camPivot.LocalPosition != targetPos || m_zoom != targetZoom)
-                {
-                    m_easing = true;
-                    m_easeStartTime = Time.time;
-
-                    m_easeStartPos = m_camPivot.LocalPosition;
-                    m_easeTargetPos = targetPos;
-
-                    Quaternion currentRotation = GetRotation();
-                    m_easeStartRot = currentRotation;
-                    m_easeTargetRot = currentRotation;
-
-                    m_easeStartZoom = m_zoom;
-                    m_easeTargetZoom = targetZoom;
-
-                    m_camPivot.LocalPosition = totalBound.Center;
-                }
+                m_zoom = MathHelper.Clamp(m_zoom + zoomDelta, ZOOM_MIN, ZOOM_MAX);
             }
         }
 

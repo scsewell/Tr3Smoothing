@@ -62,11 +62,13 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 RefreshLocalPosition();
                 return m_localPosition;
             }
             set
             {
+                ValidateDispose();
                 if (m_localPosition != value)
                 {
                     RefreshLocalRotation();
@@ -87,11 +89,13 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 RefreshLocalRotation();
                 return m_localRotation;
             }
             set
             {
+                ValidateDispose();
                 if (m_localRotation != value)
                 {
                     RefreshLocalPosition();
@@ -112,11 +116,13 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 RefreshLocalScale();
                 return m_localScale;
             }
             set
             {
+                ValidateDispose();
                 if (m_localScale != value)
                 {
                     RefreshLocalPosition();
@@ -137,6 +143,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 RefreshLocalToParent();
                 return m_localToParentMatrix;
             }
@@ -149,11 +156,13 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 RefreshLocalToWorld();
                 return m_localToWorldMatrix;
             }
             set
             {
+                ValidateDispose();
                 if (m_localToWorldMatrix != value)
                 {
                     ChildrenCacheLocal();
@@ -172,11 +181,13 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 RefreshWorldToLocal();
                 return m_worldToLocalMatrix;
             }
             set
             {
+                ValidateDispose();
                 if (m_worldToLocalMatrix != value)
                 {
                     ChildrenCacheLocal();
@@ -195,6 +206,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 if (IsAllDirty(DirtyFlag.Forward))
                 {
                     m_forward = Vector3.TransformVector(-Vector3.UnitY, LocalToWorldMatix).Normalized();
@@ -211,6 +223,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 if (IsAllDirty(DirtyFlag.Upward))
                 {
                     m_up = Vector3.TransformVector(Vector3.UnitZ, LocalToWorldMatix).Normalized();
@@ -227,6 +240,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 if (IsAllDirty(DirtyFlag.Right))
                 {
                     m_right = Vector3.TransformVector(-Vector3.UnitX, LocalToWorldMatix).Normalized();
@@ -239,34 +253,59 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The world space position of the transform.
         /// </summary>
-        public Vector3 Position => LocalToWorldMatix.ExtractTranslation();
+        public Vector3 Position
+        {
+            get
+            {
+                ValidateDispose();
+                return LocalToWorldMatix.ExtractTranslation();
+            }
+        }
 
         /// <summary>
         /// The world space rotation of the transform.
         /// </summary>
-        public Quaternion Rotation => LocalToWorldMatix.ExtractRotation();
+        public Quaternion Rotation
+        {
+            get
+            {
+                ValidateDispose();
+                return LocalToWorldMatix.ExtractRotation();
+            }
+        }
 
         /// <summary>
         /// The world space position of the transform.
         /// </summary>
-        public Vector3 Scale => LocalToWorldMatix.ExtractScale();
+        public Vector3 Scale
+        {
+            get
+            {
+                ValidateDispose();
+                return LocalToWorldMatix.ExtractScale();
+            }
+        }
 
         /// <summary>
         /// Event that is triggered when the transform has been moved.
         /// </summary>
         public event Action Moved;
 
-        private Transform m_parent;
-
         public delegate void ParentChangedHandler(Transform oldParent, Transform newParent);
         private ParentChangedHandler m_onParentChanged;
+
+        private Transform m_parent;
 
         /// <summary>
         /// The parent transform.
         /// </summary>
         public Transform Parent
         {
-            get { return m_parent; }
+            get
+            {
+                ValidateDispose();
+                return m_parent;
+            }
             set { SetParent(value); }
         }
 
@@ -277,6 +316,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
+                ValidateDispose();
                 Transform current = this;
                 while (current.Parent != null)
                 {
@@ -291,7 +331,14 @@ namespace SoSmooth.Scenes
         /// <summary>
         /// The children of this transform.
         /// </summary>
-        public IReadOnlyList<Transform> Children => m_children;
+        public IReadOnlyList<Transform> Children
+        {
+            get
+            {
+                ValidateDispose();
+                return m_children;
+            }
+        }
         
         /// <summary>
         /// Constructor.
@@ -326,6 +373,7 @@ namespace SoSmooth.Scenes
         /// <param name="worldPositionStays">If true the world orientation of theis transform will not change.</param>
         public void SetParent(Transform newParent, bool worldPositionStays = true)
         {
+            ValidateDispose();
             if (m_parent != newParent)
             {
                 Transform oldParent = m_parent;
@@ -546,6 +594,20 @@ namespace SoSmooth.Scenes
         private bool IsAllDirty(DirtyFlag flags)
         {
             return (m_dirtyFlags & flags) == flags;
+        }
+
+        /// <summary>
+        /// Removes all event reference during disposal.
+        /// </summary>
+        protected override void OnDispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Moved = delegate { };
+                m_onParentChanged = null;
+            }
+
+            base.OnDispose(disposing);
         }
     }
 }

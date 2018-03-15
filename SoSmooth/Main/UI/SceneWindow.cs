@@ -200,16 +200,22 @@ namespace SoSmooth
 
         public void OnKeyPress(object o, Gtk.KeyPressEventArgs args)
         {
+            // only capture key presses when the cursor is over the window
             if (m_cursorOver)
             {
                 m_sceneCamera.OnKeyPress(args);
+                m_sceneMeshes.OnKeyPress(args);
             }
         }
 
         private void OnButtonPress(object o, ButtonPressEventArgs args)
         {
-            m_sceneCamera.OnButtonPress(args);
-            m_sceneMeshes.OnButtonPress(args);
+            // only capture key presses when the cursor is over the window
+            if (m_cursorOver)
+            {
+                m_sceneCamera.OnButtonPress(args);
+                m_sceneMeshes.OnButtonPress(args);
+            }
         }
 
         private void OnScroll(object o, ScrollEventArgs args)

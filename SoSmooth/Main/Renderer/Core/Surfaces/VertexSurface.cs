@@ -38,6 +38,7 @@ namespace SoSmooth.Rendering
         /// <param name="primitiveType">Type of the primitives to draw.</param>
         public void SetVertexBuffer(IVertexBuffer vertexBuffer, PrimitiveType primitiveType = PrimitiveType.Triangles)
         {
+            ValidateDispose();
             m_vertexArray.SetVertexBuffer(vertexBuffer);
             m_primitiveType = primitiveType;
         }

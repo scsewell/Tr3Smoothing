@@ -1,4 +1,5 @@
-﻿using SoSmooth.Rendering;
+﻿using System;
+using SoSmooth.Rendering;
 using SoSmooth.Meshes;
 
 namespace SoSmooth.Scenes
@@ -9,16 +10,21 @@ namespace SoSmooth.Scenes
     public abstract class MeshBasedRenderer : Renderer
     {
         protected Mesh m_mesh;
-        private bool m_boundsDirty = true;
+        private bool m_boundsDirty;
 
         /// <summary>
         /// The mesh to be rendered.
         /// </summary>
         public Mesh Mesh
         {
-            get { return m_mesh; }
+            get
+            {
+                ValidateDispose();
+                return m_mesh;
+            }
             set
             {
+                ValidateDispose();
                 if (m_mesh != value)
                 {
                     m_mesh = value;
@@ -34,6 +40,7 @@ namespace SoSmooth.Scenes
         public MeshBasedRenderer(Entity entity, Mesh mesh, Surface surface) : base(entity, surface)
         {
             m_mesh = mesh;
+            m_boundsDirty = true;
 
             Transform.Moved += OnMeshMoved;
         }

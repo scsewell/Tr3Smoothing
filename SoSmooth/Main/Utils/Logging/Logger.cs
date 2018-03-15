@@ -6,9 +6,9 @@ using System.Linq;
 namespace SoSmooth
 {
     /// <summary>
-    /// Formats log messages and sends them to the log writer.
-    /// It is thread safe, but writes are briefly buffered so
-    /// in event of a fatal crash output may not be complete.
+    /// Formats log messages and sends them to the log writer. It is thread safe,
+    /// but writes are briefly buffered so in event of a fatal crash output may
+    /// not be complete.
     /// </summary>
     public class Logger : Singleton<Logger>
     {
@@ -216,7 +216,9 @@ namespace SoSmooth
                     line += stackTrace;
                 }
 
-                if (writeAsynchronously)
+                // don't write error messages asynchronously as that helps ensure the message is
+                // still logged in case of a fatal error
+                if (logLevel != LogLevel.Error && writeAsynchronously)
                 {
                     m_writer.BufferMessage(line);
                 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Gdk;
 using Gtk;
 using SoSmooth.Meshes;
 
@@ -8,7 +9,7 @@ namespace SoSmooth
     /// <summary>
     /// Displays the meshes loaded in the scene.
     /// </summary>
-    public class MeshList : ScrolledWindow
+    public class MeshList : VBox
     {
         private readonly TreeView m_treeView;
         private readonly ListStore m_listStore;
@@ -20,92 +21,56 @@ namespace SoSmooth
         /// </summary>
         public MeshList()
         {
-            HscrollbarPolicy = PolicyType.Never;
-            VscrollbarPolicy = PolicyType.Automatic;
+            Gtk.Label title = new Gtk.Label();
+            title.Markup = "<b>Meshes</b>";
+
+            ScrolledWindow scrolledWindow = new ScrolledWindow();
+            scrolledWindow.HscrollbarPolicy = PolicyType.Never;
+            scrolledWindow.VscrollbarPolicy = PolicyType.Automatic;
+
+            Frame frame = new Frame();
+            frame.Shadow = ShadowType.EtchedIn;
+            frame.Add(scrolledWindow);
+
+            PackStart(title, false, false, 5);
+            PackStart(frame, true, true, 0);
 
             m_treeView = new TreeView();
             m_treeView.HeadersVisible = true;
             m_treeView.EnableSearch = false;
             m_treeView.Selection.Mode = SelectionMode.Multiple;
-            Add(m_treeView);
-            
-            TreeViewColumn col1 = new TreeViewColumn();
+            scrolledWindow.Add(m_treeView);
+
+            CellRendererToggle cell0 = new CellRendererToggle();
+            cell0.Mode = CellRendererMode.Activatable;
+            cell0.Sensitive = true;
+            cell0.Toggled += OnVisibleToggled;
+            TreeViewColumn col0 = new TreeViewColumn();
+            col0.Sizing = TreeViewColumnSizing.Fixed;
+            col0.FixedWidth = 18;
+            col0.PackStart(cell0, false);
+            col0.AddAttribute(cell0, "active", 0);
+            m_treeView.AppendColumn(col0);
+
             CellRenderer cell1 = new CellRendererText();
-            col1.Title = "Mesh";
+            cell1.Mode = CellRendererMode.Inert;
+            TreeViewColumn col1 = new TreeViewColumn();
+            col1.Title = "Name";
             col1.PackStart(cell1, true);
-            col1.AddAttribute(cell1, "text", 0);
+            col1.AddAttribute(cell1, "text", 1);
             m_treeView.AppendColumn(col1);
-            /*
-            TreeViewColumn col2 = new TreeViewColumn();
-            CellRenderer cell2 = new cellrenderer();
-            col2.Title = "Remove";
-            col2.PackStart(cell2, true);
-            col2.AddAttribute(cell2, "text", 1);
-            AppendColumn(col2);
-            */
-            m_listStore = new ListStore(typeof(string));
+            
+            m_listStore = new ListStore(typeof(bool), typeof(string));
             m_treeView.Model = m_listStore;
 
             m_treeView.Selection.Changed += OnListSelectionChanged;
+            m_treeView.QueryTooltip += OnShowTooltip;
+            m_treeView.HasTooltip = true;
+            m_treeView.CanFocus = false;
+
             MeshManager.Instance.SelectionChanged += OnMeshSelectionChanged;
             MeshManager.Instance.MeshesChanged += OnMeshesChanged;
-        }
-
-        /// <summary>
-        /// Called when the meshes in the scene have changed. Updates the displayed mesh list.
-        /// </summary>
-        private void OnMeshesChanged(IReadOnlyList<Mesh> meshes)
-        {
-            m_treeView.Selection.UnselectAll();
-            
-            m_listStore.Clear();
-            m_indexToMesh.Clear();
-            m_meshToIndex.Clear();
-
-            TreeIter iter = new TreeIter();
-            for (int i = 0; i < meshes.Count; i++)
-            {
-                iter = m_listStore.AppendValues(meshes[i].Name);
-                m_indexToMesh.Add(i, meshes[i]);
-                m_meshToIndex.Add(meshes[i], i);
-            }
-        }
-
-        /// <summary>
-        /// Called when the selected meshes have changed.
-        /// </summary>
-        private void OnMeshSelectionChanged(IReadOnlyList<Mesh> selected)
-        {
-            m_treeView.Selection.Changed -= OnListSelectionChanged;
-            
-            m_treeView.Selection.UnselectAll();
-            foreach (Mesh mesh in selected)
-            {
-                m_treeView.Selection.SelectPath(new TreePath($"{m_meshToIndex[mesh]}"));
-            }
-
-            m_treeView.Selection.Changed += OnListSelectionChanged;
-        }
-        
-        /// <summary>
-        /// Called when the selected elements of the list view has changed.
-        /// </summary>
-        private void OnListSelectionChanged(object sender, System.EventArgs e)
-        {
-            List<Mesh> selected = GetSelectedMeshes();
-            MeshManager.Instance.SetSelectedMeshes(selected);
-            MeshManager.Instance.SetActiveMesh(selected.Count > 0 ? selected.First() : null, false);
-        }
-        
-        /// <summary>
-        /// Called when key is pressed while focused.
-        /// </summary>
-        public void OnKeyPress(object o, KeyPressEventArgs args)
-        {
-            if (args.Event.Key == Gdk.Key.Delete)
-            {
-                MeshManager.Instance.RemoveMeshes(GetSelectedMeshes());
-            }
+            MeshManager.Instance.VisibilityChanged += OnVisibilityChanged;
         }
 
         /// <summary>
@@ -116,9 +81,143 @@ namespace SoSmooth
             List<Mesh> meshes = new List<Mesh>();
             foreach (TreePath path in m_treeView.Selection.GetSelectedRows())
             {
-                meshes.Add(m_indexToMesh[path.Indices[0]]);
+                Mesh mesh = m_indexToMesh[path.Indices[0]];
+                if (MeshManager.Instance.IsVisible(mesh))
+                {
+                    meshes.Add(mesh);
+                }
+                else
+                {
+                    m_treeView.Selection.UnselectPath(path);
+                }
             }
             return meshes;
+        }
+
+        /// <summary>
+        /// Called when the selected elements of the list view has changed.
+        /// </summary>
+        private void OnListSelectionChanged(object sender, System.EventArgs e)
+        {
+            List<Mesh> selected = GetSelectedMeshes();
+            MeshManager.Instance.SetSelectedMeshes(selected);
+        }
+
+        /// <summary>
+        /// Called when key is pressed while focused.
+        /// </summary>
+        public void OnKeyPress(object o, KeyPressEventArgs args)
+        {
+            if (args.Event.Key == Gdk.Key.Delete)
+            {
+                List<Mesh> selected = new List<Mesh>(MeshManager.Instance.Selected);
+                MeshManager.Instance.RemoveMeshes(selected);
+            }
+        }
+
+        /// <summary>
+        /// Called when a visibility checkbox has changed.
+        /// </summary>
+        private void OnVisibleToggled(object o, ToggledArgs args)
+        {
+            TreePath path = new TreePath(args.Path);
+            TreeIter iter;
+            if (m_listStore.GetIter(out iter, path))
+            {
+                bool isVisible = !(bool)m_listStore.GetValue(iter, 0);
+                m_listStore.SetValue(iter, 0, isVisible);
+                MeshManager.Instance.SetVisible(m_indexToMesh[path.Indices[0]], isVisible);
+            }
+        }
+
+        /// <summary>
+        /// Changes the tooltip message based on the cell the mouse is over.
+        /// </summary>
+        private void OnShowTooltip(object o, QueryTooltipArgs args)
+        {
+            TreePath path;
+            TreeIter iter;
+            if (m_treeView.GetPathAtPos(args.X, args.Y, out path) && m_listStore.GetIter(out iter, path))
+            {
+                int colNum = 0;
+                int baseX = 0;
+                foreach (TreeViewColumn col in m_treeView.Columns)
+                {
+                    if (baseX <= args.X && args.X <= baseX + col.Width)
+                    {
+                        break;
+                    }
+                    baseX += col.Width;
+                    colNum++;
+                }
+                // visibility column
+                if (colNum == 0)
+                {
+                    bool visible = MeshManager.Instance.IsVisible(m_indexToMesh[path.Indices[0] - 1]);
+                    args.Tooltip.Text = visible ? "Hide mesh in scene." : "Show mesh in scene.";
+                    args.RetVal = true;
+                }
+            }
+            if (args.Tooltip != null)
+            {
+                args.Tooltip.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Called when the meshes in the scene have changed. Updates the displayed mesh list.
+        /// </summary>
+        private void OnMeshesChanged(IEnumerable<Mesh> meshes)
+        {
+            m_treeView.Selection.UnselectAll();
+            
+            m_listStore.Clear();
+            m_indexToMesh.Clear();
+            m_meshToIndex.Clear();
+            
+            TreeIter iter = new TreeIter();
+            foreach (Mesh mesh in meshes)
+            {
+                iter = m_listStore.AppendValues(MeshManager.Instance.IsVisible(mesh), mesh.Name);
+                TreePath path = m_listStore.GetPath(iter);
+
+                m_indexToMesh.Add(path.Indices[0], mesh);
+                m_meshToIndex.Add(mesh, path.Indices[0]);
+            }
+        }
+
+        /// <summary>
+        /// Called when the selected meshes have changed.
+        /// </summary>
+        private void OnMeshSelectionChanged(IEnumerable<Mesh> selected)
+        {
+            m_treeView.Selection.Changed -= OnListSelectionChanged;
+            
+            m_treeView.Selection.UnselectAll();
+            foreach (Mesh mesh in selected)
+            {
+                TreePath path = new TreePath(m_meshToIndex[mesh].ToString());
+                m_treeView.Selection.SelectPath(path);
+            }
+
+            m_treeView.Selection.Changed += OnListSelectionChanged;
+        }
+
+        /// <summary>
+        /// Called when a mesh has had its visibility changed.
+        /// </summary>
+        private void OnVisibilityChanged(Mesh mesh, bool newVisibility)
+        {
+            m_treeView.Selection.Changed -= OnListSelectionChanged;
+
+            TreePath path = new TreePath(m_meshToIndex[mesh].ToString());
+            TreeIter iter;
+            m_listStore.GetIter(out iter, path);
+            m_listStore.SetValue(iter, 0, newVisibility);
+
+            m_treeView.Selection.UnselectPath(path);
+
+            m_treeView.Selection.Changed += OnListSelectionChanged;
         }
     }
 }

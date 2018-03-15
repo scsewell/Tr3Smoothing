@@ -34,7 +34,7 @@ namespace SoSmooth.Rendering
         /// <param name="vertexBuffer">A vertex buffer object to bind to this object.</param>
         public void SetVertexBuffer(IVertexBuffer vertexBuffer)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (m_vertexBuffer != vertexBuffer)
             {
@@ -49,7 +49,7 @@ namespace SoSmooth.Rendering
         /// <param name="indexBuffer">An index buffer object to bind to this object.</param>
         public void SetIndexBuffer(IIndexBuffer indexBuffer)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (m_indexBuffer != indexBuffer)
             {
@@ -64,7 +64,7 @@ namespace SoSmooth.Rendering
         /// <param name="program">A shader program.</param>
         public void SetShaderProgram(ShaderProgram program)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_program = program;
             m_dirty = true;
@@ -75,7 +75,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Bind()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             UpdateArray();
             GL.BindVertexArray(this);
@@ -86,7 +86,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Unbind()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             GL.BindVertexArray(0);
         }

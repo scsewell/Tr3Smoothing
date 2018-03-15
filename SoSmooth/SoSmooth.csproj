@@ -233,9 +233,11 @@
     <Compile Include="Main\Scene\Components\DirectionalLight.cs" />
     <Compile Include="Main\Scene\MeshBasedRenderer.cs" />
     <Compile Include="Main\TaubinSmoother.cs" />
+    <Compile Include="Main\UI\ActiveMeshControls.cs" />
     <Compile Include="Main\UI\MainContent.cs" />
     <Compile Include="Main\UI\MeshList.cs" />
     <Compile Include="Main\UI\SceneMeshes.cs" />
+    <Compile Include="Main\UI\SceneToolbar.cs" />
     <Compile Include="Main\Utils\Bounds.cs" />
     <Compile Include="Main\Renderer\Meshes\Triangle.cs" />
     <Compile Include="Main\Renderer\Meshes\MeshBuilder.cs" />

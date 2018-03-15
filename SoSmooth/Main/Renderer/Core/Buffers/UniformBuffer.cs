@@ -15,9 +15,14 @@ namespace SoSmooth.Rendering
         /// </summary>
         public TData Value
         {
-            get { return m_buffer[0]; }
+            get
+            {
+                ValidateDispose();
+                return m_buffer[0];
+            }
             set
             {
+                ValidateDispose();
                 if (!m_buffer[0].Equals(value))
                 {
                     m_buffer[0] = value;
@@ -29,7 +34,14 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// The binding point index for this uniform block.
         /// </summary>
-        public int BindingPoint => m_bindingPoint;
+        public int BindingPoint
+        {
+            get
+            {
+                ValidateDispose();
+                return m_bindingPoint;
+            }
+        }
         
         /// <summary>
         /// Initialises a new <see cref="UniformBuffer{Data}"/> instance.

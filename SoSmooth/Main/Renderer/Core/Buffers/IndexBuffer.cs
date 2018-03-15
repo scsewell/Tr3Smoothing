@@ -15,13 +15,27 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// The value type used to index the vertices, limiting the indexable vertex count.
         /// </summary>
-        public DrawElementsType ElementType => m_elementType;
+        public DrawElementsType ElementType
+        {
+            get
+            {
+                ValidateDispose();
+                return m_elementType;
+            }
+        }
 
         /// <summary>
         /// The number of vertices that can be uniquely indexed using this index buffer.
         /// </summary>
-        public long MaxVertices => m_maxVerts;
-
+        public long MaxVertices
+        {
+            get
+            {
+                ValidateDispose();
+                return m_maxVerts;
+            }
+        }
+        
         /// <summary>
         /// Initialises a new <see cref="IndexBuffer"/> instance.
         /// </summary>

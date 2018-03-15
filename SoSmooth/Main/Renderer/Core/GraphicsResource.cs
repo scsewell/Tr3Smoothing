@@ -17,7 +17,7 @@ namespace SoSmooth.Rendering
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_handle;
             }
         }

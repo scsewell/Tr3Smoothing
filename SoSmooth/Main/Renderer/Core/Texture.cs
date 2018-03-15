@@ -136,7 +136,7 @@ namespace SoSmooth.Rendering
         /// <param name="height">The new height.</param>
         public void Resize(int width, int height)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             Width = width;
             Height = height;
@@ -159,7 +159,7 @@ namespace SoSmooth.Rendering
             TextureWrapMode wrapS,
             TextureWrapMode wrapT)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             GL.BindTexture(TextureTarget.Texture2D, this);
             SetParametersBound(minFilter, magFilter, wrapS, wrapT);

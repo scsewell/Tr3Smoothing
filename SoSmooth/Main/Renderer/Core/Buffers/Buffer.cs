@@ -23,7 +23,14 @@ namespace SoSmooth.Rendering
         /// <summary>
         /// The number of elements in the buffer.
         /// </summary>
-        public int Count => m_count;
+        public int Count
+        {
+            get
+            {
+                ValidateDispose();
+                return m_count;
+            }
+        }
 
         /// <summary>
         /// Initialises a new <see cref="Buffer{DataType}"/> instance.
@@ -47,7 +54,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Bind()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
             GL.BindBuffer(m_target, this);
         }
 
@@ -56,7 +63,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Unbind()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
             GL.BindBuffer(m_target, 0);
         }
 
@@ -66,7 +73,7 @@ namespace SoSmooth.Rendering
         /// <param name="usageHint">The usage hint.</param>
         public void BufferData(BufferUsageHint usageHint = BufferUsageHint.DynamicDraw)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (m_dirty)
             {
@@ -94,8 +101,6 @@ namespace SoSmooth.Rendering
         /// </summary>
         public override string ToString()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
-
             return $"{{{GetType().Name}<{typeof(TData).Name}> Handle:{m_handle} ElementSize:{m_elementSize} Count:{m_count}}}";
         }
 

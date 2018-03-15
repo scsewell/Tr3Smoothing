@@ -12,15 +12,32 @@ namespace SoSmooth.Rendering
         private readonly Dictionary<string, int> m_attributeLocations = new Dictionary<string, int>();
         private readonly Dictionary<string, int> m_uniformLocations = new Dictionary<string, int>();
 
+        private readonly bool m_isValid;
+        private readonly string m_name;
+
         /// <summary>
         /// Indicates if this program compiled successfuly.
         /// </summary>
-        public readonly bool IsValid;
+        public bool IsValid
+        {
+            get
+            {
+                ValidateDispose();
+                return m_isValid;
+            }
+        }
 
         /// <summary>
         /// The name of this shader program.
         /// </summary>
-        public readonly string Name;
+        public string Name
+        {
+            get
+            {
+                ValidateDispose();
+                return m_name;
+            }
+        }
 
         /// <summary>
         /// Creates a new shader program.
@@ -37,7 +54,7 @@ namespace SoSmooth.Rendering
         /// <param name="shaders">The different shaders of the program.</param>
         public ShaderProgram(string name, IEnumerable<Shader> shaders)
         {
-            Name = name;
+            m_name = name;
 
             m_handle = GL.CreateProgram();
 
@@ -56,9 +73,9 @@ namespace SoSmooth.Rendering
             // check if linking failed
             int statusCode;
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out statusCode);
-            IsValid = statusCode == 1;
+            m_isValid = statusCode == 1;
 
-            if (IsValid)
+            if (m_isValid)
             {
                 // set the uniform block bindings to the corresponding uniform buffers
                 int uniformBlockCount;
@@ -86,7 +103,7 @@ namespace SoSmooth.Rendering
         /// <param name="vertexAttributes">The vertex attributes to set.</param>
         public void SetVertexAttributes(VertexAttribute[] vertexAttributes)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             foreach (VertexAttribute attribute in vertexAttributes)
             {
@@ -101,7 +118,7 @@ namespace SoSmooth.Rendering
         /// <returns>The attribute's location, or -1 if not found.</returns>
         public int GetAttributeLocation(string name)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int i;
             if (!m_attributeLocations.TryGetValue(name, out i))
@@ -119,7 +136,7 @@ namespace SoSmooth.Rendering
         /// <returns>The uniform's location, or -1 if not found.</returns>
         public int GetUniformLocation(string name)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             int i;
             if (!m_uniformLocations.TryGetValue(name, out i))

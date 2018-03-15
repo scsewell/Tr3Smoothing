@@ -20,7 +20,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_name;
             }
             set
@@ -39,7 +39,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_scene;
             }
             set
@@ -58,7 +58,7 @@ namespace SoSmooth.Scenes
         {
             get
             {
-                if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+                ValidateDispose();
                 return m_transform;
             }
         }
@@ -68,7 +68,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         /// <param name="parent">The parent of the new entity.</param>
         /// <param name="name">The name of the entity. Must be non-null and non-whitespace only.</param>
-        public Entity(Entity parent, string name = "NewEntity") : this(parent.Scene)
+        public Entity(Entity parent, string name = "NewEntity") : this(parent.Scene, name)
         {
             Transform.SetParent(parent.Transform, false);
         }
@@ -95,7 +95,7 @@ namespace SoSmooth.Scenes
         /// <param name="scene">The new scene. Must not be null.</param>
         private void SetScene(Scene scene)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (scene == null)
             {
@@ -112,7 +112,7 @@ namespace SoSmooth.Scenes
         /// <param name="name">The name of the entity. Must be non-null and non-whitespace only.</param>
         private void SetName(string name)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (name == null)
             {
@@ -132,7 +132,7 @@ namespace SoSmooth.Scenes
         /// <returns> The component intstance.</returns>
         public T AttachComponent<T>(T component) where T : Component
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (component == null)
             {
@@ -158,7 +158,7 @@ namespace SoSmooth.Scenes
         /// <returns> The first instance or null if not found.</returns>
         public T GetComponent<T>() where T : Component
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             foreach (Component c in m_components)
             {
@@ -177,7 +177,7 @@ namespace SoSmooth.Scenes
         /// <returns> All instances or empty list if nothing found.</returns>
         public List<T> GetComponents<T>() where T : Component
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             List<T> components = new List<T>();
             GetComponents(components);
@@ -191,7 +191,7 @@ namespace SoSmooth.Scenes
         /// <param name="result">The list discovered components are appended to.</param>
         public void GetComponents<T>(List<T> result) where T : Component
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             foreach (Component c in m_components)
             {
@@ -210,7 +210,7 @@ namespace SoSmooth.Scenes
         /// <returns> All instances or empty list if nothing found.</returns>
         public List<T> GetComponentsInChildren<T>() where T : Component
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             List<T> components = new List<T>();
             GetComponentsInChildren(components);
@@ -225,7 +225,7 @@ namespace SoSmooth.Scenes
         /// <param name="result">The list discovered components are appended to.</param>
         public void GetComponentsInChildren<T>(List<T> result) where T : Component
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             Traverse((entity) => entity.GetComponents(result));
         }
@@ -237,7 +237,7 @@ namespace SoSmooth.Scenes
         /// <param name="action">A function to perform on each entity.</param>
         public void Traverse(Action<Entity> action)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             action(this);
             foreach (Transform child in Transform.Children)
@@ -273,7 +273,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         public override string ToString()
         {
-            return Name;
+            return m_name;
         }
 
         /// <summary>

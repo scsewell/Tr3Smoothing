@@ -29,7 +29,7 @@ namespace SoSmooth.Rendering
         /// <param name="program">The program.</param>
         public void SetShaderProgram(ShaderProgram program)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             if (Program != program)
             {
@@ -49,7 +49,7 @@ namespace SoSmooth.Rendering
         /// <param name="settings">The settings.</param>
         public void AddSettings(IEnumerable<SurfaceSetting> settings)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             foreach (SurfaceSetting setting in settings)
             {
@@ -63,7 +63,7 @@ namespace SoSmooth.Rendering
         /// <param name="settings">The settings.</param>
         public void AddSettings(params SurfaceSetting[] settings)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             foreach (SurfaceSetting setting in settings)
             {
@@ -77,7 +77,7 @@ namespace SoSmooth.Rendering
         /// <param name="setting">The setting.</param>
         public void AddSetting(SurfaceSetting setting)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_settings.Add(setting);
         }
@@ -88,7 +88,7 @@ namespace SoSmooth.Rendering
         /// <param name="setting">The setting.</param>
         public void RemoveSetting(SurfaceSetting setting)
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_settings.Remove(setting);
         }
@@ -98,7 +98,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void ClearSettings()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             m_settings.Clear();
         }
@@ -110,7 +110,7 @@ namespace SoSmooth.Rendering
         /// </summary>
         public void Render()
         {
-            if (Disposed) { throw new ObjectDisposedException(GetType().FullName); }
+            ValidateDispose();
 
             // only set the program if it is different from what was last used
             if (m_currentProgram != Program)

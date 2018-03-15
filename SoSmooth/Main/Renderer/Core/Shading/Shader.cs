@@ -7,12 +7,20 @@ namespace SoSmooth.Rendering
     /// </summary>
     public abstract class Shader : GraphicsResource
     {
-        /// <summary>
-        /// Indicates if this shader compiled successfuly.
-        /// </summary>
-        public readonly bool IsValid;
-
         private readonly ShaderType m_type;
+        private readonly bool m_isValid;
+
+        /// <summary>
+        /// Indicates if this program compiled successfuly.
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                ValidateDispose();
+                return m_isValid;
+            }
+        }
         
         /// <summary>
         /// Constructor.
@@ -31,7 +39,7 @@ namespace SoSmooth.Rendering
             // check compile success
             int statusCode;
             GL.GetShader(this, ShaderParameter.CompileStatus, out statusCode);
-            IsValid = statusCode == 1;
+            m_isValid = statusCode == 1;
 
             if (!IsValid)
             {
