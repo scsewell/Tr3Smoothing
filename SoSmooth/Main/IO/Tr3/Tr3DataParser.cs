@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
+using OpenTK;
 
 namespace SoSmooth.IO.tr3
 {
