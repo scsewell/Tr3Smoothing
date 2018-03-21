@@ -15,7 +15,6 @@ namespace SoSmooth.Meshes
         
         private Vertex[] m_vertices;
         private Triangle[] m_triangles;
-        
         private Bounds m_bounds;
 
         private IVertexBuffer m_vertexBuffer;
@@ -60,6 +59,7 @@ namespace SoSmooth.Meshes
 
                 // the bounds might no longer be valid it the vertex positions were modified
                 RecalculateBounds();
+                MeshModified?.Invoke();
             }
         }
 
@@ -96,6 +96,7 @@ namespace SoSmooth.Meshes
                 }
                 Array.Copy(value, m_triangles, value.Length);
                 m_indexBufferDirty = true;
+                MeshModified?.Invoke();
             }
         }
 
@@ -131,7 +132,6 @@ namespace SoSmooth.Meshes
             get
             {
                 ValidateDispose();
-
                 if (m_vertexBufferDirty)
                 {
                     UpdateVertices(Vertex.ToVertexPNC);
@@ -148,7 +148,6 @@ namespace SoSmooth.Meshes
             get
             {
                 ValidateDispose();
-
                 if (m_indexBufferDirty)
                 {
                     UpdateIndices();
@@ -156,6 +155,11 @@ namespace SoSmooth.Meshes
                 return m_indexBuffer;
             }
         }
+
+        /// <summary>
+        /// Triggered when the mesh vertices or triangles have been changed.
+        /// </summary>
+        public event Action MeshModified;
 
         /// <summary>
         /// Constructs a new <see cref="Mesh"/>.
@@ -185,7 +189,7 @@ namespace SoSmooth.Meshes
         /// <param name="mesh">A mesh to clone.</param>
         public Mesh(Mesh mesh)
         {
-            m_name = mesh.Name;
+            m_name = mesh.m_name;
 
             m_vertices = mesh.m_vertices.Clone() as Vertex[];
             m_triangles = mesh.m_triangles.Clone() as Triangle[];

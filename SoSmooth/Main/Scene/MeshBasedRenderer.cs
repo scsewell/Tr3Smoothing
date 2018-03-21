@@ -27,9 +27,19 @@ namespace SoSmooth.Scenes
                 ValidateDispose();
                 if (m_mesh != value)
                 {
+                    if (m_mesh != null)
+                    {
+                        m_mesh.MeshModified -= OnMeshChanged;
+                    }
+
                     m_mesh = value;
-                    m_boundsDirty = true;
-                    OnMeshChanged();
+
+                    if (m_mesh != null)
+                    {
+                        m_mesh.MeshModified += OnMeshChanged;
+                        m_boundsDirty = true;
+                        OnMeshChanged();
+                    }
                 }
             }
         }
@@ -39,9 +49,7 @@ namespace SoSmooth.Scenes
         /// </summary>
         public MeshBasedRenderer(Entity entity, Mesh mesh, Surface surface) : base(entity, surface)
         {
-            m_mesh = mesh;
-            m_boundsDirty = true;
-
+            Mesh = mesh;
             Transform.Moved += OnMeshMoved;
         }
 

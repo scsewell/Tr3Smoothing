@@ -60,17 +60,17 @@ namespace SoSmooth
         /// <summary>
         /// The selected meshes.
         /// </summary>
-        public IReadOnlyList<Mesh> Selected => m_selected;
+        public IReadOnlyList<Mesh> SelectedMeshes => m_selected;
 
         /// <summary>
         /// The visible meshes.
         /// </summary>
-        public IReadOnlyList<Mesh> Visible => m_visible;
+        public IReadOnlyList<Mesh> VisibleMeshes => m_visible;
 
         /// <summary>
         /// The active mesh.
         /// </summary>
-        public Mesh Active => m_active;
+        public Mesh ActiveMesh => m_active;
 
         /// <summary>
         /// Adds meshes to the loaded mesh list.
@@ -95,7 +95,7 @@ namespace SoSmooth
             foreach (Mesh mesh in meshes)
             {
                 // If the mesh is active or selected notify its removal
-                if (Active == mesh)
+                if (ActiveMesh == mesh)
                 {
                     SetActiveMesh(null, false);
                 }

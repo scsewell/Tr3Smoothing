@@ -65,7 +65,7 @@ namespace SoSmooth
                 boundsRenderer.Color = color;
             }
             // zoom to the new meshes if nothing is selected
-            if (MeshManager.Instance.Selected.Count == 0)
+            if (MeshManager.Instance.SelectedMeshes.Count == 0)
             {
                 m_window.Camera.EaseToMeshes(meshes);
             }
@@ -189,7 +189,7 @@ namespace SoSmooth
                 Mesh clicked = null;
                 float minDistance = float.MaxValue;
 
-                foreach (Mesh mesh in MeshManager.Instance.Visible)
+                foreach (Mesh mesh in MeshManager.Instance.VisibleMeshes)
                 {
                     Entity entity = m_meshToEntity[mesh];
 

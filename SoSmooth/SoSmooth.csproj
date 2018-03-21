@@ -185,6 +185,7 @@
     <Compile Include="Main\IO\VRML\Main\VrmlTokenType.cs" />
     <Compile Include="Main\IO\VRML\VrmlExtractor.cs" />
     <Compile Include="Main\IO\VRML\Main\VrmlScene.cs" />
+    <Compile Include="Main\MeanSmoother.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\Buffer.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\DynamicBuffer.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\Interfaces\IBuffer.cs" />

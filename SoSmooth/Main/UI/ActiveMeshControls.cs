@@ -44,7 +44,7 @@ namespace SoSmooth
         /// </summary>
         private void OnShown(object sender, EventArgs e)
         {
-            bool hasActive = MeshManager.Instance.Active != null;
+            bool hasActive = MeshManager.Instance.ActiveMesh != null;
             if (hasActive)
             {
                 m_hiddenOnNoActive.ForEach(w => w.ShowAll());
