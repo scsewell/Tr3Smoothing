@@ -31,9 +31,9 @@ namespace SoSmooth
 
             // view menu
             MenuItem view_item = new MenuItem("_View");
-            menuBar.Append(view_item);
             Menu view_menu = new Menu();
             view_item.Submenu = view_menu;
+            menuBar.Append(view_item);
 
             MenuItem view_focus = new MenuItem("_Focus Selection");
             view_focus.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.F, Gdk.ModifierType.None, AccelFlags.Visible));
@@ -71,12 +71,7 @@ namespace SoSmooth
             view_bottom.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.KP_7, Gdk.ModifierType.ControlMask, AccelFlags.Visible));
             view_bottom.Activated += ((o, e) => sceneWindow.Camera.EaseCamera(SceneCamera.BOTTOM_VIEW));
             view_menu.Append(view_bottom);
-
-            MenuItem smooth = new MenuItem("_Smooth");
-            smooth.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.S, Gdk.ModifierType.None, AccelFlags.Visible));
-            smooth.Activated += ((o, e) => new MeanSmoother().Smooth(MeshManager.Instance.ActiveMesh));
-            view_menu.Append(smooth);
-
+            
             // render settings
             Label frontShadingLabel = new Label("Front Face Mode:");
             m_frontShading = new ComboBox(FRONT_SHADING_VALS);

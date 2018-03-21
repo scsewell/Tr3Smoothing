@@ -1,6 +1,8 @@
 ﻿using System;
 using OpenTK;
+using OpenTK.Graphics;
 using SoSmooth.Rendering;
+using SoSmooth.Rendering.Vertices;
 
 namespace SoSmooth.Meshes
 {
@@ -13,7 +15,9 @@ namespace SoSmooth.Meshes
     {
         private string m_name;
         
-        private Vertex[] m_vertices;
+        private Vector3[] m_vertices;
+        private Vector3[] m_normals;
+        private Color4[] m_colors;
         private Triangle[] m_triangles;
         private Bounds m_bounds;
 
@@ -36,34 +40,6 @@ namespace SoSmooth.Meshes
         }
 
         /// <summary>
-        /// The vertices of the mesh. The getter returns a copy of the
-        /// actual array, so the setter must be used to update the 
-        /// mesh.
-        /// </summary>
-        public Vertex[] Vertices
-        {
-            get
-            {
-                ValidateDispose();
-                return m_vertices.Clone() as Vertex[];
-            }
-            set
-            {
-                ValidateDispose();
-                if (m_vertices.Length != value.Length)
-                {
-                    Array.Resize(ref m_vertices, value.Length);
-                }
-                Array.Copy(value, m_vertices, value.Length);
-                m_vertexBufferDirty = true;
-
-                // the bounds might no longer be valid it the vertex positions were modified
-                RecalculateBounds();
-                MeshModified?.Invoke();
-            }
-        }
-
-        /// <summary>
         /// Gets the number of vertices in the mesh.
         /// </summary>
         public int VertexCount
@@ -72,6 +48,121 @@ namespace SoSmooth.Meshes
             {
                 ValidateDispose();
                 return m_vertices.Length;
+            }
+        }
+
+        /// <summary>
+        /// The vertices of the mesh. The getter returns a copy of the actual array, so the setter
+        /// must be used to update the mesh. When setting and the length has changed, all other
+        /// vertex data arrays will be resized to the same length.
+        /// </summary>
+        public Vector3[] Vertices
+        {
+            get
+            {
+                ValidateDispose();
+                return m_vertices.Clone() as Vector3[];
+            }
+            set
+            {
+                ValidateDispose();
+                if (m_vertices.Length != value.Length)
+                {
+                    Array.Resize(ref m_vertices, value.Length);
+                    Array.Resize(ref m_normals, value.Length);
+                    Array.Resize(ref m_colors, value.Length);
+                }
+                Array.Copy(value, m_vertices, value.Length);
+                m_vertexBufferDirty = true;
+
+                // the bounds are no longer valid if the vertex positions were modified
+                m_bounds = Bounds.FromPoints(m_vertices);
+                MeshModified?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// The vertex normals of the mesh. The getter returns a copy of the actual array, so the setter
+        /// must be used to update the mesh. When setting and the length has changed, all other
+        /// vertex data arrays will be resized to the same length. When set to null, normals will be
+        /// automatically generated.
+        /// </summary>
+        public Vector3[] Normals
+        {
+            get
+            {
+                ValidateDispose();
+                return m_normals.Clone() as Vector3[];
+            }
+            set
+            {
+                ValidateDispose();
+                if (value == null)
+                {
+                    RecalculateNormals();
+                }
+                else
+                {
+                    if (m_normals.Length != value.Length)
+                    {
+                        Array.Resize(ref m_vertices, value.Length);
+                        Array.Resize(ref m_normals, value.Length);
+                        Array.Resize(ref m_colors, value.Length);
+                    }
+                    Array.Copy(value, m_normals, value.Length);
+                    m_vertexBufferDirty = true;
+                    MeshModified?.Invoke();
+                }
+            }
+        }
+
+        /// <summary>
+        /// The vertex colors of the mesh. The getter returns a copy of the actual array, so the setter
+        /// must be used to update the mesh. When setting and the length has changed, all other
+        /// vertex data arrays will be resized to the same length. When set to null, all vertex colors
+        /// will be set to white.
+        /// </summary>
+        public Color4[] Colors
+        {
+            get
+            {
+                ValidateDispose();
+                return m_colors.Clone() as Color4[];
+            }
+            set
+            {
+                ValidateDispose();
+                if (value == null)
+                {
+                    for (int i = 0; i < m_colors.Length; i++)
+                    {
+                        m_colors[i] = Color4.White;
+                    }
+                }
+                else
+                {
+                    if (m_colors.Length != value.Length)
+                    {
+                        Array.Resize(ref m_vertices, value.Length);
+                        Array.Resize(ref m_normals, value.Length);
+                        Array.Resize(ref m_colors, value.Length);
+                    }
+                    Array.Copy(value, m_colors, value.Length);
+                }
+                m_vertexBufferDirty = true;
+                MeshModified?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of triangles in the mesh.
+        /// </summary>
+        public int TriangleCount
+        {
+            get
+            {
+                ValidateDispose();
+                return m_triangles.Length;
             }
         }
 
@@ -101,18 +192,6 @@ namespace SoSmooth.Meshes
         }
 
         /// <summary>
-        /// Gets the number of triangles in the mesh.
-        /// </summary>
-        public int TriangleCount
-        {
-            get
-            {
-                ValidateDispose();
-                return m_triangles.Length;
-            }
-        }
-
-        /// <summary>
         /// The bounding box of the mesh.
         /// </summary>
         public Bounds Bounds
@@ -134,7 +213,7 @@ namespace SoSmooth.Meshes
                 ValidateDispose();
                 if (m_vertexBufferDirty)
                 {
-                    UpdateVertices(Vertex.ToVertexPNC);
+                    UpdateVertices((pos, nrm, col) => new VertexPNC(pos, nrm, col));
                 }
                 return m_vertexBuffer;
             }
@@ -162,25 +241,46 @@ namespace SoSmooth.Meshes
         public event Action MeshModified;
 
         /// <summary>
-        /// Constructs a new <see cref="Mesh"/>.
+        /// Constructs a new <see cref="Mesh"/> instance.
         /// </summary>
         /// <param name="name">The name of the mesh.</param>
-        /// <param name="vertices">A vertex array.</param>
+        /// <param name="vertices">The vertex positions.</param>
+        /// <param name="normals">The vertex normals. If null they will be automatically generated.</param>
+        /// <param name="colors">The vertex colors. If null will default to white.</param>
         /// <param name="triangles">A triangle array.</param>
         public Mesh(
             string name,
-            Vertex[] vertices, 
+            Vector3[] vertices,
+            Vector3[] normals,
+            Color4[] colors,
             Triangle[] triangles)
         {
             m_name = name;
 
             m_vertices = vertices;
+
+            if (normals == null)
+            {
+                normals = Utils.CalculateNormals(vertices, triangles);
+            }
+            m_normals = normals;
+
+            if (colors == null)
+            {
+                colors = new Color4[vertices.Length];
+                for (int i = 0; i < colors.Length; i++)
+                {
+                    colors[i] = Color4.White;
+                }
+            }
+            m_colors = colors;
+
             m_triangles = triangles;
-            
+
+            m_bounds = Bounds.FromPoints(m_vertices);
+
             m_vertexBufferDirty = true;
             m_indexBufferDirty = true;
-
-            RecalculateBounds();
         }
 
         /// <summary>
@@ -191,7 +291,9 @@ namespace SoSmooth.Meshes
         {
             m_name = mesh.m_name;
 
-            m_vertices = mesh.m_vertices.Clone() as Vertex[];
+            m_vertices  = mesh.m_vertices.Clone() as Vector3[];
+            m_normals   = mesh.m_normals.Clone() as Vector3[];
+            m_colors    = mesh.m_colors.Clone() as Color4[];
             m_triangles = mesh.m_triangles.Clone() as Triangle[];
 
             m_bounds = mesh.m_bounds;
@@ -206,66 +308,19 @@ namespace SoSmooth.Meshes
         public void RecalculateNormals()
         {
             ValidateDispose();
-
-            // clear the existing vertex normals
-            for (int i = 0; i < m_vertices.Length; i++)
-            {
-                m_vertices[i].normal = Vector3.Zero;
-            }
-
-            // add the normal of every triangle to its vertices
-            for (int i = 0; i < m_triangles.Length; i++)
-            {
-                Vector3 p0 = m_vertices[m_triangles[i].index0].position;
-                Vector3 p1 = m_vertices[m_triangles[i].index1].position;
-                Vector3 p2 = m_vertices[m_triangles[i].index2].position;
-
-                Vector3 normal = Vector3.Cross(p1 - p0, p2 - p0);
-
-                m_vertices[m_triangles[i].index0].normal += normal;
-                m_vertices[m_triangles[i].index1].normal += normal;
-                m_vertices[m_triangles[i].index2].normal += normal;
-            }
-
-            // normalize the result
-            for (int i = 0; i < m_vertices.Length; i++)
-            {
-                m_vertices[i].normal.Normalize();
-            }
-
+            Utils.CalculateNormals(m_vertices, m_triangles, m_normals);
             m_vertexBufferDirty = true;
-        }
-
-        /// <summary>
-        /// Computes the axis-aligned bounding box of the mesh.
-        /// </summary>
-        private void RecalculateBounds()
-        {
-            Vector3 min = new Vector3(float.MaxValue);
-            Vector3 max = new Vector3(float.MinValue);
-            
-            for (int i = 0; i < m_vertices.Length; i++)
-            {
-                Vector3 pos = m_vertices[i].position;
-
-                if (pos.X < min.X) { min.X = pos.X; }
-                if (pos.Y < min.Y) { min.Y = pos.Y; }
-                if (pos.Z < min.Z) { min.Z = pos.Z; }
-
-                if (pos.X > max.X) { max.X = pos.X; }
-                if (pos.Y > max.Y) { max.Y = pos.Y; }
-                if (pos.Z > max.Z) { max.Z = pos.Z; }
-            }
-
-            m_bounds = Bounds.FromCorners(min, max);
+            MeshModified?.Invoke();
         }
 
         /// <summary>
         /// Updates the vertex buffer object from the <see cref="Vertices"/> array.
         /// </summary>
         /// <typeparam name="TVertex">The type of vertex buffer to use.</typeparam>
-        /// <param name="transform">Function that takes outputs vertices in a bufferable format.</param>
-        private void UpdateVertices<TVertex>(Func<Vertex, TVertex> transform) where TVertex : struct, IVertexData
+        /// <param name="transform">Function that transforms the vertex array data to a interleaved struct format.</param>
+        private void UpdateVertices<TVertex>(
+            Func<Vector3, Vector3, Color4, TVertex> transform
+            ) where TVertex : struct, IVertexData
         {
             // if the type of the vertex data has changed we need to create a new buffer
             if (m_vertexBuffer != null && m_vertexBuffer.GetType() != typeof(VertexBuffer<TVertex>))
@@ -289,7 +344,7 @@ namespace SoSmooth.Meshes
             
             for (int i = 0; i < m_vertices.Length; i++)
             {
-                vertexArray[i] = transform(m_vertices[i]);
+                vertexArray[i] = transform(m_vertices[i], m_normals[i], m_colors[i]);
             }
 
             // upload to the GPU

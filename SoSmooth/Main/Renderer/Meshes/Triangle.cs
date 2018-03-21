@@ -24,6 +24,14 @@ namespace SoSmooth.Meshes
         }
 
         /// <summary>
+        /// Gets a hash for this triangle.
+        /// </summary>
+        public override int GetHashCode()
+        {
+            return (int)((index2 << 22) ^ (index1 << 11) ^ index0);
+        }
+
+        /// <summary>
         /// Checks this triangle and another are equal in value.
         /// </summary>
         /// <param name="tri">The triangle to compare with.</param>

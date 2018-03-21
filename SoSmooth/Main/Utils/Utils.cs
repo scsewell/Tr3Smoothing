@@ -1,5 +1,6 @@
 ﻿using System;
 using OpenTK;
+using SoSmooth.Meshes;
 
 namespace SoSmooth
 {
@@ -63,14 +64,14 @@ namespace SoSmooth
         /// <param name="p0">The first triangle vertex.</param>
         /// <param name="p1">The second triangle vertex.</param>
         /// <param name="p2">The third triangle vertex.</param>
-        /// <param name="linePoint">A point on the line.</param>
-        /// <param name="LineDirection">The direction of the line.</param>
+        /// <param name="rayOrigin">The origin of the ray.</param>
+        /// <param name="LineDirection">The direction of the ray.</param>
         /// <param name="intersect">The intersect on the triangle's plane. Zero if no intersect.</param>
         /// <returns>True if the line intersects the triangle.</returns>
-        public static bool RaycastTriangle(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 linePoint, Vector3 lineDirection, out Vector3 intersect)
+        public static bool RaycastTriangle(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 rayOrigin, Vector3 rayDirection, out Vector3 intersect)
         {
             Plane p = new Plane(p0, p1, p2);
-            if (p.RaycastPlane(linePoint, lineDirection, out intersect))
+            if (p.RaycastPlane(rayOrigin, rayDirection, out intersect))
             {
                 Vector3 b = ToBarycentricCoords(intersect, p0, p1, p2);
                 return 
@@ -201,6 +202,55 @@ namespace SoSmooth
             result.Row3.X = position.X;
             result.Row3.Y = position.Y;
             result.Row3.Z = position.Z;
+        }
+
+        /// <summary>
+        /// Generates normals for a mesh.
+        /// </summary>
+        /// <param name="verts">The vertices of the mesh.</param>
+        /// <param name="tris">The triangles of the mesh.</param>
+        /// <returns>A new array containing the normals for each vertex.</returns>
+        public static Vector3[] CalculateNormals(Vector3[] verts, Triangle[] tris)
+        {
+            Vector3[] normals = new Vector3[verts.Length];
+            CalculateNormals(verts, tris, normals);
+            return normals;
+        }
+
+        /// <summary>
+        /// Generates normals for a mesh.
+        /// </summary>
+        /// <param name="verts">The vertices of the mesh.</param>
+        /// <param name="tris">The triangles of the mesh.</param>
+        /// <param name="normals">The normals array to store the results.</param>
+        public static void CalculateNormals(Vector3[] verts, Triangle[] tris, Vector3[] normals)
+        {
+            // size the normals array to match the vertex array
+            if (normals.Length != verts.Length)
+            {
+                Array.Resize(ref normals, verts.Length);
+            }
+
+            // add the normal of every triangle to its vertices
+            for (int i = 0; i < tris.Length; i++)
+            {
+                Triangle tri = tris[i];
+                Vector3 v0 = verts[tri.index0];
+                Vector3 v1 = verts[tri.index1];
+                Vector3 v2 = verts[tri.index2];
+
+                Vector3 normal = Vector3.Cross(v1 - v0, v2 - v0);
+
+                normals[tri.index0] += normal;
+                normals[tri.index1] += normal;
+                normals[tri.index2] += normal;
+            }
+
+            // normalize the result
+            for (int i = 0; i < normals.Length; i++)
+            {
+                normals[i].Normalize();
+            }
         }
     }
 }

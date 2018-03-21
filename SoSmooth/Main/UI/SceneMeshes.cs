@@ -183,8 +183,8 @@ namespace SoSmooth
             {
                 // find the nearest mesh under the cursor and select it
                 Camera cam = m_window.Camera.Camera;
-                Vector3 rayDir = cam.ScreenPointToWorldDirection(mousePos);
                 Vector3 rayOrigin = cam.Transform.Position;
+                Vector3 rayDir = cam.ScreenPointToWorldDirection(mousePos);
 
                 Mesh clicked = null;
                 float minDistance = float.MaxValue;
@@ -193,33 +193,42 @@ namespace SoSmooth
                 {
                     Entity entity = m_meshToEntity[mesh];
 
-                    Vertex[] verts = mesh.Vertices;
-                    Triangle[] tris = mesh.Triangles;
-
+                    // we do the calculations in local space to avoid needing to transform
+                    // the mesh vertices to world space.
                     Matrix4 toLocal = entity.Transform.WorldToLocalMatrix;
-                    Matrix4 toWorld = entity.Transform.LocalToWorldMatix;
 
-                    Vector3 dir = Vector3.TransformVector(rayDir, toLocal);
                     Vector3 orig = Vector3.TransformPosition(rayOrigin, toLocal);
+                    Vector3 dir = Vector3.TransformVector(rayDir, toLocal);
 
-                    for (int i = 0; i < tris.Length; i++)
+                    // first check if the mesh's bounding box is under the cursor
+                    if (mesh.Bounds.Raycast(orig, dir))
                     {
-                        Vector3 localIntersect;
+                        Matrix4 toWorld = entity.Transform.LocalToWorldMatix;
 
-                        if (Utils.RaycastTriangle(
-                            verts[tris[i].index0].position,
-                            verts[tris[i].index1].position,
-                            verts[tris[i].index2].position,
-                            orig, dir, out localIntersect))
+                        Vector3[] verts = mesh.Vertices;
+                        Triangle[] tris = mesh.Triangles;
+
+                        for (int i = 0; i < tris.Length; i++)
                         {
-                            Vector3 intersect = Vector3.TransformPosition(localIntersect, toWorld);
-                            float dist = (intersect - rayOrigin).Length;
+                            Vector3 localIntersect;
+                            Triangle tri = tris[i];
 
-                            // select the mesh if close but not before the camera newr clip plane
-                            if (dist < minDistance && dist > cam.NearClip)
+                            if (Utils.RaycastTriangle(
+                                verts[tri.index0],
+                                verts[tri.index1],
+                                verts[tri.index2],
+                                orig, dir, out localIntersect))
                             {
-                                minDistance = dist;
-                                clicked = mesh;
+                                // transform the intersect back into world space
+                                Vector3 intersect = Vector3.TransformPosition(localIntersect, toWorld);
+                                float dist = (intersect - rayOrigin).Length;
+
+                                // select the mesh if close but not before the camera newr clip plane
+                                if (dist < minDistance && dist > cam.NearClip)
+                                {
+                                    minDistance = dist;
+                                    clicked = mesh;
+                                }
                             }
                         }
                     }

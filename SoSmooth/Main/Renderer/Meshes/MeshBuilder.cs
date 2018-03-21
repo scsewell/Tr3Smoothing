@@ -9,7 +9,9 @@ namespace SoSmooth.Meshes
     /// </summary>
     public class MeshBuilder
     {
-        private readonly List<Vertex> m_vertices;
+        private readonly List<Vector3> m_vertices;
+        private readonly List<Vector3> m_normals;
+        private readonly List<Color4> m_colors;
         private readonly List<Triangle> m_triangles;
 
         /// <summary>
@@ -29,7 +31,9 @@ namespace SoSmooth.Meshes
         /// </summary>
         public MeshBuilder(int vertexCapacity = 0, int triangleCapacity = 0)
         {
-            m_vertices = new List<Vertex>(vertexCapacity);
+            m_vertices = new List<Vector3>(vertexCapacity);
+            m_normals = new List<Vector3>(vertexCapacity);
+            m_colors = new List<Color4>(vertexCapacity);
             m_triangles = new List<Triangle>(triangleCapacity);
         }
 
@@ -41,7 +45,9 @@ namespace SoSmooth.Meshes
         {
             return new Mesh(
                 name,
-                m_vertices.ToArray(), 
+                m_vertices.ToArray(),
+                m_normals.Count == 0 ? null : m_normals.ToArray(),
+                m_colors.Count == 0 ? null : m_colors.ToArray(),
                 m_triangles.ToArray()
             );
         }
@@ -49,80 +55,39 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// Adds a vertex to the builder.
         /// </summary>
-        /// <returns>The index of the vertex for triangle creation.</returns>
-        public int AddVertex(Vertex v)
+        public void AddVertex(Vector3 position)
         {
-            int i = m_vertices.Count;
-            m_vertices.Add(v);
-            return i;
+            m_vertices.Add(position);
+        }
+
+        /// <summary>
+        /// Adds a vertex to the builder.
+        /// </summary>
+        public void AddVertex(Vector3 position, Color4 color)
+        {
+            m_vertices.Add(position);
+            m_colors.Add(color);
+        }
+
+        /// <summary>
+        /// Adds a vertex to the builder.
+        /// </summary>
+        public void AddVertex(Vector3 position, Vector3 normal)
+        {
+            m_vertices.Add(position);
+            m_normals.Add(normal);
+        }
+
+        /// <summary>
+        /// Adds a vertex to the builder.
+        /// </summary>
+        public void AddVertex(Vector3 position, Vector3 normal, Color4 color)
+        {
+            m_vertices.Add(position);
+            m_normals.Add(normal);
+            m_colors.Add(color);
         }
         
-        /// <summary>
-        /// Adds a vertex to the builder.
-        /// </summary>
-        /// <returns>The index of the first vertex for triangle creation.
-        /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(Vertex v0, Vertex v1)
-        {
-            int i = m_vertices.Count;
-            m_vertices.Add(v0);
-            m_vertices.Add(v1);
-            return i;
-        }
-
-        /// <summary>
-        /// Adds a vertex to the builder.
-        /// </summary>
-        /// <returns>The index of the first vertex for triangle creation.
-        /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(Vertex v0, Vertex v1, Vertex v2)
-        {
-            int i = m_vertices.Count;
-            m_vertices.Add(v0);
-            m_vertices.Add(v1);
-            m_vertices.Add(v2);
-            return i;
-        }
-
-        /// <summary>
-        /// Adds a vertex to the builder.
-        /// </summary>
-        /// <returns>The index of the first vertex for triangle creation.
-        /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(Vertex v0, Vertex v1, Vertex v2, Vertex v3)
-        {
-            int i = m_vertices.Count;
-            m_vertices.Add(v0);
-            m_vertices.Add(v1);
-            m_vertices.Add(v2);
-            m_vertices.Add(v3);
-            return i;
-        }
-
-        /// <summary>
-        /// Adds a vertex to the builder.
-        /// </summary>
-        /// <returns>The index of the first vertex for triangle creation.
-        /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(params Vertex[] vs)
-        {
-            int i = m_vertices.Count;
-            m_vertices.AddRange(vs);
-            return i;
-        }
-
-        /// <summary>
-        /// Adds a vertex to the builder.
-        /// </summary>
-        /// <returns>The index of the first vertex for triangle creation.
-        /// Indices for following vertices incrent by 1 each.</returns>
-        public int AddVertices(IEnumerable<Vertex> vs)
-        {
-            int i = m_vertices.Count;
-            m_vertices.AddRange(vs);
-            return i;
-        }
-
         /// <summary>
         /// Adds a triangle to the builder.
         /// </summary>
@@ -177,15 +142,15 @@ namespace SoSmooth.Meshes
 
             m_builder.Clear();
 
-            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, -u)));
-            m_builder.AddVertex(new Vertex(new Vector3( u, -u, -u)));
-            m_builder.AddVertex(new Vertex(new Vector3( u,  u, -u)));
-            m_builder.AddVertex(new Vertex(new Vector3(-u,  u, -u)));
+            m_builder.AddVertex(new Vector3(-u, -u, -u));
+            m_builder.AddVertex(new Vector3( u, -u, -u));
+            m_builder.AddVertex(new Vector3( u,  u, -u));
+            m_builder.AddVertex(new Vector3(-u,  u, -u));
 
-            m_builder.AddVertex(new Vertex(new Vector3(-u, -u, u)));
-            m_builder.AddVertex(new Vertex(new Vector3( u, -u, u)));
-            m_builder.AddVertex(new Vertex(new Vector3( u,  u, u)));
-            m_builder.AddVertex(new Vertex(new Vector3(-u,  u, u)));
+            m_builder.AddVertex(new Vector3(-u, -u, u));
+            m_builder.AddVertex(new Vector3( u, -u, u));
+            m_builder.AddVertex(new Vector3( u,  u, u));
+            m_builder.AddVertex(new Vector3(-u,  u, u));
 
             m_builder.AddTriangle(new Triangle(0, 3, 2));
             m_builder.AddTriangle(new Triangle(0, 2, 1));

@@ -24,9 +24,9 @@ namespace SoSmooth
 
             // file menu
             MenuItem file_item = new MenuItem("_File");
-            Append(file_item);
             Menu file_menu = new Menu();
             file_item.Submenu = file_menu;
+            Append(file_item);
 
             ImageMenuItem file_openTr3 = new ImageMenuItem("Open _Tr3");
             file_openTr3.Image = new Image(Stock.Open, IconSize.Menu);
@@ -48,11 +48,32 @@ namespace SoSmooth
             file_quit.Activated += OnQuit;
             file_menu.Append(file_quit);
 
+            // edit menu
+            MenuItem edit_item = new MenuItem("_Edit");
+            Menu edit_menu = new Menu();
+            edit_item.Submenu = edit_menu;
+            Append(edit_item);
+
+            MenuItem edit_undo = new MenuItem("_Undo");
+            edit_undo.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.Z, Gdk.ModifierType.ControlMask, AccelFlags.Visible));
+            edit_undo.Activated += ((o, e) => UndoStack.Instance.Undo());
+            edit_menu.Append(edit_undo);
+
+            MenuItem edit_redo = new MenuItem("_Redo");
+            edit_redo.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.Y, Gdk.ModifierType.ControlMask, AccelFlags.Visible));
+            edit_redo.Activated += ((o, e) => UndoStack.Instance.Redo());
+            edit_menu.Append(edit_redo);
+
+            MenuItem edit_smooth = new MenuItem("_Smooth");
+            edit_smooth.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.S, Gdk.ModifierType.None, AccelFlags.Visible));
+            edit_smooth.Activated += ((o, e) => new SmoothOperation(new MeanSmoother(), MeshManager.Instance.SelectedMeshes));
+            edit_menu.Append(edit_smooth);
+
             // mesh menu
             MenuItem mesh_item = new MenuItem("_Mesh");
-            Append(mesh_item);
             Menu mesh_menu = new Menu();
             mesh_item.Submenu = mesh_menu;
+            Append(mesh_item);
 
             MenuItem mesh_selectAll = new MenuItem("_Select All/None");
             mesh_selectAll.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.A, Gdk.ModifierType.None, AccelFlags.Visible));

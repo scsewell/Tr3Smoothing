@@ -12,9 +12,9 @@ namespace SoSmooth
     /// implemented as described in "Mesh Smoothing via Mean and Median Filtering Applied
     /// to Face Normals".
     /// </summary>
-    public class MeanSmoother
+    public class MeanSmoother : ISmoother
     {
-        private Vertex[] m_vertices;
+        private Vector3[] m_vertices;
         private Triangle[] m_triangles;
 
         private int[][] m_vertToNeighbors;
@@ -49,36 +49,33 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// The performs smoothing on the provided mesh.
+        /// Smooths a mesh.
         /// </summary>
-        /// <param name="mesh">The mesh to smooth.</param>
-        public void Smooth(Mesh mesh)
+        /// <param name="verts">The vertices of the mesh.</param>
+        /// <param name="tris">The triangles of the mesh.</param>
+        /// <returns>The smoothed vertex positions.</returns>
+        public Vector3[] Smooth(Vector3[] verts, Triangle[] tris)
         {
-            CreateBuffers(mesh);
+            m_vertices = verts.Clone() as Vector3[];
+            m_triangles = tris;
 
+            CreateBuffers();
             ComputeVertexNeighborTris();
             ComputeTriangleNeighbors();
-
-            // do smoothing iterations
+            
             for (int i = 0; i < m_iterations; i++)
             {
                 SmoothIteration();
             }
 
-            // write back the result to the original mesh
-            mesh.Vertices = m_vertices;
-            mesh.RecalculateNormals();
+            return m_vertices;
         }
 
         /// <summary>
         /// Ensures the buffers used are able to fit all mesh data.
         /// </summary>
-        /// <param name="vertCount">The mesh to prepare buffers for.</param>
-        private void CreateBuffers(Mesh mesh)
+        private void CreateBuffers()
         {
-            m_vertices = mesh.Vertices;
-            m_triangles = mesh.Triangles;
-
             if (m_triAreas == null)
             {
                 m_vertToNeighbors = new int[m_vertices.Length][];
@@ -182,9 +179,9 @@ namespace SoSmooth
             for (int i = 0; i < m_triangles.Length; i++)
             {
                 Triangle tri = m_triangles[i];
-                Vector3 v0 = m_vertices[tri.index0].position;
-                Vector3 v1 = m_vertices[tri.index1].position;
-                Vector3 v2 = m_vertices[tri.index2].position;
+                Vector3 v0 = m_vertices[tri.index0];
+                Vector3 v1 = m_vertices[tri.index1];
+                Vector3 v2 = m_vertices[tri.index2];
 
                 Vector3 e0 = v1 - v0;
                 Vector3 e1 = v2 - v0;
@@ -213,7 +210,7 @@ namespace SoSmooth
             // move all vertices based on the neighborhood normals of each adjacent triangle
             for (int v = 0; v < m_vertices.Length; v++)
             {
-                Vector3 vertex = m_vertices[v].position;
+                Vector3 vertex = m_vertices[v];
 
                 int[] neighborhood = m_vertToNeighbors[v];
                 float nArea = 0;
@@ -230,7 +227,7 @@ namespace SoSmooth
                     vDisp += area * Vector3.Dot(vertToCenter, normal) * normal;
                 }
 
-                m_vertices[v].position += m_strength * (vDisp / nArea);
+                m_vertices[v] += m_strength * (vDisp / nArea);
             }
         }
     }

@@ -65,7 +65,7 @@ namespace SoSmooth.IO.Vrml
 
                 foreach (Node child in node.Children)
                 {
-                    // If the child node may chave children nodes we must visit it if we have not already
+                    // If the child node may have children nodes we must visit it if we have not already
                     if (child is GroupingNode)
                     {
                         if (!visited.Contains(child))
@@ -110,11 +110,10 @@ namespace SoSmooth.IO.Vrml
                                     if (!indexToVertexIndex.TryGetValue(index, out i))
                                     {
                                         SFVec3f pos = coords.Point.GetValue(index);
-                                        Vertex v = new Vertex(new Vector3(pos.X, pos.Y, pos.Z));
 
                                         i = (uint)builder.VertexCount;
                                         indexToVertexIndex.Add(index.Value, i);
-                                        builder.AddVertex(v);
+                                        builder.AddVertex(new Vector3(pos.X, pos.Y, pos.Z));
                                     }
                                     triangleIndices.Add(i);
                                 }
@@ -122,7 +121,6 @@ namespace SoSmooth.IO.Vrml
 
                             // Generate the mesh and calculate the vertex normals
                             Mesh mesh = builder.CreateMesh(currentDescription);
-                            mesh.RecalculateNormals();
                             meshes.Add(mesh);
                             Logger.Info($"Found Mesh: {mesh}");
                         }
