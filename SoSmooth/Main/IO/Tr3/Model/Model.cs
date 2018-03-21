@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace SoSmooth
+namespace SoSmooth.IO.tr3
 {
     /// <summary>
     /// Stores the segmentation data and information.

@@ -15,7 +15,8 @@ namespace SoSmooth
     /// </summary>
     public class SceneMeshes
     {
-        private readonly Dictionary<Mesh, Entity> m_meshToEntity = new Dictionary<Mesh, Entity>();
+        private readonly Dictionary<MeshInfo, Entity> m_meshToEntity = new Dictionary<MeshInfo, Entity>();
+        private readonly Dictionary<Entity, MeshInfo> m_entityToMesh = new Dictionary<Entity, MeshInfo>();
         private readonly Entity m_meshesRoot;
         private readonly SceneWindow m_window;
 
@@ -42,27 +43,26 @@ namespace SoSmooth
         /// <summary>
         /// Called when a mesh is added to the scene.
         /// </summary>
-        private void OnMeshesAdded(IEnumerable<Mesh> meshes)
+        private void OnMeshesAdded(IEnumerable<MeshInfo> meshes)
         {
-            foreach (Mesh mesh in meshes)
+            foreach (MeshInfo mesh in meshes)
             {
-                Entity entity = new Entity(m_meshesRoot, mesh.Name);
+                Entity entity = new Entity(m_meshesRoot, mesh.Mesh.Name);
                 m_meshToEntity[mesh] = entity;
+                m_entityToMesh[entity] = mesh;
                 
-                Color4 color = Random.GetColor();
-
                 // have one renderer for front and back faces separately
-                MeshRenderer frontRenderer = new MeshRenderer(entity, mesh);
+                MeshRenderer frontRenderer = new MeshRenderer(entity, mesh.Mesh);
                 frontRenderer.CullMode = Rendering.CullMode.Back;
-                frontRenderer.Color = color;
+                frontRenderer.Color = mesh.Color;
 
-                MeshRenderer backRenderer = new MeshRenderer(entity, mesh);
+                MeshRenderer backRenderer = new MeshRenderer(entity, mesh.Mesh);
                 backRenderer.CullMode = Rendering.CullMode.Front;
-                backRenderer.Color = color;
+                backRenderer.Color = mesh.Color;
 
-                BoundsRenderer boundsRenderer = new BoundsRenderer(entity, mesh);
+                BoundsRenderer boundsRenderer = new BoundsRenderer(entity, mesh.Mesh);
                 boundsRenderer.Enabled = false;
-                boundsRenderer.Color = color;
+                boundsRenderer.Color = mesh.Color;
             }
             // zoom to the new meshes if nothing is selected
             if (MeshManager.Instance.SelectedMeshes.Count == 0)
@@ -74,12 +74,13 @@ namespace SoSmooth
         /// <summary>
         /// Called when a mesh is removed from the scene.
         /// </summary>
-        private void OnMeshRemoved(Mesh mesh)
+        private void OnMeshRemoved(MeshInfo mesh)
         {
             Entity entity;
             if (m_meshToEntity.TryGetValue(mesh, out entity))
             {
                 m_meshToEntity.Remove(mesh);
+                m_entityToMesh.Remove(entity);
                 entity.Dispose();
             }
         }
@@ -88,13 +89,13 @@ namespace SoSmooth
         /// Called when the selected meshes have changed.
         /// Enables drawing bounding boxes around selected meshes.
         /// </summary>
-        private void OnSelectionChanged(IEnumerable<Mesh> selected)
+        private void OnSelectionChanged(IEnumerable<MeshInfo> selected)
         {
             foreach (BoundsRenderer renderer in m_meshesRoot.GetComponentsInChildren<BoundsRenderer>())
             {
                 renderer.Enabled = false;
             }
-            foreach (Mesh mesh in selected)
+            foreach (MeshInfo mesh in selected)
             {
                 m_meshToEntity[mesh].GetComponent<BoundsRenderer>().Enabled = true;
             }
@@ -103,7 +104,7 @@ namespace SoSmooth
         /// <summary>
         /// Called when the visibility for a mesh has been changed.
         /// </summary>
-        private void OnVisibilityChanged(Mesh mesh, bool newVisibility)
+        private void OnVisibilityChanged(MeshInfo mesh, bool newVisibility)
         {
             Entity entity;
             if (m_meshToEntity.TryGetValue(mesh, out entity))
@@ -120,7 +121,7 @@ namespace SoSmooth
         /// </summary>
         /// <param name="mesh">A mesh that is in the scene.</param>
         /// <returns>The entity corresponding to the mesh.</returns>
-        public Entity GetEntity(Mesh mesh)
+        public Entity GetEntity(MeshInfo mesh)
         {
             return m_meshToEntity[mesh];
         }
@@ -131,39 +132,48 @@ namespace SoSmooth
         private void OnUpdate()
         {
             // apply the front and backface render modes to the renderers.
-            foreach (MeshRenderer renderer in m_meshesRoot.GetComponentsInChildren<MeshRenderer>())
+            foreach (Transform child in m_meshesRoot.Transform.Children)
             {
-                if (renderer.CullMode == Rendering.CullMode.Back)
+                MeshInfo mesh = m_entityToMesh[child.Entity];
+                foreach (MeshRenderer renderer in child.Entity.GetComponents<MeshRenderer>())
                 {
-                    switch (frontFaceMode)
+                    if (renderer.CullMode == Rendering.CullMode.Back)
                     {
-                        case "Solid":
-                            renderer.FrontFaceMode = PolygonMode.Fill;
-                            renderer.ShaderProgram = ShaderManager.SHADER_LIT;
-                            renderer.Enabled = MeshManager.Instance.IsVisible(renderer.Mesh);
-                            break;
-                        case "Wireframe":
-                            renderer.FrontFaceMode = PolygonMode.Line;
-                            renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
-                            renderer.Enabled = MeshManager.Instance.IsVisible(renderer.Mesh);
-                            break;
-                        case "Hidden":
-                            renderer.Enabled = false;
-                            break;
+                        switch (frontFaceMode)
+                        {
+                            case "Solid":
+                                renderer.FrontFaceMode = PolygonMode.Fill;
+                                renderer.ShaderProgram = ShaderManager.SHADER_LIT;
+                                renderer.Enabled = mesh.IsVisible;
+                                break;
+                            case "Wireframe":
+                                renderer.FrontFaceMode = PolygonMode.Line;
+                                renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
+                                renderer.Enabled = mesh.IsVisible;
+                                break;
+                            case "Hidden":
+                                renderer.Enabled = false;
+                                break;
+                        }
                     }
-                }
-                else
-                {
-                    switch (backFaceMode)
+                    else
                     {
-                        case "Solid":
-                            renderer.BackFaceMode = PolygonMode.Fill;
-                            renderer.ShaderProgram = ShaderManager.SHADER_LIT;
-                            break;
-                        case "Wireframe":
-                            renderer.BackFaceMode = PolygonMode.Line;
-                            renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
-                            break;
+                        switch (backFaceMode)
+                        {
+                            case "Solid":
+                                renderer.BackFaceMode = PolygonMode.Fill;
+                                renderer.ShaderProgram = ShaderManager.SHADER_LIT;
+                                renderer.Enabled = mesh.IsVisible;
+                                break;
+                            case "Wireframe":
+                                renderer.BackFaceMode = PolygonMode.Line;
+                                renderer.ShaderProgram = ShaderManager.SHADER_UNLIT;
+                                renderer.Enabled = mesh.IsVisible;
+                                break;
+                            case "Hidden":
+                                renderer.Enabled = false;
+                                break;
+                        }
                     }
                 }
             }
@@ -186,12 +196,13 @@ namespace SoSmooth
                 Vector3 rayOrigin = cam.Transform.Position;
                 Vector3 rayDir = cam.ScreenPointToWorldDirection(mousePos);
 
-                Mesh clicked = null;
+                MeshInfo clicked = null;
                 float minDistance = float.MaxValue;
 
-                foreach (Mesh mesh in MeshManager.Instance.VisibleMeshes)
+                foreach (MeshInfo info in MeshManager.Instance.VisibleMeshes)
                 {
-                    Entity entity = m_meshToEntity[mesh];
+                    Entity entity = m_meshToEntity[info];
+                    Mesh mesh = info.Mesh;
 
                     // we do the calculations in local space to avoid needing to transform
                     // the mesh vertices to world space.
@@ -227,7 +238,7 @@ namespace SoSmooth
                                 if (dist < minDistance && dist > cam.NearClip)
                                 {
                                     minDistance = dist;
-                                    clicked = mesh;
+                                    clicked = info;
                                 }
                             }
                         }

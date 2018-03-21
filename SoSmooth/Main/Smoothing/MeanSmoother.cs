@@ -227,7 +227,10 @@ namespace SoSmooth
                     vDisp += area * Vector3.Dot(vertToCenter, normal) * normal;
                 }
 
-                m_vertices[v] += m_strength * (vDisp / nArea);
+                vDisp *= (m_strength / nArea);
+
+                // no not modify the z-coordinates as they should not change
+                m_vertices[v] += new Vector3(vDisp.X, vDisp.Y, 0);
             }
         }
     }

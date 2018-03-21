@@ -60,13 +60,15 @@ namespace SoSmooth
         /// </summary>
         /// <param name="prevActive">The previously active mesh.</param>
         /// <param name="newActive">The currently active mesh.</param>
-        private void OnActiveMeshChanged(Mesh prevActive, Mesh newActive)
+        private void OnActiveMeshChanged(MeshInfo prevActive, MeshInfo newActive)
         {
             if (newActive != null)
             {
-                m_name.Text = newActive.Name;
-                m_vertexCount.Text = newActive.VertexCount.ToString();
-                m_triangleCount.Text = newActive.TriangleCount.ToString();
+                Mesh mesh = newActive.Mesh;
+
+                m_name.Text = mesh.Name;
+                m_vertexCount.Text = mesh.VertexCount.ToString();
+                m_triangleCount.Text = mesh.TriangleCount.ToString();
 
                 m_hiddenOnNoActive.ForEach(w => w.ShowAll());
             }

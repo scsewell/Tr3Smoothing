@@ -11,7 +11,7 @@ namespace SoSmooth
     /// </summary>
     public class SmoothOperation : Operation
     {
-        private readonly List<Mesh> m_meshes = new List<Mesh>();
+        private readonly List<MeshInfo> m_meshes = new List<MeshInfo>();
         private readonly List<Vector3[]> m_oldVerts = new List<Vector3[]>();
         private readonly List<Vector3[]> m_oldNormals = new List<Vector3[]>();
         private readonly List<Vector3[]> m_newVerts = new List<Vector3[]>();
@@ -22,8 +22,8 @@ namespace SoSmooth
         /// </summary>
         /// <param name="smoother">The smoothing algorithm to apply.</param>
         /// <param name="meshes">The meshes to smooth.</param>
-        public SmoothOperation(ISmoother smoother, params Mesh[] meshes) 
-            : this(smoother, meshes as IEnumerable<Mesh>)
+        public SmoothOperation(ISmoother smoother, params MeshInfo[] meshes) 
+            : this(smoother, meshes as IEnumerable<MeshInfo>)
         {
         }
 
@@ -32,12 +32,13 @@ namespace SoSmooth
         /// </summary>
         /// <param name="smoother">The smoothing algorithm to apply.</param>
         /// <param name="meshes">The meshes to smooth.</param>
-        public SmoothOperation(ISmoother smoother, IEnumerable<Mesh> meshes)
+        public SmoothOperation(ISmoother smoother, IEnumerable<MeshInfo> meshes)
         {
-            foreach (Mesh mesh in meshes)
+            foreach (MeshInfo info in meshes)
             {
-                m_meshes.Add(mesh);
+                m_meshes.Add(info);
 
+                Mesh mesh = info.Mesh;
                 Triangle[] tris = mesh.Triangles;
                 Vector3[] oldVerts = mesh.Vertices;
                 Vector3[] oldNormals = mesh.Normals;
@@ -61,8 +62,9 @@ namespace SoSmooth
         {
             for (int i = 0; i < m_meshes.Count; i++)
             {
-                m_meshes[i].Vertices = m_newVerts[i];
-                m_meshes[i].Normals = m_newNormals[i];
+                Mesh mesh = m_meshes[i].Mesh;
+                mesh.Vertices = m_newVerts[i];
+                mesh.Normals = m_newNormals[i];
             }
         }
 
@@ -73,8 +75,9 @@ namespace SoSmooth
         {
             for (int i = 0; i < m_meshes.Count; i++)
             {
-                m_meshes[i].Vertices = m_oldVerts[i];
-                m_meshes[i].Normals = m_oldNormals[i];
+                Mesh mesh = m_meshes[i].Mesh;
+                mesh.Vertices = m_oldVerts[i];
+                mesh.Normals = m_oldNormals[i];
             }
         }
     }

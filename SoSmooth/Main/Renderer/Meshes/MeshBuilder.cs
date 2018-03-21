@@ -164,11 +164,8 @@ namespace SoSmooth.Meshes
             m_builder.AddTriangle(new Triangle(6, 3, 7));
             m_builder.AddTriangle(new Triangle(6, 7, 4));
             m_builder.AddTriangle(new Triangle(6, 4, 5));
-
-            Mesh mesh = m_builder.CreateMesh("Cube");
-            mesh.RecalculateNormals();
-
-            return mesh;
+            
+            return m_builder.CreateMesh("Cube");
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using OpenTK;
 
-namespace SoSmooth
+namespace SoSmooth.IO.tr3
 {
     /// <summary>
     /// Represents a single segmentation line of a structure along a single slice.

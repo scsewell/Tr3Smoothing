@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using OpenTK;
 
-namespace SoSmooth
+namespace SoSmooth.IO.tr3
 {
     /// <summary>
     /// Represents an image slice.

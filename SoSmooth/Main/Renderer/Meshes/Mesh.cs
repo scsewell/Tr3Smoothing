@@ -256,26 +256,24 @@ namespace SoSmooth.Meshes
             Triangle[] triangles)
         {
             m_name = name;
-
             m_vertices = vertices;
+            m_triangles = triangles;
 
-            if (normals == null)
-            {
-                normals = Utils.CalculateNormals(vertices, triangles);
-            }
             m_normals = normals;
-
-            if (colors == null)
+            if (m_normals == null)
             {
-                colors = new Color4[vertices.Length];
-                for (int i = 0; i < colors.Length; i++)
+                m_normals = Utils.CalculateNormals(vertices, triangles);
+            }
+
+            m_colors = colors;
+            if (m_colors == null)
+            {
+                m_colors = new Color4[vertices.Length];
+                for (int i = 0; i < m_colors.Length; i++)
                 {
-                    colors[i] = Color4.White;
+                    m_colors[i] = Color4.White;
                 }
             }
-            m_colors = colors;
-
-            m_triangles = triangles;
 
             m_bounds = Bounds.FromPoints(m_vertices);
 
@@ -305,7 +303,7 @@ namespace SoSmooth.Meshes
         /// <summary>
         /// Computes vertex normals for the mesh.
         /// </summary>
-        public void RecalculateNormals()
+        private void RecalculateNormals()
         {
             ValidateDispose();
             Utils.CalculateNormals(m_vertices, m_triangles, m_normals);

@@ -9,8 +9,7 @@ namespace SoSmooth
     /// </summary>
     public class SceneToolbar : Toolbar
     {
-        public static readonly string[] FRONT_SHADING_VALS = new string[] { "Solid", "Wireframe", "Hidden" };
-        public static readonly string[] BACK_SHADING_VALS = new string[] { "Solid", "Wireframe" };
+        public static readonly string[] SHADING_VALS = new string[] { "Solid", "Wireframe", "Hidden" };
 
         private SceneWindow m_sceneWindow;
         private ComboBox m_frontShading;
@@ -74,14 +73,14 @@ namespace SoSmooth
             
             // render settings
             Label frontShadingLabel = new Label("Front Face Mode:");
-            m_frontShading = new ComboBox(FRONT_SHADING_VALS);
+            m_frontShading = new ComboBox(SHADING_VALS);
             m_frontShading.TooltipText = "The render style for front faces.";
             m_frontShading.Active = 0;
             m_frontShading.CanFocus = false;
             m_frontShading.Changed += OnFrontShadingChanged;
             
             Label backShadingLabel = new Label("Back Face Mode:");
-            m_backShading = new ComboBox(BACK_SHADING_VALS);
+            m_backShading = new ComboBox(SHADING_VALS);
             m_backShading.TooltipText = "The render style for back faces.";
             m_backShading.Active = 0;
             m_backShading.CanFocus = false;
@@ -107,7 +106,7 @@ namespace SoSmooth
             TreeIter iter;
             m_frontShading.GetActiveIter(out iter);
             TreePath path = m_frontShading.Model.GetPath(iter);
-            m_sceneWindow.Meshes.frontFaceMode = FRONT_SHADING_VALS[path.Indices[0]];
+            m_sceneWindow.Meshes.frontFaceMode = SHADING_VALS[path.Indices[0]];
         }
 
         /// <summary>
@@ -118,7 +117,7 @@ namespace SoSmooth
             TreeIter iter;
             m_backShading.GetActiveIter(out iter);
             TreePath path = m_backShading.Model.GetPath(iter);
-            m_sceneWindow.Meshes.backFaceMode = BACK_SHADING_VALS[path.Indices[0]];
+            m_sceneWindow.Meshes.backFaceMode = SHADING_VALS[path.Indices[0]];
         }
     }
 }

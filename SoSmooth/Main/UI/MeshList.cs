@@ -13,8 +13,8 @@ namespace SoSmooth
     {
         private readonly TreeView m_treeView;
         private readonly ListStore m_listStore;
-        private readonly Dictionary<int, Mesh> m_indexToMesh = new Dictionary<int, Mesh>();
-        private readonly Dictionary<Mesh, int> m_meshToIndex = new Dictionary<Mesh, int>();
+        private readonly Dictionary<int, MeshInfo> m_indexToMesh = new Dictionary<int, MeshInfo>();
+        private readonly Dictionary<MeshInfo, int> m_meshToIndex = new Dictionary<MeshInfo, int>();
 
         /// <summary>
         /// Constructor.
@@ -76,13 +76,13 @@ namespace SoSmooth
         /// <summary>
         /// Gets a list of meshes corresponding to the users selection.
         /// </summary>
-        private List<Mesh> GetSelectedMeshes()
+        private List<MeshInfo> GetSelectedMeshes()
         {
-            List<Mesh> meshes = new List<Mesh>();
+            List<MeshInfo> meshes = new List<MeshInfo>();
             foreach (TreePath path in m_treeView.Selection.GetSelectedRows())
             {
-                Mesh mesh = m_indexToMesh[path.Indices[0]];
-                if (MeshManager.Instance.IsVisible(mesh))
+                MeshInfo mesh = m_indexToMesh[path.Indices[0]];
+                if (mesh.IsVisible)
                 {
                     meshes.Add(mesh);
                 }
@@ -99,7 +99,7 @@ namespace SoSmooth
         /// </summary>
         private void OnListSelectionChanged(object sender, System.EventArgs e)
         {
-            List<Mesh> selected = GetSelectedMeshes();
+            List<MeshInfo> selected = GetSelectedMeshes();
             MeshManager.Instance.SetSelectedMeshes(selected);
         }
 
@@ -114,7 +114,7 @@ namespace SoSmooth
             {
                 bool isVisible = !(bool)m_listStore.GetValue(iter, 0);
                 m_listStore.SetValue(iter, 0, isVisible);
-                MeshManager.Instance.SetVisible(m_indexToMesh[path.Indices[0]], isVisible);
+                m_indexToMesh[path.Indices[0]].IsVisible = isVisible;
             }
         }
 
@@ -141,7 +141,7 @@ namespace SoSmooth
                 // visibility column
                 if (colNum == 0)
                 {
-                    bool visible = MeshManager.Instance.IsVisible(m_indexToMesh[path.Indices[0] - 1]);
+                    bool visible = m_indexToMesh[path.Indices[0] - 1].IsVisible;
                     args.Tooltip.Text = visible ? "Hide mesh in scene." : "Show mesh in scene.";
                     args.RetVal = true;
                 }
@@ -155,7 +155,7 @@ namespace SoSmooth
         /// <summary>
         /// Called when the meshes in the scene have changed. Updates the displayed mesh list.
         /// </summary>
-        private void OnMeshesChanged(IEnumerable<Mesh> meshes)
+        private void OnMeshesChanged(IEnumerable<MeshInfo> meshes)
         {
             m_treeView.Selection.UnselectAll();
             
@@ -164,9 +164,9 @@ namespace SoSmooth
             m_meshToIndex.Clear();
             
             TreeIter iter = new TreeIter();
-            foreach (Mesh mesh in meshes)
+            foreach (MeshInfo mesh in meshes)
             {
-                iter = m_listStore.AppendValues(MeshManager.Instance.IsVisible(mesh), mesh.Name);
+                iter = m_listStore.AppendValues(mesh.IsVisible, mesh.Mesh.Name);
                 TreePath path = m_listStore.GetPath(iter);
 
                 m_indexToMesh.Add(path.Indices[0], mesh);
@@ -177,12 +177,12 @@ namespace SoSmooth
         /// <summary>
         /// Called when the selected meshes have changed.
         /// </summary>
-        private void OnMeshSelectionChanged(IEnumerable<Mesh> selected)
+        private void OnMeshSelectionChanged(IEnumerable<MeshInfo> selected)
         {
             m_treeView.Selection.Changed -= OnListSelectionChanged;
             
             m_treeView.Selection.UnselectAll();
-            foreach (Mesh mesh in selected)
+            foreach (MeshInfo mesh in selected)
             {
                 TreePath path = new TreePath(m_meshToIndex[mesh].ToString());
                 m_treeView.Selection.SelectPath(path);
@@ -194,7 +194,7 @@ namespace SoSmooth
         /// <summary>
         /// Called when a mesh has had its visibility changed.
         /// </summary>
-        private void OnVisibilityChanged(Mesh mesh, bool newVisibility)
+        private void OnVisibilityChanged(MeshInfo mesh, bool newVisibility)
         {
             m_treeView.Selection.Changed -= OnListSelectionChanged;
 

@@ -240,17 +240,17 @@ namespace SoSmooth
         /// <summary>
         /// Smoothly moves the camera to view selected objects.
         /// </summary>
-        public void EaseToMeshes(IEnumerable<Mesh> toView)
+        public void EaseToMeshes(IEnumerable<MeshInfo> toView)
         {
             List<Vector3> boundCorners = new List<Vector3>();
 
             // get the bounding box for all of the meshes to view in the scene
-            foreach (Mesh mesh in toView)
+            foreach (MeshInfo mesh in toView)
             {
                 Entity entity = m_window.Meshes.GetEntity(mesh);
                 if (entity != null)
                 {
-                    Bounds b = mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
+                    Bounds b = mesh.Mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
                     boundCorners.AddRange(b.Corners);
                 }
             }

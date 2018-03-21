@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SoSmooth
+namespace SoSmooth.IO.tr3
 {
     /// <summary>
     /// Represents a connection from an endpoint of an open loop contour to another contour. 
