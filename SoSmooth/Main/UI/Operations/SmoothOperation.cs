@@ -43,6 +43,8 @@ namespace SoSmooth
                 Vector3[] oldVerts = mesh.Vertices;
                 Vector3[] oldNormals = mesh.Normals;
 
+                // We store the before and after results of the smoothing to make undoing
+                // and redoing very fast rather than recalculating the smoothing.
                 Vector3[] newVerts = smoother.Smooth(oldVerts, tris);
                 Vector3[] newNormals = Utils.CalculateNormals(newVerts, tris);
 
@@ -53,6 +55,7 @@ namespace SoSmooth
             }
 
             Excecute();
+            UndoStack.Instance.AddOperation(this);
         }
 
         /// <summary>

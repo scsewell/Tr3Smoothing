@@ -10,7 +10,7 @@ namespace SoSmooth
         /// <summary>
         /// The maximum number of previous operations that can be undone.
         /// </summary>
-        private const int MAX_HISTORTY_SIZE = 10;
+        private const int MAX_HISTORTY_SIZE = 50;
 
         private readonly DropOutStack<Operation> m_history = new DropOutStack<Operation>(MAX_HISTORTY_SIZE);
         private readonly Stack<Operation> m_undone = new Stack<Operation>();
@@ -37,8 +37,6 @@ namespace SoSmooth
                 Operation op = m_history.Pop();
                 op.Unexcecute();
                 m_undone.Push(op);
-
-                Logger.Info($"Undo {m_undone.Count.ToString().PadLeft(3)}: {op}");
             }
         }
 
@@ -52,8 +50,6 @@ namespace SoSmooth
                 Operation op = m_undone.Pop();
                 op.Excecute();
                 m_history.Push(op);
-
-                Logger.Info($"Redo {m_undone.Count.ToString().PadLeft(3)}: {op}");
             }
         }
     }

@@ -13,9 +13,6 @@ namespace SoSmooth
         public delegate void MeshesAddedHandler(IEnumerable<MeshInfo> meshes);
         public delegate void MeshRemovedHandler(MeshInfo mesh);
         public delegate void MeshesChangedHandler(IEnumerable<MeshInfo> meshes);
-        public delegate void SelctionChangedHandler(IEnumerable<MeshInfo> selected);
-        public delegate void ActiveChangedHandler(MeshInfo prevActive, MeshInfo newActive);
-        public delegate void VisibilityChangedHandler(MeshInfo mesh, bool newVisibility);
 
         /// <summary>
         /// Triggered after a single mesh has been added.
@@ -31,21 +28,6 @@ namespace SoSmooth
         /// Triggered after meshes have been added or removed.
         /// </summary>
         public event MeshesChangedHandler MeshesChanged;
-        
-        /// <summary>
-        /// Triggered when the selected meshes have changed.
-        /// </summary>
-        public event SelctionChangedHandler SelectionChanged;
-        
-        /// <summary>
-        /// Triggered when the active mesh has been changed.
-        /// </summary>
-        public event ActiveChangedHandler ActiveChanged;
-
-        /// <summary>
-        /// Triggered when a mesh has has it's visibility changed.
-        /// </summary>
-        public event VisibilityChangedHandler VisibilityChanged;
 
         private readonly List<MeshInfo> m_meshes = new List<MeshInfo>();
         
@@ -75,6 +57,8 @@ namespace SoSmooth
         /// <param name="meshes">The meshes to add.</param>
         public void AddMeshes(IEnumerable<Mesh> meshes)
         {
+            m_meshes.ForEach(m => m.IsSelected = false);
+
             List<MeshInfo> newMeshes = new List<MeshInfo>();
             foreach (Mesh mesh in meshes)
             {
@@ -92,37 +76,14 @@ namespace SoSmooth
         /// <param name="meshes">The meshes to remove.</param>
         public void RemoveMeshes(IEnumerable<MeshInfo> meshes)
         {
-            MeshInfo previousActive = null;
-            bool selectionChanged = false;
-
             // remove meshes from selection
             foreach (MeshInfo mesh in meshes)
             {
-                if (mesh.IsActive)
-                {
-                    mesh.IsActive = false;
-                    previousActive = mesh;
-                }
-
-                if (mesh.IsSelected)
-                {
-                    mesh.IsSelected = false;
-                    selectionChanged = true;
-                }
+                mesh.IsActive = false;
+                mesh.IsSelected = false;
+                m_meshes.Remove(mesh);
             }
-
-            // notify if the selection has changed
-            if (previousActive != null)
-            {
-                ActiveChanged?.Invoke(previousActive, null);
-            }
-
-            // notify if the selection has changed
-            if (selectionChanged)
-            {
-                SelectionChanged?.Invoke(SelectedMeshes);
-            }
-
+            
             // notify that there are new meshes
             MeshesChanged?.Invoke(m_meshes);
 
@@ -132,103 +93,6 @@ namespace SoSmooth
                 MeshRemoved?.Invoke(mesh);
                 // dispose old meshes to prevent memory leak of unmanaged mesh data
                 mesh.Mesh.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Sets the active mesh.
-        /// </summary>
-        /// <param name="mesh">The mesh to make active.</param>
-        /// <param name="clearSelection">If true the active mesh replaces the selection.</param>
-        public void SetActiveMesh(MeshInfo mesh, bool clearSelection)
-        {
-            MeshInfo previousActive = null;
-            bool selectionChanged = false;
-
-            // find an clear the previously active mesh
-            foreach (MeshInfo meshInfo in m_meshes)
-            {
-                if (meshInfo.IsActive)
-                {
-                    previousActive = meshInfo;
-                    meshInfo.IsActive = false;
-                }
-
-                // clear the former selection if desired
-                if (clearSelection && meshInfo.IsSelected)
-                {
-                    meshInfo.IsSelected = false;
-                    selectionChanged = true;
-                }
-            }
-
-            // The new active mesh must also be selected
-            if (mesh != null)
-            {
-                mesh.IsActive = true;
-                if (!mesh.IsSelected)
-                {
-                    mesh.IsSelected = true;
-                    selectionChanged = true;
-                }
-            }
-
-            // notify any selection changes
-            if (selectionChanged)
-            {
-                SelectionChanged?.Invoke(SelectedMeshes);
-            }
-
-            // notify that there is a new active mesh
-            if (previousActive != mesh)
-            {
-                ActiveChanged?.Invoke(previousActive, mesh);
-            }
-        }
-
-        /// <summary>
-        /// Sets the selected meshes.
-        /// </summary>
-        /// <param name="mesh">The mesh to select.</param>
-        public void SetSelectedMeshes(IEnumerable<MeshInfo> meshes)
-        {
-            if (meshes != null)
-            {
-                // set the new selection
-                foreach (MeshInfo meshInfo in m_meshes)
-                {
-                    meshInfo.IsActive = false;
-                    meshInfo.IsSelected = false;
-                }
-                foreach (MeshInfo meshInfo in meshes)
-                {
-                    meshInfo.IsSelected = true;
-                }
-
-                // notify the selection change
-                SelectionChanged?.Invoke(SelectedMeshes);
-
-                // make the first selected mesh active
-                SetActiveMesh(SelectedMeshes.FirstOrDefault(), false);
-            }
-            else
-            {
-                SetActiveMesh(null, true);
-            }
-        }
-        
-        /// <summary>
-        /// Delects all meshes if any are selected and selects all meshes is none are selected.
-        /// </summary>
-        public void ToggleSelected()
-        {
-            if (m_meshes.Any(m => m.IsSelected))
-            {
-                SetSelectedMeshes(null);
-            }
-            else
-            {
-                SetSelectedMeshes(VisibleMeshes);
             }
         }
 
@@ -245,16 +109,16 @@ namespace SoSmooth
         /// </summary>
         public void ShowAll()
         {
-            List<MeshInfo> notVisible = m_meshes.Where(m => !m.IsVisible).ToList();
-            foreach (MeshInfo mesh in notVisible)
+            ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
+            m_meshes.ForEach(m => m.IsSelected = false);
+            foreach (MeshInfo mesh in m_meshes.Where(m => !m.IsVisible))
             {
                 mesh.IsVisible = true;
+                mesh.IsSelected = true;
             }
-            
-            if (notVisible.Count > 0)
-            {
-                SetSelectedMeshes(notVisible);
-            }
+
+            op.Complete();
         }
 
         /// <summary>
@@ -262,6 +126,8 @@ namespace SoSmooth
         /// </summary>
         public void HideSelected()
         {
+            ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
             foreach (MeshInfo mesh in m_meshes)
             {
                 if (mesh.IsSelected)
@@ -269,6 +135,27 @@ namespace SoSmooth
                     mesh.IsVisible = false;
                 }
             }
+
+            op.Complete();
+        }
+
+        /// <summary>
+        /// Delects all meshes if any are selected and selects all meshes is none are selected.
+        /// </summary>
+        public void ToggleSelected()
+        {
+            ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
+            if (m_meshes.Any(m => m.IsSelected))
+            {
+                m_meshes.ForEach(m => m.IsSelected = false);
+            }
+            else
+            {
+                m_meshes.ForEach(m => m.IsSelected = m.IsVisible);
+            }
+
+            op.Complete();
         }
     }
 }

@@ -188,7 +188,7 @@
     <Compile Include="Main\MeshInfo.cs" />
     <Compile Include="Main\Smoothing\ISmoother.cs" />
     <Compile Include="Main\Smoothing\MeanSmoother.cs" />
-    <Compile Include="Main\UI\Operations\SetVisibilityOperation.cs" />
+    <Compile Include="Main\UI\Operations\ModifyMeshInfosOperation.cs" />
     <Compile Include="Main\UI\Operations\SmoothOperation.cs" />
     <Compile Include="Main\Utils\Undo\DropOutStack.cs" />
     <Compile Include="Main\Utils\Undo\Operation.cs" />

@@ -36,8 +36,6 @@ namespace SoSmooth
             
             MeshManager.Instance.MeshesAdded += OnMeshesAdded;
             MeshManager.Instance.MeshRemoved += OnMeshRemoved;
-            MeshManager.Instance.SelectionChanged += OnSelectionChanged;
-            MeshManager.Instance.VisibilityChanged += OnVisibilityChanged;
         }
 
         /// <summary>
@@ -45,8 +43,12 @@ namespace SoSmooth
         /// </summary>
         private void OnMeshesAdded(IEnumerable<MeshInfo> meshes)
         {
+            // add the meshes to the scene
             foreach (MeshInfo mesh in meshes)
             {
+                mesh.SelectionChanged += OnSelectionChanged;
+                mesh.VisibilityChanged += OnVisibilityChanged;
+
                 Entity entity = new Entity(m_meshesRoot, mesh.Mesh.Name);
                 m_meshToEntity[mesh] = entity;
                 m_entityToMesh[entity] = mesh;
@@ -61,13 +63,14 @@ namespace SoSmooth
                 backRenderer.Color = mesh.Color;
 
                 BoundsRenderer boundsRenderer = new BoundsRenderer(entity, mesh.Mesh);
-                boundsRenderer.Enabled = false;
+                boundsRenderer.Enabled = mesh.IsSelected;
                 boundsRenderer.Color = mesh.Color;
             }
+
             // zoom to the new meshes if nothing is selected
             if (MeshManager.Instance.SelectedMeshes.Count == 0)
             {
-                m_window.Camera.EaseToMeshes(meshes);
+                m_window.Camera.EaseToBounds(GetBounds(meshes));
             }
         }
 
@@ -79,6 +82,9 @@ namespace SoSmooth
             Entity entity;
             if (m_meshToEntity.TryGetValue(mesh, out entity))
             {
+                mesh.SelectionChanged -= OnSelectionChanged;
+                mesh.VisibilityChanged -= OnVisibilityChanged;
+
                 m_meshToEntity.Remove(mesh);
                 m_entityToMesh.Remove(entity);
                 entity.Dispose();
@@ -89,43 +95,30 @@ namespace SoSmooth
         /// Called when the selected meshes have changed.
         /// Enables drawing bounding boxes around selected meshes.
         /// </summary>
-        private void OnSelectionChanged(IEnumerable<MeshInfo> selected)
+        private void OnSelectionChanged(MeshInfo mesh)
         {
-            foreach (BoundsRenderer renderer in m_meshesRoot.GetComponentsInChildren<BoundsRenderer>())
+            Entity entity;
+            if (m_meshToEntity.TryGetValue(mesh, out entity))
             {
-                renderer.Enabled = false;
-            }
-            foreach (MeshInfo mesh in selected)
-            {
-                m_meshToEntity[mesh].GetComponent<BoundsRenderer>().Enabled = true;
+                entity.GetComponent<BoundsRenderer>().Enabled = mesh.IsSelected;
             }
         }
 
         /// <summary>
         /// Called when the visibility for a mesh has been changed.
         /// </summary>
-        private void OnVisibilityChanged(MeshInfo mesh, bool newVisibility)
+        private void OnVisibilityChanged(MeshInfo mesh)
         {
             Entity entity;
             if (m_meshToEntity.TryGetValue(mesh, out entity))
             {
                 foreach (MeshRenderer renderer in entity.GetComponents<MeshRenderer>())
                 {
-                    renderer.Enabled = newVisibility;
+                    renderer.Enabled = mesh.IsVisible;
                 }
             }
         }
-
-        /// <summary>
-        /// Gets the entity for a mesh in this scene.
-        /// </summary>
-        /// <param name="mesh">A mesh that is in the scene.</param>
-        /// <returns>The entity corresponding to the mesh.</returns>
-        public Entity GetEntity(MeshInfo mesh)
-        {
-            return m_meshToEntity[mesh];
-        }
-
+        
         /// <summary>
         /// Called prior to rendering.
         /// </summary>
@@ -177,6 +170,14 @@ namespace SoSmooth
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Moves the camera to view the selected meshes.
+        /// </summary>
+        public void FocusSelected()
+        {
+            m_window.Camera.EaseToBounds(GetBounds(MeshManager.Instance.SelectedMeshes));
         }
         
         /// <summary>
@@ -244,9 +245,44 @@ namespace SoSmooth
                         }
                     }
                 }
-                // add to the current selection if shift is pressed
-                MeshManager.Instance.SetActiveMesh(clicked, !shift);
+
+                ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
+                // clear current selection unless shift is pressed
+                if (!shift)
+                {
+                    MeshManager.Instance.SelectedMeshes.ForEach(m => m.IsSelected = false);
+                }
+                if (clicked != null)
+                {
+                    clicked.IsActive = true;
+                }
+
+                op.Complete();
             }
+        }
+
+        /// <summary>
+        /// Gets the bounds of some meshes in the scene.
+        /// </summary>
+        private Bounds GetBounds(IEnumerable<MeshInfo> meshes)
+        {
+            List<Vector3> boundCorners = new List<Vector3>();
+
+            // get the bounding box for all of the meshes to view in the scene
+            foreach (MeshInfo mesh in meshes)
+            {
+                Entity entity = m_meshToEntity[mesh];
+                Bounds b = mesh.Mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
+                boundCorners.AddRange(b.Corners);
+            }
+
+            // get a bounding box around all the individual bounds for each mesh
+            if (boundCorners.Count > 0)
+            {
+                return Bounds.FromPoints(boundCorners.AsReadOnly());
+            }
+            return default(Bounds);
         }
     }
 }

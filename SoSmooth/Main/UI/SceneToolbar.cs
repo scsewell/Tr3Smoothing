@@ -36,7 +36,7 @@ namespace SoSmooth
 
             MenuItem view_focus = new MenuItem("_Focus Selection");
             view_focus.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.F, Gdk.ModifierType.None, AccelFlags.Visible));
-            view_focus.Activated += ((o, e) => sceneWindow.Camera.EaseToMeshes(MeshManager.Instance.SelectedMeshes));
+            view_focus.Activated += ((o, e) => sceneWindow.Meshes.FocusSelected());
             view_menu.Append(view_focus);
 
             view_menu.Append(new SeparatorMenuItem());

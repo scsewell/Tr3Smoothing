@@ -5,7 +5,6 @@ using Gtk;
 using OpenTK;
 using OpenTK.Graphics;
 using SoSmooth.Scenes;
-using SoSmooth.Meshes;
 
 namespace SoSmooth
 {
@@ -238,33 +237,18 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Smoothly moves the camera to view selected objects.
+        /// Smoothly moves the camera to view a bounding box.
         /// </summary>
-        public void EaseToMeshes(IEnumerable<MeshInfo> toView)
+        public void EaseToBounds(Bounds toView)
         {
-            List<Vector3> boundCorners = new List<Vector3>();
+            float distance = toView.Size.Length * 1.25f;
 
-            // get the bounding box for all of the meshes to view in the scene
-            foreach (MeshInfo mesh in toView)
+            // the selection should be centered and take up most of the screen
+            Vector3 targetPos = toView.Center;
+            float targetZoom = Math.Max(distance, distance / m_camera.AspectRatio);
+                
+            if (!float.IsNaN(targetPos.Length) && distance > 0)
             {
-                Entity entity = m_window.Meshes.GetEntity(mesh);
-                if (entity != null)
-                {
-                    Bounds b = mesh.Mesh.Bounds.Transformed(entity.Transform.LocalToWorldMatix);
-                    boundCorners.AddRange(b.Corners);
-                }
-            }
-
-            if (boundCorners.Count > 0)
-            {
-                // get a bounding box around all the individual bounds for each mesh
-                Bounds totalBound = Bounds.FromPoints(boundCorners.AsReadOnly());
-                float distance = totalBound.Size.Length * 1.25f;
-
-                // the selectoin should be centered and take up most of the screen
-                Vector3 targetPos = totalBound.Center;
-                float targetZoom = Math.Max(distance, distance / m_camera.AspectRatio);
-
                 EaseCamera(targetPos, targetZoom);
             }
         }
@@ -296,6 +280,8 @@ namespace SoSmooth
         /// <param name="zoom">The desired room.</param>
         public void EaseCamera(Vector3 position, Quaternion rotation, float zoom)
         {
+            zoom = MathHelper.Clamp(zoom, ZOOM_MIN, ZOOM_MAX);
+
             Vector3 currentPosition = m_camPivot.LocalPosition;
             Quaternion currentRotation = GetRotation();
             float currentZoom = m_zoom;

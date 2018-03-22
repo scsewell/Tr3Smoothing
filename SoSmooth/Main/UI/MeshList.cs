@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Gdk;
 using Gtk;
-using SoSmooth.Meshes;
 
 namespace SoSmooth
 {
@@ -21,7 +19,7 @@ namespace SoSmooth
         /// </summary>
         public MeshList()
         {
-            Gtk.Label title = new Gtk.Label();
+            Label title = new Label();
             title.Markup = "<b>Meshes</b>";
 
             ScrolledWindow scrolledWindow = new ScrolledWindow();
@@ -68,9 +66,59 @@ namespace SoSmooth
             m_treeView.HasTooltip = true;
             m_treeView.CanFocus = false;
 
-            MeshManager.Instance.SelectionChanged += OnMeshSelectionChanged;
+            MeshManager.Instance.MeshesAdded += OnMeshesAdded;
+            MeshManager.Instance.MeshRemoved += OnMeshRemoved;
             MeshManager.Instance.MeshesChanged += OnMeshesChanged;
-            MeshManager.Instance.VisibilityChanged += OnVisibilityChanged;
+        }
+
+        /// <summary>
+        /// Called when meshes are added to the scene.
+        /// </summary>
+        private void OnMeshesAdded(IEnumerable<MeshInfo> meshes)
+        {
+            foreach (MeshInfo mesh in meshes)
+            {
+                mesh.SelectionChanged += OnMeshSelectionChanged;
+                mesh.VisibilityChanged += OnVisibilityChanged;
+            }
+        }
+
+        /// <summary>
+        /// Called when a mesh is added to the scene.
+        /// </summary>
+        private void OnMeshRemoved(MeshInfo mesh)
+        {
+            mesh.SelectionChanged -= OnMeshSelectionChanged;
+            mesh.VisibilityChanged -= OnVisibilityChanged;
+        }
+
+        /// <summary>
+        /// Called when the meshes in the scene have changed. Updates the displayed mesh list.
+        /// </summary>
+        private void OnMeshesChanged(IEnumerable<MeshInfo> meshes)
+        {
+            m_treeView.Selection.Changed -= OnListSelectionChanged;
+
+            m_listStore.Clear();
+            m_indexToMesh.Clear();
+            m_meshToIndex.Clear();
+
+            TreeIter iter = new TreeIter();
+            foreach (MeshInfo mesh in meshes)
+            {
+                iter = m_listStore.AppendValues(mesh.IsVisible, mesh.Mesh.Name);
+                TreePath path = m_listStore.GetPath(iter);
+
+                if (mesh.IsSelected)
+                {
+                    m_treeView.Selection.SelectPath(path);
+                }
+
+                m_indexToMesh.Add(path.Indices[0], mesh);
+                m_meshToIndex.Add(mesh, path.Indices[0]);
+            }
+
+            m_treeView.Selection.Changed += OnListSelectionChanged;
         }
 
         /// <summary>
@@ -94,13 +142,55 @@ namespace SoSmooth
             return meshes;
         }
 
+        private bool m_ignoreListSelection = false;
+
         /// <summary>
         /// Called when the selected elements of the list view has changed.
         /// </summary>
         private void OnListSelectionChanged(object sender, System.EventArgs e)
         {
-            List<MeshInfo> selected = GetSelectedMeshes();
-            MeshManager.Instance.SetSelectedMeshes(selected);
+            if (!m_ignoreListSelection)
+            {
+                ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
+                // deselect old selection
+                List<MeshInfo> oldSelection = MeshManager.Instance.SelectedMeshes;
+                oldSelection.ForEach(m => m.IsSelected = false);
+
+                List<MeshInfo> newSelected = GetSelectedMeshes().Where(m => !oldSelection.Contains(m)).ToList();
+                newSelected.ForEach(m => m.IsSelected = true);
+
+                if (newSelected.Count > 0)
+                {
+                    if (oldSelection.Count > 0 && m_meshToIndex[oldSelection.First()] < m_meshToIndex[newSelected.First()])
+                    {
+                        newSelected.Last().IsActive = true;
+                    }
+                    else
+                    {
+                        newSelected.First().IsActive = true;
+                    }
+                }
+
+                op.Complete();
+            }
+            else
+            {
+                m_treeView.Selection.Changed -= OnListSelectionChanged;
+
+                m_treeView.Selection.UnselectAll();
+                foreach (KeyValuePair<MeshInfo, int> meshPath in m_meshToIndex)
+                {
+                    if (meshPath.Key.IsSelected)
+                    {
+                        TreePath path = new TreePath(meshPath.Value.ToString());
+                        m_treeView.Selection.SelectPath(path);
+                    }
+                }
+                m_ignoreListSelection = false;
+
+                m_treeView.Selection.Changed += OnListSelectionChanged;
+            }
         }
 
         /// <summary>
@@ -112,9 +202,10 @@ namespace SoSmooth
             TreeIter iter;
             if (m_listStore.GetIter(out iter, path))
             {
-                bool isVisible = !(bool)m_listStore.GetValue(iter, 0);
-                m_listStore.SetValue(iter, 0, isVisible);
-                m_indexToMesh[path.Indices[0]].IsVisible = isVisible;
+                ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+                m_ignoreListSelection = true;
+                m_indexToMesh[path.Indices[0]].IsVisible = !(bool)m_listStore.GetValue(iter, 0);
+                op.Complete();
             }
         }
 
@@ -153,39 +244,20 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Called when the meshes in the scene have changed. Updates the displayed mesh list.
-        /// </summary>
-        private void OnMeshesChanged(IEnumerable<MeshInfo> meshes)
-        {
-            m_treeView.Selection.UnselectAll();
-            
-            m_listStore.Clear();
-            m_indexToMesh.Clear();
-            m_meshToIndex.Clear();
-            
-            TreeIter iter = new TreeIter();
-            foreach (MeshInfo mesh in meshes)
-            {
-                iter = m_listStore.AppendValues(mesh.IsVisible, mesh.Mesh.Name);
-                TreePath path = m_listStore.GetPath(iter);
-
-                m_indexToMesh.Add(path.Indices[0], mesh);
-                m_meshToIndex.Add(mesh, path.Indices[0]);
-            }
-        }
-
-        /// <summary>
         /// Called when the selected meshes have changed.
         /// </summary>
-        private void OnMeshSelectionChanged(IEnumerable<MeshInfo> selected)
+        private void OnMeshSelectionChanged(MeshInfo mesh)
         {
             m_treeView.Selection.Changed -= OnListSelectionChanged;
             
-            m_treeView.Selection.UnselectAll();
-            foreach (MeshInfo mesh in selected)
+            TreePath path = new TreePath(m_meshToIndex[mesh].ToString());
+            if (mesh.IsSelected)
             {
-                TreePath path = new TreePath(m_meshToIndex[mesh].ToString());
                 m_treeView.Selection.SelectPath(path);
+            }
+            else
+            {
+                m_treeView.Selection.UnselectPath(path);
             }
 
             m_treeView.Selection.Changed += OnListSelectionChanged;
@@ -194,17 +266,18 @@ namespace SoSmooth
         /// <summary>
         /// Called when a mesh has had its visibility changed.
         /// </summary>
-        private void OnVisibilityChanged(MeshInfo mesh, bool newVisibility)
+        private void OnVisibilityChanged(MeshInfo mesh)
         {
             m_treeView.Selection.Changed -= OnListSelectionChanged;
 
             TreePath path = new TreePath(m_meshToIndex[mesh].ToString());
             TreeIter iter;
-            m_listStore.GetIter(out iter, path);
-            m_listStore.SetValue(iter, 0, newVisibility);
-
-            m_treeView.Selection.UnselectPath(path);
-
+            if (m_listStore.GetIter(out iter, path))
+            {
+                m_listStore.SetValue(iter, 0, mesh.IsVisible);
+                m_treeView.Selection.UnselectPath(path);
+            }
+            
             m_treeView.Selection.Changed += OnListSelectionChanged;
         }
     }

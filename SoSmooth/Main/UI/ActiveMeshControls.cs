@@ -36,7 +36,27 @@ namespace SoSmooth
 
             Shown += OnShown;
 
-            MeshManager.Instance.ActiveChanged += OnActiveMeshChanged;
+            MeshManager.Instance.MeshesAdded += OnMeshesAdded;
+            MeshManager.Instance.MeshRemoved += OnMeshRemoved;
+        }
+
+        /// <summary>
+        /// Called when meshes are added to the scene.
+        /// </summary>
+        private void OnMeshesAdded(IEnumerable<MeshInfo> meshes)
+        {
+            foreach (MeshInfo mesh in meshes)
+            {
+                mesh.ActiveChanged += OnActiveMeshChanged;
+            }
+        }
+
+        /// <summary>
+        /// Called when a mesh is added to the scene.
+        /// </summary>
+        private void OnMeshRemoved(MeshInfo mesh)
+        {
+            mesh.ActiveChanged -= OnActiveMeshChanged;
         }
 
         /// <summary>
@@ -58,17 +78,14 @@ namespace SoSmooth
         /// <summary>
         /// Called when the active mesh in the user's selection has changed.
         /// </summary>
-        /// <param name="prevActive">The previously active mesh.</param>
-        /// <param name="newActive">The currently active mesh.</param>
-        private void OnActiveMeshChanged(MeshInfo prevActive, MeshInfo newActive)
+        /// <param name="prevActive">The mesh.</param>
+        private void OnActiveMeshChanged(MeshInfo mesh)
         {
-            if (newActive != null)
+            if (mesh.IsActive)
             {
-                Mesh mesh = newActive.Mesh;
-
-                m_name.Text = mesh.Name;
-                m_vertexCount.Text = mesh.VertexCount.ToString();
-                m_triangleCount.Text = mesh.TriangleCount.ToString();
+                m_name.Text = mesh.Mesh.Name;
+                m_vertexCount.Text = mesh.Mesh.VertexCount.ToString();
+                m_triangleCount.Text = mesh.Mesh.TriangleCount.ToString();
 
                 m_hiddenOnNoActive.ForEach(w => w.ShowAll());
             }
