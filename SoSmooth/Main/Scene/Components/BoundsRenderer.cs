@@ -97,7 +97,10 @@ namespace SoSmooth.Scenes
         /// <param name="entity">True if managed resources should be cleaned up.</param>
         protected override void OnDispose(bool disposing)
         {
-            m_vertexBuffer.Dispose();
+            if (m_vertexBuffer != null)
+            {
+                m_vertexBuffer.Dispose();
+            }
 
             base.OnDispose(disposing);
         }

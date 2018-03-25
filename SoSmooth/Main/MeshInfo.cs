@@ -155,7 +155,7 @@ namespace SoSmooth
         /// <returns></returns>
         public override string ToString()
         {
-            return $"{{{Mesh.Name} Visible:{IsVisible} Selected:{IsSelected} Active:{IsActive}}}";
+            return $"{{\"{Mesh.Name}\" Visible:{IsVisible} Selected:{IsSelected} Active:{IsActive}}}";
         }
     }
 }

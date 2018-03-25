@@ -14,28 +14,22 @@ namespace SoSmooth
     /// </summary>
     public class MeanSmoother : ISmoother
     {
-        private Vector3[] m_vertices;
-        private Triangle[] m_triangles;
-
-        private int[][] m_vertToNeighbors;
-        private int[][] m_triToNeighbors;
-
-        private float[] m_triAreas;
-        private Vector3[] m_triNormals;
-        private Vector3[] m_triCenteroids;
-        private Vector3[] m_triNeighborhoodNormals;
+        /// <summary>
+        /// The maximum number of iterations that may be performed at once.
+        /// </summary>
+        public const int MAX_ITERATIONS = 40;
 
         private int m_iterations = 10;
         private float m_strength = 1.0f;
 
         /// <summary>
         /// The number of smoothing iterations performed when smoothing.
-        /// The value is restricted to the range [1, 40].
+        /// The value is restricted to the range [1, MAX_ITERATIONS].
         /// </summary>
         public int Iterations
         {
             get { return m_iterations; }
-            set { m_iterations = MathHelper.Clamp(value, 1, 40); }
+            set { m_iterations = MathHelper.Clamp(value, 1, MAX_ITERATIONS); }
         }
 
         /// <summary>
@@ -47,6 +41,25 @@ namespace SoSmooth
             get { return m_strength; }
             set { m_strength = MathHelper.Clamp(value, 0.0f, 1.0f); }
         }
+
+        /// <summary>
+        /// Checks if the current settings will cause the smoother to have no effect.
+        /// </summary>
+        public bool WillNoOp()
+        {
+            return m_strength == 0 || m_iterations <= 0;
+        }
+        
+        private Vector3[] m_vertices;
+        private Triangle[] m_triangles;
+
+        private int[][] m_vertToNeighbors;
+        private int[][] m_triToNeighbors;
+
+        private float[] m_triAreas;
+        private Vector3[] m_triNormals;
+        private Vector3[] m_triCenteroids;
+        private Vector3[] m_triNeighborhoodNormals;
 
         /// <summary>
         /// Smooths a mesh.
@@ -232,6 +245,14 @@ namespace SoSmooth
                 // no not modify the z-coordinates as they should not change
                 m_vertices[v] += new Vector3(vDisp.X, vDisp.Y, 0);
             }
+        }
+
+        /// <summary>
+        /// Gets a nicely formatted string represeting the smoother.
+        /// </summary>
+        public override string ToString()
+        {
+            return $"Mean Smoother, Iterations:{Iterations}, Strength:{Strength}";
         }
     }
 }

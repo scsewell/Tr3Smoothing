@@ -21,11 +21,10 @@ namespace SoSmooth
         /// </summary>
         public ActiveMeshControls()
         {
-            HeightRequest = 200;
+            HeightRequest = 150;
 
-            Gtk.Label title = new Gtk.Label();
+            Label title = new Label();
             title.Markup = "<b>Active Mesh</b>";
-            title.TooltipText = "The mesh most recently selected.";
             PackStart(title, false, false, 5);
 
             m_name = CreateField("Name", "The name of the mesh.");
@@ -47,7 +46,7 @@ namespace SoSmooth
         {
             foreach (MeshInfo mesh in meshes)
             {
-                mesh.ActiveChanged += OnActiveMeshChanged;
+                mesh.ActiveChanged += SetDisplayedMesh;
             }
         }
 
@@ -56,32 +55,24 @@ namespace SoSmooth
         /// </summary>
         private void OnMeshRemoved(MeshInfo mesh)
         {
-            mesh.ActiveChanged -= OnActiveMeshChanged;
+            mesh.ActiveChanged -= SetDisplayedMesh;
         }
 
         /// <summary>
-        /// Hide the contents if there is no active mesh
+        /// Hide the contents if there is no active mesh.
         /// </summary>
         private void OnShown(object sender, EventArgs e)
         {
-            bool hasActive = MeshManager.Instance.ActiveMesh != null;
-            if (hasActive)
-            {
-                m_hiddenOnNoActive.ForEach(w => w.ShowAll());
-            }
-            else
-            {
-                m_hiddenOnNoActive.ForEach(w => w.HideAll());
-            }
+            SetDisplayedMesh(MeshManager.Instance.ActiveMesh);
         }
 
         /// <summary>
         /// Called when the active mesh in the user's selection has changed.
         /// </summary>
         /// <param name="prevActive">The mesh.</param>
-        private void OnActiveMeshChanged(MeshInfo mesh)
+        private void SetDisplayedMesh(MeshInfo mesh)
         {
-            if (mesh.IsActive)
+            if (mesh != null && mesh.IsActive)
             {
                 m_name.Text = mesh.Mesh.Name;
                 m_vertexCount.Text = mesh.Mesh.VertexCount.ToString();
@@ -103,18 +94,19 @@ namespace SoSmooth
         /// <returns>The label where the value is displayed.</returns>
         private Label CreateField(string title, string tooltip = null)
         {
-            Label titleLabel = new Label(title + ":");
+            HBox box = new HBox();
             if (tooltip != null)
             {
-                titleLabel.TooltipText = tooltip;
+                box.TooltipText = tooltip;
             }
+
+            Label titleLabel = new Label(title + ":");
             titleLabel.WidthRequest = 60;
             titleLabel.Xalign = 0;
 
             Label valueLabel = new Label();
             valueLabel.Xalign = 0;
-
-            HBox box = new HBox();
+            
             box.PackStart(titleLabel, false, false, 5);
             box.PackStart(valueLabel, true, true, 5);
             PackStart(box, false, false, 1);

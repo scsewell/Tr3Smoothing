@@ -55,18 +55,11 @@ namespace SoSmooth
         /// Adds meshes to the loaded mesh list.
         /// </summary>
         /// <param name="meshes">The meshes to add.</param>
-        public void AddMeshes(IEnumerable<Mesh> meshes)
+        public void AddMeshes(IEnumerable<MeshInfo> meshes)
         {
             m_meshes.ForEach(m => m.IsSelected = false);
-
-            List<MeshInfo> newMeshes = new List<MeshInfo>();
-            foreach (Mesh mesh in meshes)
-            {
-                newMeshes.Add(new MeshInfo(mesh));
-            }
-            MeshesAdded?.Invoke(newMeshes);
-
-            m_meshes.AddRange(newMeshes);
+            m_meshes.AddRange(meshes);
+            MeshesAdded?.Invoke(meshes);
             MeshesChanged?.Invoke(m_meshes);
         }
 
@@ -91,21 +84,44 @@ namespace SoSmooth
             foreach (MeshInfo mesh in meshes)
             {
                 MeshRemoved?.Invoke(mesh);
-                // dispose old meshes to prevent memory leak of unmanaged mesh data
-                mesh.Mesh.Dispose();
             }
         }
 
         /// <summary>
-        /// Removes all selected meshes.
+        /// Adds meshes to the loaded mesh list. The operation is added to the undo stack.
         /// </summary>
-        public void DeleteSelected()
+        /// <param name="meshes">The meshes to add.</param
+        /// <returns>The mesh infos for the added meshes.</returns>
+        public List<MeshInfo> AddMeshes(IEnumerable<Mesh> meshes)
         {
-            RemoveMeshes(SelectedMeshes);
+            ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
+            List<MeshInfo> meshInfos = new List<MeshInfo>();
+            foreach (Mesh mesh in meshes)
+            {
+                meshInfos.Add(new MeshInfo(mesh));
+            }
+            AddMeshes(meshInfos);
+
+            op.Complete();
+
+            return meshInfos;
         }
 
         /// <summary>
-        /// Makes every mesh visible.
+        /// Removes all selected meshes. The operation is added to the undo stack.
+        /// </summary>
+        public void DeleteSelected()
+        {
+            ModifyMeshInfosOperation op = new ModifyMeshInfosOperation();
+
+            RemoveMeshes(SelectedMeshes);
+
+            op.Complete();
+        }
+
+        /// <summary>
+        /// Makes every mesh visible. The operation is added to the undo stack.
         /// </summary>
         public void ShowAll()
         {
@@ -122,7 +138,7 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Makes every mesh visible.
+        /// Makes every mesh visible. The operation is added to the undo stack.
         /// </summary>
         public void HideSelected()
         {
@@ -141,6 +157,7 @@ namespace SoSmooth
 
         /// <summary>
         /// Delects all meshes if any are selected and selects all meshes is none are selected.
+        /// The operation is added to the undo stack.
         /// </summary>
         public void ToggleSelected()
         {

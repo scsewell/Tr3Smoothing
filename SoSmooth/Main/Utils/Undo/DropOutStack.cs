@@ -14,9 +14,16 @@ namespace SoSmooth
         private int m_count = 0;
 
         /// <summary>
-        /// The number of elements in the stack.
+        /// The number of items in the stack.
         /// </summary>
         public int Count => m_count;
+
+        public delegate void ItemDroppedHandler(T item);
+
+        /// <summary>
+        /// Triggered when an item is dropped from the bottom of the stack.
+        /// </summary>
+        public event ItemDroppedHandler ItemDropped;
 
         /// <summary>
         /// Creates a new stack instance.
@@ -28,33 +35,42 @@ namespace SoSmooth
         }
 
         /// <summary>
-        /// Pushes an element onto the stack.
+        /// Pushes an item onto the stack.
         /// </summary>
-        /// <param name="item">The new element.</param>
+        /// <param name="item">The new item.</param>
         public void Push(T item)
         {
+            // if the stack is full notify that the bottom item is being dropped.
+            if (m_count == m_items.Length)
+            {
+                ItemDropped?.Invoke(m_items[m_top]);
+            }
+            else
+            {
+                m_count++;
+            }
+
             m_items[m_top] = item;
             m_top = (m_top + 1) % m_items.Length;
-            m_count = Math.Min(m_count + 1, m_items.Length);
         }
 
         /// <summary>
-        /// removes an element from the stack.
+        /// Removes an item from the stack.
         /// </summary>
-        /// <returns>The removed element.</returns>
+        /// <returns>The removed item.</returns>
         public T Pop()
         {
             if (m_count > 0)
             {
+                m_count--;
                 m_top = (m_items.Length + m_top - 1) % m_items.Length;
-                m_count--; 
                 T item = m_items[m_top];
                 m_items[m_top] = default(T);
                 return item;
             }
             else
             {
-                throw new InvalidOperationException("Stack must contain an element to pop.");
+                throw new InvalidOperationException("Stack must contain an item to pop.");
             }
         }
     }

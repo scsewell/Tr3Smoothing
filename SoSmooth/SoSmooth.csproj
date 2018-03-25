@@ -188,8 +188,10 @@
     <Compile Include="Main\MeshInfo.cs" />
     <Compile Include="Main\Smoothing\ISmoother.cs" />
     <Compile Include="Main\Smoothing\MeanSmoother.cs" />
+    <Compile Include="Main\Smoothing\SmoothingManager.cs" />
     <Compile Include="Main\UI\Operations\ModifyMeshInfosOperation.cs" />
     <Compile Include="Main\UI\Operations\SmoothOperation.cs" />
+    <Compile Include="Main\UI\SmoothingContent.cs" />
     <Compile Include="Main\Utils\Undo\DropOutStack.cs" />
     <Compile Include="Main\Utils\Undo\Operation.cs" />
     <Compile Include="Main\Renderer\Core\Buffers\Buffer.cs" />

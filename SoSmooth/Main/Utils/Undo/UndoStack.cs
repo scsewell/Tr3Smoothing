@@ -3,7 +3,7 @@
 namespace SoSmooth
 {
     /// <summary>
-    /// Implements a global undo stack.
+    /// Implements a global undo/redo stack.
     /// </summary>
     public class UndoStack : Singleton<UndoStack>
     {
@@ -12,8 +12,16 @@ namespace SoSmooth
         /// </summary>
         private const int MAX_HISTORTY_SIZE = 50;
 
-        private readonly DropOutStack<Operation> m_history = new DropOutStack<Operation>(MAX_HISTORTY_SIZE);
-        private readonly Stack<Operation> m_undone = new Stack<Operation>();
+        private readonly DropOutStack<Operation> m_undoStack;
+        private readonly Stack<Operation> m_redoStack;
+
+        public UndoStack()
+        {
+            m_undoStack = new DropOutStack<Operation>(MAX_HISTORTY_SIZE);
+            m_redoStack = new Stack<Operation>(MAX_HISTORTY_SIZE);
+
+            m_undoStack.ItemDropped += OnItemDropped;
+        }
 
         /// <summary>
         /// Adds an operation to the undo stack.
@@ -22,9 +30,13 @@ namespace SoSmooth
         public void AddOperation(Operation op)
         {
             // remember this operation
-            m_history.Push(op);
-            // any undone operations are forgotten
-            m_undone.Clear();
+            m_undoStack.Push(op);
+
+            // any undone operations can't be redone now
+            while (m_redoStack.Count > 0)
+            {
+                m_redoStack.Pop().OnRedoClear();
+            }
         }
 
         /// <summary>
@@ -32,11 +44,11 @@ namespace SoSmooth
         /// </summary>
         public void Undo()
         {
-            if (m_history.Count > 0)
+            if (m_undoStack.Count > 0)
             {
-                Operation op = m_history.Pop();
+                Operation op = m_undoStack.Pop();
                 op.Unexcecute();
-                m_undone.Push(op);
+                m_redoStack.Push(op);
             }
         }
 
@@ -45,12 +57,22 @@ namespace SoSmooth
         /// </summary>
         public void Redo()
         {
-            if (m_undone.Count > 0)
+            if (m_redoStack.Count > 0)
             {
-                Operation op = m_undone.Pop();
+                Operation op = m_redoStack.Pop();
                 op.Excecute();
-                m_history.Push(op);
+                m_undoStack.Push(op);
             }
+        }
+
+        /// <summary>
+        /// Called when an item is dropped from the bottom of the undo stack.
+        /// </summary>
+        /// <param name="item">The dropped item.</param>
+        private void OnItemDropped(Operation item)
+        {
+            // the operation can no longer be undone
+            item.OnUndoDropped();
         }
     }
 }

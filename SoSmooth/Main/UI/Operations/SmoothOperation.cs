@@ -63,6 +63,7 @@ namespace SoSmooth
         /// </summary>
         public override void Excecute()
         {
+            // apply the smoothed vertex positions and normals to the meshes
             for (int i = 0; i < m_meshes.Count; i++)
             {
                 Mesh mesh = m_meshes[i].Mesh;
@@ -76,6 +77,7 @@ namespace SoSmooth
         /// </summary>
         public override void Unexcecute()
         {
+            // apply the original vertex positions and normals to the meshes
             for (int i = 0; i < m_meshes.Count; i++)
             {
                 Mesh mesh = m_meshes[i].Mesh;

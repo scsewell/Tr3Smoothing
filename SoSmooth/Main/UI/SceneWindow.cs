@@ -102,6 +102,10 @@ namespace SoSmooth
             ButtonPressEvent += OnButtonPress;
             MotionNotifyEvent += OnMotion;
             ScrollEvent += OnScroll;
+
+            m_scene = new Scene();
+            m_sceneCamera = new SceneCamera(this);
+            m_sceneMeshes = new SceneMeshes(this);
         }
 
         /// <summary>
@@ -132,12 +136,11 @@ namespace SoSmooth
             // preload all shader programs
             ShaderManager.Instance.LoadShaders();
             
+            // endable depth testing
             GL.Enable(EnableCap.DepthTest);
+
+            // cull fragments outside of the viewport
             GL.Enable(EnableCap.ScissorTest);
-            
-            m_scene = new Scene();
-            m_sceneCamera = new SceneCamera(this);
-            m_sceneMeshes = new SceneMeshes(this);
         }
 
         /// <summary>

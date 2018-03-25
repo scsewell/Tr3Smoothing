@@ -124,36 +124,19 @@ namespace SoSmooth.Scenes
         }
 
         /// <summary>
-        /// Sets the polygon mode of the rendered mesh's front faces. Default is <see cref="PolygonMode.Fill"/>.
+        /// Sets the polygon mode of the rendered mesh's faces. Default is <see cref="PolygonMode.Fill"/>.
         /// </summary>
-        public PolygonMode FrontFaceMode
+        public PolygonMode FaceMode
         {
             get
             {
                 ValidateDispose();
-                return m_polygonMode.FrontFaceMode;
+                return m_polygonMode.FaceMode;
             }
             set
             {
                 ValidateDispose();
-                m_polygonMode.FrontFaceMode = value;
-            }
-        }
-
-        /// <summary>
-        /// Sets the polygon mode of the rendered mesh's back faces. Default is <see cref="PolygonMode.Fill"/>.
-        /// </summary>
-        public PolygonMode BackFaceMode
-        {
-            get
-            {
-                ValidateDispose();
-                return m_polygonMode.BackFaceMode;
-            }
-            set
-            {
-                ValidateDispose();
-                m_polygonMode.BackFaceMode = value;
+                m_polygonMode.FaceMode = value;
             }
         }
 
@@ -260,13 +243,9 @@ namespace SoSmooth.Scenes
                 {
                     return (int)CullMode - (int)other.CullMode;
                 }
-                else if (FrontFaceMode != other.FrontFaceMode)
+                else if (FaceMode != other.FaceMode)
                 {
-                    return (int)FrontFaceMode - (int)other.FrontFaceMode;
-                }
-                else if (BackFaceMode != other.BackFaceMode)
-                {
-                    return (int)BackFaceMode - (int)other.BackFaceMode;
+                    return (int)FaceMode - (int)other.FaceMode;
                 }
                 else if (m_shaderProgram != other.m_shaderProgram)
                 {

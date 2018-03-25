@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Gtk;
 using SoSmooth.IO.tr3;
 using SoSmooth.IO.Vrml;
+using SoSmooth.Meshes;
 
 namespace SoSmooth
 {
@@ -64,18 +67,13 @@ namespace SoSmooth
             edit_redo.Activated += ((o, e) => UndoStack.Instance.Redo());
             edit_menu.Append(edit_redo);
 
-            MenuItem edit_smooth = new MenuItem("_Smooth");
-            edit_smooth.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.S, Gdk.ModifierType.None, AccelFlags.Visible));
-            edit_smooth.Activated += ((o, e) => new SmoothOperation(new MeanSmoother(), MeshManager.Instance.SelectedMeshes));
-            edit_menu.Append(edit_smooth);
-
             // mesh menu
             MenuItem mesh_item = new MenuItem("_Mesh");
             Menu mesh_menu = new Menu();
             mesh_item.Submenu = mesh_menu;
             Append(mesh_item);
 
-            MenuItem mesh_selectAll = new MenuItem("_Select All/None");
+            MenuItem mesh_selectAll = new MenuItem("Select _All/None");
             mesh_selectAll.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.A, Gdk.ModifierType.None, AccelFlags.Visible));
             mesh_selectAll.Activated += ((o, e) => MeshManager.Instance.ToggleSelected());
             mesh_menu.Append(mesh_selectAll);
@@ -94,6 +92,13 @@ namespace SoSmooth
             mesh_delete.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.Delete, Gdk.ModifierType.None, AccelFlags.Visible));
             mesh_delete.Activated += ((o, e) => MeshManager.Instance.DeleteSelected());
             mesh_menu.Append(mesh_delete);
+
+            mesh_menu.Append(new SeparatorMenuItem());
+
+            MenuItem mesh_smooth = new MenuItem("_Smooth Selected");
+            mesh_smooth.AddAccelerator("activate", accelGroup, new AccelKey(Gdk.Key.S, Gdk.ModifierType.None, AccelFlags.Visible));
+            mesh_smooth.Activated += ((o, e) => SmoothingManager.Instance.SmoothSelected());
+            mesh_menu.Append(mesh_smooth);
         }
 
         private void OnOpenTr3(object sender, EventArgs e)
@@ -123,7 +128,7 @@ namespace SoSmooth
 
         private void OnOpenVRML(object sender, EventArgs e)
         {
-            Logger.Info("Selecting VRML file to open");
+            Logger.Info("Selecting VRML 2.0 file to open");
 
             FileChooserDialog fileChooser = new FileChooserDialog(
                 "Open Mesh File",
@@ -135,12 +140,21 @@ namespace SoSmooth
 
             FileFilter filter = new FileFilter();
             filter.AddPattern("*.wrl");
-            filter.Name = "VRML";
+            filter.Name = "VRML 2.0";
             fileChooser.AddFilter(filter);
 
             if (fileChooser.Run() == (int)ResponseType.Accept)
             {
-                MeshManager.Instance.AddMeshes(VrmlExtractor.Instance.Read(fileChooser.Filename));
+                // extract the meshes from the file and load them into the scene
+                List<Mesh> meshes = VrmlExtractor.Instance.Read(fileChooser.Filename);
+                List<MeshInfo> meshInfos = MeshManager.Instance.AddMeshes(meshes);
+
+                // focus on the new meshes if nothing is selected
+                if (MeshManager.Instance.SelectedMeshes.Count == 0)
+                {
+                    Bounds bounds = MainContent.SceneWindow.Meshes.GetBounds(meshInfos);
+                    MainContent.SceneWindow.Camera.EaseToBounds(bounds);
+                }
             }
 
             fileChooser.Destroy();

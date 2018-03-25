@@ -9,8 +9,6 @@ namespace SoSmooth
     /// </summary>
     public class SceneToolbar : Toolbar
     {
-        public static readonly string[] SHADING_VALS = new string[] { "Solid", "Wireframe", "Hidden" };
-
         private SceneWindow m_sceneWindow;
         private ComboBox m_frontShading;
         private ComboBox m_backShading;
@@ -73,16 +71,16 @@ namespace SoSmooth
             
             // render settings
             Label frontShadingLabel = new Label("Front Face Mode:");
-            m_frontShading = new ComboBox(SHADING_VALS);
+            m_frontShading = new ComboBox(Enum.GetNames(typeof(SceneMeshes.RenderMode)));
             m_frontShading.TooltipText = "The render style for front faces.";
-            m_frontShading.Active = 0;
+            m_frontShading.Active = (int)m_sceneWindow.Meshes.FrontFaceMode;
             m_frontShading.CanFocus = false;
             m_frontShading.Changed += OnFrontShadingChanged;
             
             Label backShadingLabel = new Label("Back Face Mode:");
-            m_backShading = new ComboBox(SHADING_VALS);
+            m_backShading = new ComboBox(Enum.GetNames(typeof(SceneMeshes.RenderMode)));
             m_backShading.TooltipText = "The render style for back faces.";
-            m_backShading.Active = 0;
+            m_backShading.Active = (int)m_sceneWindow.Meshes.BackFaceMode;
             m_backShading.CanFocus = false;
             m_backShading.Changed += OnBackShadingChanged;
 
@@ -104,9 +102,13 @@ namespace SoSmooth
         private void OnFrontShadingChanged(object sender, EventArgs e)
         {
             TreeIter iter;
-            m_frontShading.GetActiveIter(out iter);
-            TreePath path = m_frontShading.Model.GetPath(iter);
-            m_sceneWindow.Meshes.frontFaceMode = SHADING_VALS[path.Indices[0]];
+            if (m_frontShading.GetActiveIter(out iter))
+            {
+                TreePath path = m_frontShading.Model.GetPath(iter);
+
+                SceneMeshes.RenderMode[] vals = (SceneMeshes.RenderMode[])Enum.GetValues(typeof(SceneMeshes.RenderMode));
+                m_sceneWindow.Meshes.FrontFaceMode = vals[path.Indices[0]];
+            }
         }
 
         /// <summary>
@@ -115,9 +117,13 @@ namespace SoSmooth
         private void OnBackShadingChanged(object sender, EventArgs e)
         {
             TreeIter iter;
-            m_backShading.GetActiveIter(out iter);
-            TreePath path = m_backShading.Model.GetPath(iter);
-            m_sceneWindow.Meshes.backFaceMode = SHADING_VALS[path.Indices[0]];
+            if (m_backShading.GetActiveIter(out iter))
+            {
+                TreePath path = m_backShading.Model.GetPath(iter);
+
+                SceneMeshes.RenderMode[] vals = (SceneMeshes.RenderMode[])Enum.GetValues(typeof(SceneMeshes.RenderMode));
+                m_sceneWindow.Meshes.BackFaceMode = vals[path.Indices[0]];
+            }
         }
     }
 }
