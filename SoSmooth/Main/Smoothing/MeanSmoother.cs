@@ -215,11 +215,17 @@ namespace SoSmooth
                 for (int n = 0; n < neighborhood.Length; n++)
                 {
                     int triIndex = neighborhood[n];
-                    normal += m_triAreas[triIndex] * m_triNormals[triIndex];
+                    float area = m_triAreas[triIndex];
+
+                    // if the triangle has no area the normal is NAN
+                    if (area > 0)
+                    {
+                        normal += area * m_triNormals[triIndex];
+                    }
                 }
                 m_triNeighborhoodNormals[t] = normal.Normalized();
             }
-            
+
             // move all vertices based on the neighborhood normals of each adjacent triangle
             for (int v = 0; v < m_vertices.Length; v++)
             {
@@ -238,6 +244,11 @@ namespace SoSmooth
 
                     nArea += area;
                     vDisp += area * Vector3.Dot(vertToCenter, normal) * normal;
+                    
+                    //if (float.IsNaN(vDisp.X) || float.IsNaN(vDisp.Y))
+                    //{
+                    //    Logger.Debug($"area: {area} normal: {normal}");
+                    //}
                 }
 
                 vDisp *= (m_strength / nArea);

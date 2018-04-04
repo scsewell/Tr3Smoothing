@@ -29,13 +29,13 @@ namespace SoSmooth
             m_iterationCount.Value = SmoothingManager.Instance.meanSmoother.Iterations;
             m_iterationCount.CanFocus = false;
             m_iterationCount.ValueChanged += OnIterationsChanged;
-            CreateField(80, m_iterationCount, "Iterations", "The number of iterations performed by the smoothing algorithm.");
+            CreateField(60, m_iterationCount, "Iterations", "The number of iterations performed by the smoothing algorithm.");
 
             m_strength = new HScale(0, 1, 0.01);
             m_strength.Value = SmoothingManager.Instance.meanSmoother.Strength;
             m_strength.CanFocus = false;
             m_strength.ValueChanged += OnStrengthChanged;
-            CreateField(80, m_strength, "Strength", "The strength of the smoothing effect.");
+            CreateField(60, m_strength, "Strength", "The strength of the smoothing effect.");
 
             Button smoothButton = new Button();
             smoothButton.Label = "Smooth Selected";
