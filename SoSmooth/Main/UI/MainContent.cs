@@ -1,4 +1,5 @@
-﻿using Gtk;
+﻿using System.Timers;
+using Gtk;
 
 namespace SoSmooth
 {
@@ -7,8 +8,16 @@ namespace SoSmooth
     /// </summary>
     public class MainContent : HBox
     {
+        /// <summary>
+        /// The max frequency of the scene update/rendering in hertz.
+        /// </summary>
+        private const float MAX_UPDATE_FREQUENCY = 80.0f;
+
         private static SceneWindow m_sceneWindow;
         public static SceneWindow SceneWindow => m_sceneWindow;
+
+        private Timer m_updateTimer = new Timer(1000 / MAX_UPDATE_FREQUENCY);
+        private bool m_canUpdate = true;
         
         /// <summary>
         /// Constructor.
@@ -65,6 +74,17 @@ namespace SoSmooth
 
             Time.SetStartTime();
             GLib.Idle.Add(Update);
+
+            m_updateTimer.Elapsed += TimerUpdate;
+            m_updateTimer.Start();
+        }
+
+        /// <summary>
+        /// Triggered every time the application should update the scene UI
+        /// </summary>
+        private void TimerUpdate(object sender, ElapsedEventArgs e)
+        {
+            m_canUpdate = true;
         }
 
         /// <summary>
@@ -72,8 +92,12 @@ namespace SoSmooth
         /// </summary>
         private bool Update()
         {
-            Time.FrameStart();
-            m_sceneWindow.QueueDraw();
+            if (m_canUpdate)
+            {
+                Time.FrameStart();
+                m_sceneWindow.QueueDraw();
+                m_canUpdate = false;
+            }
             return true;
         }
     }

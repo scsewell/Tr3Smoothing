@@ -244,11 +244,6 @@ namespace SoSmooth
 
                     nArea += area;
                     vDisp += area * Vector3.Dot(vertToCenter, normal) * normal;
-                    
-                    //if (float.IsNaN(vDisp.X) || float.IsNaN(vDisp.Y))
-                    //{
-                    //    Logger.Debug($"area: {area} normal: {normal}");
-                    //}
                 }
 
                 vDisp *= (m_strength / nArea);
