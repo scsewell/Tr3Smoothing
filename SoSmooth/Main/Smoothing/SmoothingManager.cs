@@ -10,19 +10,11 @@ namespace SoSmooth
     /// </summary>
     public class SmoothingManager : Singleton<SmoothingManager>
     {
-        public readonly MeanSmoother meanSmoother = new MeanSmoother();
-
-        /// <summary>
-        /// The current smoothing algorithm.
-        /// </summary>
-        public ISmoother currentSmoother;
-
         /// <summary>
         /// Constructor.
         /// </summary>
         public SmoothingManager()
         {
-            currentSmoother = meanSmoother;
         }
 
         /// <summary>
@@ -32,11 +24,10 @@ namespace SoSmooth
         {
             List<MeshInfo> selectedMeshes = MeshManager.Instance.SelectedMeshes;
 
-            if (selectedMeshes.Count > 0 && !currentSmoother.WillNoOp())
+            if (selectedMeshes.Count > 0 && MeanSmoother.Strength > 0 && MeanSmoother.Iterations > 0)
             {
-                Logger.Info($"Smoothing {selectedMeshes.Count} meshes using " + currentSmoother);
-
-                new SmoothOperation(meanSmoother, selectedMeshes);
+                Logger.Info($"Smoothing {selectedMeshes.Count} meshes using mean filter");
+                new SmoothOperation(selectedMeshes);
             }
         }
     }

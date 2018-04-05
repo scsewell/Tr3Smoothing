@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using SoSmooth.Meshes;
 using OpenTK;
 
@@ -19,14 +20,14 @@ namespace SoSmooth
         /// </summary>
         public const int MAX_ITERATIONS = 40;
 
-        private int m_iterations = 10;
-        private float m_strength = 1.0f;
+        private static int m_iterations = 10;
+        private static float m_strength = 1.0f;
 
         /// <summary>
         /// The number of smoothing iterations performed when smoothing.
         /// The value is restricted to the range [1, MAX_ITERATIONS].
         /// </summary>
-        public int Iterations
+        public static int Iterations
         {
             get { return m_iterations; }
             set { m_iterations = MathHelper.Clamp(value, 1, MAX_ITERATIONS); }
@@ -36,20 +37,13 @@ namespace SoSmooth
         /// How strong the smoothing effect is each iteration.
         /// The value is restricted to the range [0, 1].
         /// </summary>
-        public float Strength
+        public static float Strength
         {
             get { return m_strength; }
             set { m_strength = MathHelper.Clamp(value, 0.0f, 1.0f); }
         }
 
-        /// <summary>
-        /// Checks if the current settings will cause the smoother to have no effect.
-        /// </summary>
-        public bool WillNoOp()
-        {
-            return m_strength == 0 || m_iterations <= 0;
-        }
-        
+        private readonly Stopwatch m_stopwatch = new Stopwatch();
         private Vector3[] m_vertices;
         private Triangle[] m_triangles;
 
@@ -69,6 +63,8 @@ namespace SoSmooth
         /// <returns>The smoothed vertex positions.</returns>
         public Vector3[] Smooth(Vector3[] verts, Triangle[] tris)
         {
+            m_stopwatch.Restart();
+
             m_vertices = verts.Clone() as Vector3[];
             m_triangles = tris;
 
@@ -76,10 +72,15 @@ namespace SoSmooth
             ComputeVertexNeighborTris();
             ComputeTriangleNeighbors();
             
+            // do iterations
             for (int i = 0; i < m_iterations; i++)
             {
                 SmoothIteration();
             }
+
+            // report completion
+            m_stopwatch.Stop();
+            Logger.Info($"Finished smoothing {verts.Length} vertices in {m_stopwatch.ElapsedMilliseconds} milliseconds");
 
             return m_vertices;
         }

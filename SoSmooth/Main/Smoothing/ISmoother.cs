@@ -15,10 +15,5 @@ namespace SoSmooth
         /// <param name="tris">The triangles of the mesh.</param>
         /// <returns>The smoothed vertex positions.</returns>
         Vector3[] Smooth(Vector3[] verts, Triangle[] tris);
-
-        /// <summary>
-        /// Checks if the current settings will cause the smoother to have no effect.
-        /// </summary>
-        bool WillNoOp();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using OpenTK;
 using SoSmooth.Meshes;
 
@@ -20,37 +21,46 @@ namespace SoSmooth
         /// <summary>
         /// Creates a new <see cref="SmoothOperation"/> instance.
         /// </summary>
-        /// <param name="smoother">The smoothing algorithm to apply.</param>
         /// <param name="meshes">The meshes to smooth.</param>
-        public SmoothOperation(ISmoother smoother, params MeshInfo[] meshes) 
-            : this(smoother, meshes as IEnumerable<MeshInfo>)
+        public SmoothOperation(params MeshInfo[] meshes) : this(meshes as IEnumerable<MeshInfo>)
         {
         }
 
         /// <summary>
         /// Creates a new <see cref="SmoothOperation"/> instance.
         /// </summary>
-        /// <param name="smoother">The smoothing algorithm to apply.</param>
         /// <param name="meshes">The meshes to smooth.</param>
-        public SmoothOperation(ISmoother smoother, IEnumerable<MeshInfo> meshes)
+        public SmoothOperation(IEnumerable<MeshInfo> meshes)
         {
+            // Smooth each mesh on its own thread
+            Dictionary<MeshInfo, Task<Vector3[]>> smoothingTasks = new Dictionary<MeshInfo, Task<Vector3[]>>();
+
+            // We store the before and after results of the smoothing to make undoing
+            // and redoing very fast rather than recalculating the smoothing.
             foreach (MeshInfo info in meshes)
             {
                 m_meshes.Add(info);
 
                 Mesh mesh = info.Mesh;
-                Triangle[] tris = mesh.Triangles;
                 Vector3[] oldVerts = mesh.Vertices;
                 Vector3[] oldNormals = mesh.Normals;
-
-                // We store the before and after results of the smoothing to make undoing
-                // and redoing very fast rather than recalculating the smoothing.
-                Vector3[] newVerts = smoother.Smooth(oldVerts, tris);
-                Vector3[] newNormals = Utils.CalculateNormals(newVerts, tris);
-
                 m_oldVerts.Add(oldVerts);
-                m_newVerts.Add(newVerts);
                 m_oldNormals.Add(oldNormals);
+
+                // start a thread for the smoothing of the mesh
+                Task<Vector3[]> smoothTask = new Task<Vector3[]>(() => new MeanSmoother().Smooth(oldVerts, mesh.Triangles));
+                smoothTask.Start();
+                smoothingTasks.Add(info, smoothTask);
+            }
+
+            // wait for each smoothing thread and store results
+            foreach (MeshInfo info in meshes)
+            {
+                Task<Vector3[]> task = smoothingTasks[info];
+                task.Wait();
+                Vector3[] newVerts = task.Result;
+                Vector3[] newNormals = Utils.CalculateNormals(newVerts, info.Mesh.Triangles);
+                m_newVerts.Add(newVerts);
                 m_newNormals.Add(newNormals);
             }
 

@@ -26,13 +26,13 @@ namespace SoSmooth
             PackStart(title, false, false, 5);
 
             m_iterationCount = new HScale(1, MeanSmoother.MAX_ITERATIONS, 1);
-            m_iterationCount.Value = SmoothingManager.Instance.meanSmoother.Iterations;
+            m_iterationCount.Value = MeanSmoother.Iterations;
             m_iterationCount.CanFocus = false;
             m_iterationCount.ValueChanged += OnIterationsChanged;
             CreateField(60, m_iterationCount, "Iterations", "The number of iterations performed by the smoothing algorithm.");
 
             m_strength = new HScale(0, 1, 0.01);
-            m_strength.Value = SmoothingManager.Instance.meanSmoother.Strength;
+            m_strength.Value = MeanSmoother.Strength;
             m_strength.CanFocus = false;
             m_strength.ValueChanged += OnStrengthChanged;
             CreateField(60, m_strength, "Strength", "The strength of the smoothing effect.");
@@ -49,7 +49,7 @@ namespace SoSmooth
         /// </summary>
         private void OnIterationsChanged(object sender, EventArgs e)
         {
-            SmoothingManager.Instance.meanSmoother.Iterations = (int)Math.Round(m_iterationCount.Value);
+            MeanSmoother.Iterations = (int)Math.Round(m_iterationCount.Value);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace SoSmooth
         /// </summary>
         private void OnStrengthChanged(object sender, EventArgs e)
         {
-            SmoothingManager.Instance.meanSmoother.Strength = (float)m_strength.Value;
+            MeanSmoother.Strength = (float)m_strength.Value;
         }
         
         /// <summary>
