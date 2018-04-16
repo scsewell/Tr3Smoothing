@@ -12,9 +12,7 @@ This project is written in C#, using the .NET runtimes. For the UI, [gtk#](http:
 
 ## Running the Application
 The application is able to run 32-bit and 64-bit Windows and Linux systems. However, dependancies must be installed for the application to run:
-* One of the following
-  * [.NET Framework](https://www.microsoft.com/net/download/windows) (select runtime version) - Windows only
-  * [Mono](http://www.mono-project.com/download/) Windows, MacOS, and Linux
+* [Mono](http://www.mono-project.com/download/)
 * Gtk
   * [Windows](http://www.mono-project.com/download/#download-win)
   * Linux - Install gtk-sharp2 package
