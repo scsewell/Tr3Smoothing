@@ -17,7 +17,7 @@ The application is able to run 32-bit and 64-bit Windows and Linux systems. Howe
   * [Windows](http://www.mono-project.com/download/#download-win)
   * Linux - Install gtk-sharp2 package
   
-On Windows systems the application can be launced using any usual method.
+On Windows systems the application can be launched using any usual method.
 
 On linux it should be run using mono as follows:
 ```
