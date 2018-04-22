@@ -24,10 +24,9 @@ On linux it should be run using mono as follows:
 mono SoSmooth.exe
 ```
 
-## Getting Started
+## Building
 Ensure you have installed the [.NET Framework SDK](https://www.microsoft.com/net/download/visual-studio-sdks) if on Windows, or [Mono](http://www.mono-project.com/download/) if using Linux (check that the mono-devel package is installed, as it contains the C# compiler). 
 
-### Building
 To build the application on Windows, first add the directory containing MSBuild.exe to the system PATH enviroment variable.
 Then you can run the build.cmd script located in the root folder. The build output will be located under the SoSmooth/bin/ directory.
 
