@@ -23,9 +23,9 @@ On linux it should be run using mono as follows:
 ```
 mono SoSmooth.exe
 ```
-  
+
 ## Getting Started
-First install Fie and Tr3, which are linked above. Afterwords ensure you have installed the .NET Framework SDK version if on Windows, or Mono if using Linux (check that the mono-devel package is installed, as it contains the C# compiler).
+Ensure you have installed the [.NET Framework SDK](https://www.microsoft.com/net/download/visual-studio-sdks) if on Windows, or [Mono](http://www.mono-project.com/download/) if using Linux (check that the mono-devel package is installed, as it contains the C# compiler). 
 
 ### Building
 To build the application on Windows, first add the directory containing MSBuild.exe to the system PATH enviroment variable.
